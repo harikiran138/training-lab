@@ -11,6 +11,8 @@ import dbConnect from '@/lib/mongodb';
 import AggregateSummary from '@/models/AggregateSummary';
 import { cn } from '@/lib/utils';
 
+export const dynamic = 'force-dynamic';
+
 async function getRiskData() {
   await dbConnect();
   const summaries = await AggregateSummary.find({}).lean();

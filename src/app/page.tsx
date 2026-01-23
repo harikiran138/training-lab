@@ -17,6 +17,8 @@ import CRTWeeklyReport from '@/models/CRTWeeklyReport';
 import { refreshAggregateSummary } from '@/services/aggregation';
 import { cn } from '@/lib/utils';
 
+export const dynamic = 'force-dynamic';
+
 async function getData() {
   await dbConnect();
   

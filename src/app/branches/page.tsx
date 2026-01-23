@@ -12,6 +12,8 @@ import AggregateSummary from '@/models/AggregateSummary';
 import Branch from '@/models/Branch';
 import { cn } from '@/lib/utils';
 
+export const dynamic = 'force-dynamic';
+
 async function getBranchData() {
   await dbConnect();
   const summaries = await AggregateSummary.find({}).lean();
