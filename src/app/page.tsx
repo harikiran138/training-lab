@@ -15,6 +15,7 @@ import Branch from '@/models/Branch';
 import AggregateSummary from '@/models/AggregateSummary';
 import CRTWeeklyReport from '@/models/CRTWeeklyReport';
 import { refreshAggregateSummary } from '@/services/aggregation';
+import { cn } from '@/lib/utils';
 
 async function getData() {
   await dbConnect();

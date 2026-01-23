@@ -16,7 +16,7 @@ import {
 import { Calendar, Filter } from 'lucide-react';
 
 export default function TrendsPage() {
-  const [data, setData] = useState([]);
+  const [data, setData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {

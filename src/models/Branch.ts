@@ -12,6 +12,7 @@ const BranchSchema: Schema = new Schema({
   branch_name: { type: String, required: true },
   total_students: { type: Number, required: true },
   laptop_holders: { type: Number, required: true },
+  deleted_at: { type: Date, default: null },
 }, { timestamps: true });
 
 export default mongoose.models.Branch || mongoose.model<IBranch>('Branch', BranchSchema);
