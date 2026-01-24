@@ -90,10 +90,12 @@ export default function DataEntryPage() {
   const updateCell = (branchCode: string, section: string, field: string | null, value: any) => {
     setGridData((prev: any) => {
       const branchRef = { ...prev[branchCode] };
+      if (!branchRef) return prev;
+      
       if (field) {
-        branchRef[section] = { ...branchRef[section], [field]: value };
+        branchRef[section] = { ...branchRef[section], [field]: (isNaN(value) ? 0 : value) };
       } else {
-        branchRef[section] = value;
+        branchRef[section] = (isNaN(value) ? 0 : value);
       }
       return { ...prev, [branchCode]: branchRef };
     });
@@ -147,10 +149,10 @@ export default function DataEntryPage() {
             <p className="text-slate-500 font-medium">Matrix-style input for all branches simultaneously</p>
         </div>
 
-        <div className="flex items-center gap-4 bg-white p-2 rounded-xl border border-slate-100 shadow-sm">
-            <div className="px-3 text-xs font-bold text-slate-400 uppercase tracking-widest">Select Week</div>
+        <div className="flex items-center gap-4 bg-white p-2 rounded-2xl border border-slate-200 shadow-sm">
+            <div className="px-3 text-[10px] font-black text-slate-400 uppercase tracking-widest">Select Audit Week</div>
             <select 
-                className="p-2.5 bg-slate-50 border-none font-bold text-slate-800 rounded-lg outline-none cursor-pointer hover:bg-slate-100 transition-colors"
+                className="p-2.5 bg-slate-50 border-none font-black text-blue-700 rounded-xl outline-none cursor-pointer hover:bg-blue-50 transition-colors"
                 value={selectedWeek}
                 onChange={(e) => setSelectedWeek(e.target.value)}
             >
@@ -162,10 +164,10 @@ export default function DataEntryPage() {
             <button 
                 onClick={handleBulkSave}
                 disabled={saving || !selectedWeek}
-                className="px-6 py-2.5 bg-slate-900 text-white font-bold rounded-lg hover:bg-indigo-600 transition-all flex items-center gap-2 disabled:opacity-30"
+                className="px-6 py-2.5 bg-blue-700 text-white font-black rounded-xl hover:bg-slate-900 transition-all flex items-center gap-2 disabled:opacity-30 shadow-lg shadow-blue-100"
             >
                 <Save className="w-4 h-4" />
-                {saving ? 'Saving...' : 'Save All Changes'}
+                {saving ? 'Saving...' : 'Secure Sync'}
             </button>
         </div>
       </div>
@@ -186,74 +188,74 @@ export default function DataEntryPage() {
             <p className="text-slate-400 font-bold text-lg">Select a week from the dropdown to start entering data</p>
           </div>
       ) : (
-        <div className="bg-white rounded-3xl border border-slate-100 shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-500">
+        <div className="bg-white rounded-[32px] border border-slate-200 shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-500">
             <div className="overflow-x-auto">
                 <table className="w-full text-left border-collapse">
                     <thead>
                         <tr className="bg-slate-900 text-white">
-                            <th className="px-6 py-5 text-xs font-black uppercase tracking-widest sticky left-0 z-10 bg-slate-900">Branch</th>
-                            <th className="px-4 py-5 text-center text-xs font-black uppercase tracking-widest border-l border-slate-800">Attendance %</th>
-                            <th className="px-4 py-5 text-center text-xs font-black uppercase tracking-widest border-l border-slate-800">Pass %</th>
-                            <th className="px-4 py-5 text-center text-xs font-black uppercase tracking-widest border-l border-slate-800">Motivation</th>
-                            <th className="px-4 py-5 text-center text-xs font-black uppercase tracking-widest border-l border-slate-800">Personality</th>
-                            <th className="px-4 py-5 text-center text-xs font-black uppercase tracking-widest border-l border-slate-800">Laptop Cnt</th>
-                            <th className="px-4 py-5 text-center text-xs font-black uppercase tracking-widest border-l border-slate-800">Reading (Min)</th>
-                            <th className="px-4 py-5 text-center text-xs font-black uppercase tracking-widest border-l border-slate-800">Progress</th>
+                            <th className="px-6 py-6 text-[10px] font-black uppercase tracking-widest sticky left-0 z-10 bg-slate-900">Branch</th>
+                            <th className="px-4 py-6 text-center text-[10px] font-black uppercase tracking-widest border-l border-slate-800">Attendance %</th>
+                            <th className="px-4 py-6 text-center text-[10px] font-black uppercase tracking-widest border-l border-slate-800">Pass %</th>
+                            <th className="px-4 py-6 text-center text-[10px] font-black uppercase tracking-widest border-l border-slate-800">Motivation</th>
+                            <th className="px-4 py-6 text-center text-[10px] font-black uppercase tracking-widest border-l border-slate-800">Personality</th>
+                            <th className="px-4 py-6 text-center text-[10px] font-black uppercase tracking-widest border-l border-slate-800">Laptops</th>
+                            <th className="px-4 py-6 text-center text-[10px] font-black uppercase tracking-widest border-l border-slate-800">Reading (M)</th>
+                            <th className="px-4 py-6 text-center text-[10px] font-black uppercase tracking-widest border-l border-slate-800">Syllabus Ph</th>
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100">
                         {branches.map((b: any) => (
-                            <tr key={b.branch_code} className="hover:bg-slate-50/80 transition-colors group">
-                                <td className="px-6 py-4 sticky left-0 z-10 bg-white group-hover:bg-slate-50 transition-colors border-r border-slate-50">
+                            <tr key={b.branch_code} className="hover:bg-blue-50/50 transition-colors group">
+                                <td className="px-6 py-4 sticky left-0 z-10 bg-white group-hover:bg-slate-50 transition-colors border-r border-slate-100">
                                     <div>
-                                        <span className="text-lg font-black text-slate-900">{b.branch_code}</span>
-                                        <p className="text-[10px] font-bold text-slate-400 block uppercase truncate w-32">{b.branch_name}</p>
+                                        <span className="text-base font-black text-slate-900 tracking-tighter">{b.branch_code}</span>
+                                        <p className="text-[9px] font-black text-slate-400 block uppercase truncate w-24 tracking-widest">{b.branch_name}</p>
                                     </div>
                                 </td>
                                 <GridInput 
                                     value={gridData[b.branch_code]?.attendance?.avg_attendance_percent} 
-                                    onChange={(v: any) => updateCell(b.branch_code, 'attendance', 'avg_attendance_percent', v)}
-                                    color="text-indigo-600"
+                                    onChange={(v: number) => updateCell(b.branch_code, 'attendance', 'avg_attendance_percent', v)}
+                                    color="text-blue-700"
                                 />
                                 <GridInput 
                                     value={gridData[b.branch_code]?.tests?.avg_test_pass_percent} 
-                                    onChange={(v: any) => updateCell(b.branch_code, 'tests', 'avg_test_pass_percent', v)}
-                                    color="text-emerald-600"
+                                    onChange={(v: number) => updateCell(b.branch_code, 'tests', 'avg_test_pass_percent', v)}
+                                    color="text-blue-600"
                                 />
                                 <GridInput 
                                     value={gridData[b.branch_code]?.motivation?.avg_score} 
-                                    onChange={(v: any) => updateCell(b.branch_code, 'motivation', 'avg_score', v)}
-                                    color="text-amber-600"
+                                    onChange={(v: number) => updateCell(b.branch_code, 'motivation', 'avg_score', v)}
+                                    color="text-slate-700"
                                     max={10}
                                 />
                                 <GridInput 
                                     value={gridData[b.branch_code]?.personality_development?.avg_score} 
-                                    onChange={(v: any) => updateCell(b.branch_code, 'personality_development', 'avg_score', v)}
-                                    color="text-purple-600"
+                                    onChange={(v: number) => updateCell(b.branch_code, 'personality_development', 'avg_score', v)}
+                                    color="text-slate-700"
                                     max={10}
                                 />
                                 <GridInput 
                                     value={gridData[b.branch_code]?.laptop_holders?.count} 
-                                    onChange={(v: any) => updateCell(b.branch_code, 'laptop_holders', 'count', v)}
+                                    onChange={(v: number) => updateCell(b.branch_code, 'laptop_holders', 'count', v)}
                                     color="text-slate-600"
-                                    max={1000}
+                                    max={2000}
                                 />
                                 <GridInput 
                                     value={gridData[b.branch_code]?.reading_time?.avg_minutes_per_student} 
-                                    onChange={(v: any) => updateCell(b.branch_code, 'reading_time', 'avg_minutes_per_student', v)}
-                                    color="text-cyan-600"
+                                    onChange={(v: number) => updateCell(b.branch_code, 'reading_time', 'avg_minutes_per_student', v)}
+                                    color="text-slate-600"
                                     max={300}
                                 />
                                 <td className="px-4 py-4 text-center border-l border-slate-50">
-                                   <div className="flex items-center gap-2">
+                                   <div className="flex items-center justify-center gap-1">
                                         <input 
                                             type="number" 
-                                            className="w-16 p-2 bg-slate-50 border-none font-bold text-slate-700 text-center rounded-lg"
-                                            value={gridData[b.branch_code]?.syllabus?.covered}
+                                            className="w-14 p-2 bg-slate-50 border border-slate-100 font-bold text-slate-700 text-center rounded-lg outline-none focus:ring-1 focus:ring-blue-500"
+                                            value={gridData[b.branch_code]?.syllabus?.covered || 0}
                                             onChange={(e) => updateCell(b.branch_code, 'syllabus', 'covered', parseFloat(e.target.value))}
                                         />
-                                        <span className="text-slate-300">/</span>
-                                        <span className="text-xs font-bold text-slate-400">100</span>
+                                        <span className="text-slate-300 font-light text-xs">/</span>
+                                        <span className="text-[10px] font-black text-slate-400">100</span>
                                    </div>
                                 </td>
                             </tr>
@@ -261,14 +263,14 @@ export default function DataEntryPage() {
                     </tbody>
                 </table>
             </div>
-            <div className="p-4 bg-slate-50 border-t border-slate-100 flex justify-end">
+            <div className="p-6 bg-slate-50/50 border-t border-slate-100 flex justify-end">
                 <button 
                     onClick={handleBulkSave}
                     disabled={saving}
-                    className="px-10 py-4 bg-indigo-600 text-white font-black text-lg rounded-2xl hover:bg-slate-900 shadow-xl shadow-indigo-100 hover:shadow-none translate-y-0 active:translate-y-1 transition-all flex items-center gap-3"
+                    className="px-12 py-5 bg-blue-700 text-white font-black text-xl rounded-2xl hover:bg-slate-900 shadow-2xl shadow-blue-200 hover:shadow-none translate-y-0 active:translate-y-1 transition-all flex items-center gap-4"
                 >
                     <Save className="w-6 h-6" />
-                    {saving ? 'Processing...' : 'Confirm & Save All Branch Data'}
+                    {saving ? 'Saving Data...' : 'Finalize & Sync Records'}
                 </button>
             </div>
         </div>
@@ -286,7 +288,7 @@ function GridInput({ value, onChange, color, max = 100 }: any) {
                 min="0"
                 max={max}
                 className={cn(
-                    "w-20 p-3 bg-white border border-slate-100 font-black rounded-xl text-center outline-none ring-2 ring-transparent focus:ring-indigo-500/20 focus:border-indigo-500 transition-all",
+                    "w-20 p-2.5 bg-white border border-slate-200 font-black rounded-xl text-center outline-none ring-2 ring-transparent focus:ring-blue-500/20 focus:border-blue-600 transition-all text-xs",
                     color
                 )}
                 value={value || 0}

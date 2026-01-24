@@ -128,32 +128,35 @@ export default function OverviewPage() {
   return (
     <div className="space-y-8 pb-12">
       {/* 1. Header with Toggle */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 py-8">
         <div className="space-y-1">
-          <h2 className="text-3xl font-black text-slate-900 tracking-tight">Performance Desk</h2>
-          <p className="text-slate-500 font-medium">Real-time performance metrics across all branches</p>
+          <h2 className="text-4xl font-black text-slate-900 tracking-tighter uppercase italic">Institutional Intelligence</h2>
+          <p className="text-blue-600 font-black text-[10px] uppercase tracking-[0.3em] flex items-center gap-2">
+            <span className="w-8 h-[2px] bg-blue-600"></span>
+            Performance Auditor v2.0
+          </p>
         </div>
 
-        <div className="flex bg-white p-1 rounded-xl border border-slate-100 shadow-sm">
+        <div className="flex bg-slate-100/50 p-1.5 rounded-[20px] border border-slate-200">
            <button 
              onClick={() => setView('standard')}
              className={cn(
-               "flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold transition-all",
-               view === 'standard' ? "bg-slate-900 text-white shadow-md" : "text-slate-500 hover:bg-slate-50"
+               "flex items-center gap-2 px-6 py-2.5 rounded-[14px] text-xs font-black uppercase tracking-widest transition-all",
+               view === 'standard' ? "bg-white text-slate-900 shadow-md border border-slate-100" : "text-slate-400 hover:text-slate-600"
              )}
            >
              <LayoutDashboard className="w-4 h-4" />
-             Standard
+             Core Metrics
            </button>
            <button 
              onClick={() => setView('analytics')}
              className={cn(
-               "flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold transition-all",
-               view === 'analytics' ? "bg-indigo-600 text-white shadow-md" : "text-slate-500 hover:bg-slate-50"
+               "flex items-center gap-2 px-6 py-2.5 rounded-[14px] text-xs font-black uppercase tracking-widest transition-all",
+               view === 'analytics' ? "bg-blue-700 text-white shadow-xl shadow-blue-100" : "text-slate-400 hover:text-slate-600"
              )}
            >
              <BarChart3 className="w-4 h-4" />
-             Power BI v2
+             Insight Analytics
            </button>
         </div>
       </div>
