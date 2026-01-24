@@ -64,6 +64,31 @@ export async function analyzeStudentPerformance(studentId: string) {
 }
 
 /**
+ * Logic-driven Priority Analyzer to complement AI insights
+ */
+export async function detectSystemPriorities(data: any) {
+  const priorities: any[] = [];
+  
+  // 1. Critical Attendance Check
+  if (data.profile?.attendance_discipline_score < 60) {
+    priorities.push({
+      task: "Urgent Counseling: Critical Attendance Drop",
+      priority: "High"
+    });
+  }
+
+  // 2. PRI Readiness Check
+  if (data.profile?.year === 4 && data.profile?.placement_readiness_index < 50) {
+    priorities.push({
+      task: "Mandatory Resume & Interview Prep",
+      priority: "High"
+    });
+  }
+
+  return priorities;
+}
+
+/**
  * Orchestrator to analyze branch/department level trends
  */
 export async function analyzeDepartmentTrends(branchCode: string) {
@@ -86,18 +111,23 @@ export async function analyzeDepartmentTrends(branchCode: string) {
     student_count: students.length,
     placements: placementSummary,
     recent_activity_level: recentLogs.length,
-    high_risk_percentage: (students.filter(s => s.risk_level === 'High').length / students.length) * 100
+    high_risk_percentage: students.length > 0 
+      ? (students.filter(s => s.risk_level === 'High').length / students.length) * 100 
+      : 0
   };
 
   // 3. Generate AI Insight for the Department
   const aiResult = await generateStructuredInsight(analysisPayload, 'Department');
 
   if (aiResult) {
+    // Merge AI insights with rule-based priority detection
+    const rulePriorities = await detectSystemPriorities({ profile: { branch_code: branchCode }, students });
+    
     await Recommendation.findOneAndUpdate(
       { target_id: branchCode, target_type: 'Department', is_active: true },
       {
         insight_text: aiResult.insight,
-        action_plan: aiResult.action_items,
+        action_plan: [...(aiResult.action_items || []), ...rulePriorities],
         risk_level: aiResult.risk_level,
         confidence_score: aiResult.priority_score,
         raw_data_snapshot: analysisPayload,
