@@ -14,61 +14,77 @@ import dbConnect from '@/lib/mongodb';
 import Branch from '@/models/Branch';
 import AggregateSummary from '@/models/AggregateSummary';
 import CRTWeeklyReport from '@/models/CRTWeeklyReport';
-import { refreshAggregateSummary } from '@/services/aggregation';
 import { cn } from '@/lib/utils';
 
 export const dynamic = 'force-dynamic';
 
 async function getData() {
-  await dbConnect();
-  
-  // Refresh summaries to ensure accuracy
-  await refreshAggregateSummary();
+  try {
+    await dbConnect();
+    
+    // Refreshing summaries on every page load is too heavy for serverless functions
+    // await refreshAggregateSummary();
 
-  const branches = await Branch.find({}).lean();
-  const summaries = await AggregateSummary.find({}).lean();
-  const reports = await CRTWeeklyReport.find({}).sort({ week_no: 1 }).lean();
+    const branches = await Branch.find({}).lean();
+    const summaries = await AggregateSummary.find({}).lean();
+    const reports = await CRTWeeklyReport.find({}).sort({ week_no: 1 }).lean();
 
-  // Calculate institution-wide stats
-  const totalStudents = branches.reduce((sum, b: any) => sum + b.total_students, 0);
-  const totalLaptops = branches.reduce((sum, b: any) => sum + b.laptop_holders, 0);
-  const avgAttendance = summaries.reduce((sum, s: any) => sum + s.avg_attendance, 0) / (summaries.length || 1);
-  const avgPass = summaries.reduce((sum, s: any) => sum + s.avg_test_pass, 0) / (summaries.length || 1);
-  const avgSyllabus = summaries.reduce((sum, s: any) => sum + s.syllabus_completion_percent, 0) / (summaries.length || 1);
+    // Calculate institution-wide stats
+    const totalStudents = branches.reduce((sum, b: any) => sum + b.total_students, 0);
+    const totalLaptops = branches.reduce((sum, b: any) => sum + b.laptop_holders, 0);
+    const avgAttendance = summaries.reduce((sum, s: any) => sum + s.avg_attendance, 0) / (summaries.length || 1);
+    const avgPass = summaries.reduce((sum, s: any) => sum + s.avg_test_pass, 0) / (summaries.length || 1);
+    const avgSyllabus = summaries.reduce((sum, s: any) => sum + s.syllabus_completion_percent, 0) / (summaries.length || 1);
 
-  // Group reports by week for trend chart
-  const weeklyTrendMap = new Map();
-  reports.forEach((r: any) => {
-    if (!weeklyTrendMap.has(r.week_no)) {
-      weeklyTrendMap.set(r.week_no, { week_no: r.week_no, overall_score: 0, attendance: 0, count: 0 });
-    }
-    const data = weeklyTrendMap.get(r.week_no);
-    data.overall_score += r.computed.overall_score;
-    data.attendance += r.attendance.avg_attendance_percent;
-    data.count += 1;
-  });
+    // Group reports by week for trend chart
+    const weeklyTrendMap = new Map();
+    reports.forEach((r: any) => {
+      if (!weeklyTrendMap.has(r.week_no)) {
+        weeklyTrendMap.set(r.week_no, { week_no: r.week_no, overall_score: 0, attendance: 0, count: 0 });
+      }
+      const data = weeklyTrendMap.get(r.week_no);
+      data.overall_score += r.computed.overall_score;
+      data.attendance += r.attendance.avg_attendance_percent;
+      data.count += 1;
+    });
 
-  const weeklyTrendData = Array.from(weeklyTrendMap.values()).map(d => ({
-    week_no: `W${d.week_no}`,
-    overall_score: parseFloat((d.overall_score / d.count).toFixed(1)),
-    attendance: parseFloat((d.attendance / d.count).toFixed(1))
-  })).sort((a, b) => parseInt(a.week_no.slice(1)) - parseInt(b.week_no.slice(1)));
+    const weeklyTrendData = Array.from(weeklyTrendMap.values()).map(d => ({
+      week_no: `W${d.week_no}`,
+      overall_score: parseFloat((d.overall_score / d.count).toFixed(1)),
+      attendance: parseFloat((d.attendance / d.count).toFixed(1))
+    })).sort((a, b) => parseInt(a.week_no.slice(1)) - parseInt(b.week_no.slice(1)));
 
-  return {
-    stats: {
-      totalStudents,
-      laptopPercent: (totalLaptops / totalStudents) * 100,
-      avgAttendance,
-      avgPass,
-      avgSyllabus
-    },
-    summaries: JSON.parse(JSON.stringify(summaries)),
-    weeklyTrendData
-  };
+    return {
+      stats: {
+        totalStudents,
+        laptopPercent: totalStudents > 0 ? (totalLaptops / totalStudents) * 100 : 0,
+        avgAttendance,
+        avgPass,
+        avgSyllabus
+      },
+      summaries: JSON.parse(JSON.stringify(summaries)),
+      weeklyTrendData,
+      error: null
+    };
+  } catch (error) {
+    console.error('Error fetching dashboard data:', error);
+    return {
+      stats: {
+        totalStudents: 0,
+        laptopPercent: 0,
+        avgAttendance: 0,
+        avgPass: 0,
+        avgSyllabus: 0
+      },
+      summaries: [],
+      weeklyTrendData: [],
+      error: 'Failed to load data. Please check database connection.'
+    };
+  }
 }
 
 export default async function OverviewPage() {
-  const { stats, summaries, weeklyTrendData } = await getData();
+  const { stats, summaries, weeklyTrendData, error } = await getData();
 
   return (
     <div className="space-y-8 pb-12">
@@ -76,6 +92,13 @@ export default async function OverviewPage() {
         <h2 className="text-3xl font-bold text-slate-900 tracking-tight">Institution Overview</h2>
         <p className="text-slate-500">Real-time performance metrics across all branches</p>
       </div>
+
+      {error && (
+        <div className="p-4 bg-red-50 border border-red-200 rounded-lg flex items-center gap-3 text-red-700">
+          <AlertCircle className="w-5 h-5 flex-shrink-0" />
+          <p className="font-medium">{error}</p>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <MetricCard 
