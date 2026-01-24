@@ -6,6 +6,7 @@ import Faculty from '@/models/Faculty';
 import Class from '@/models/Class';
 import Recommendation from '@/models/Recommendation';
 import CRTWeeklyReport from '@/models/CRTWeeklyReport';
+import mongoose from 'mongoose';
 
 export async function POST(req: Request) {
   try {
