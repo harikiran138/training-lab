@@ -29,7 +29,7 @@ export async function POST(request: NextRequest) {
   try {
     await dbConnect();
     const data = await request.json();
-    const { branch_code, week_no, sessions, attendance, tests, syllabus } = data;
+    const { branch_code, week_no, attendance, tests, syllabus } = data;
 
     if (!branch_code || !week_no) {
       return NextResponse.json({ error: 'branch_code and week_no are required' }, { status: 400 });

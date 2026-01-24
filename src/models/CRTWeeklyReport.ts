@@ -26,6 +26,24 @@ export interface ICRTWeeklyReport extends Document {
     status: 'Lagging' | 'On-Track' | 'Ahead';
   };
   
+  // Growth Metrics
+  personality_development?: {
+    avg_score: number;
+    sessions_conducted: number;
+  };
+  motivation?: {
+    avg_score: number;
+  };
+  reading_time?: {
+    total_minutes: number;
+    avg_minutes_per_student: number;
+  };
+  
+  laptop_holders?: {
+    count: number;
+    percent: number;
+  };
+  
   // New: Section granular data
   section_data?: Array<{
     section_name: string; // e.g., "A", "B", "C"
@@ -71,6 +89,25 @@ const CRTWeeklyReportSchema: Schema = new Schema({
       enum: ['Lagging', 'On-Track', 'Ahead'],
       default: 'On-Track' 
     }
+  },
+
+  personality_development: {
+    avg_score: { type: Number, default: 0 },
+    sessions_conducted: { type: Number, default: 0 }
+  },
+
+  motivation: {
+    avg_score: { type: Number, default: 0 }
+  },
+
+  reading_time: {
+    total_minutes: { type: Number, default: 0 },
+    avg_minutes_per_student: { type: Number, default: 0 }
+  },
+
+  laptop_holders: {
+    count: { type: Number, default: 0 },
+    percent: { type: Number, default: 0 }
   },
 
   section_data: [{

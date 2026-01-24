@@ -1,4 +1,3 @@
-import React from 'react';
 import { 
   AlertTriangle, 
   Target, 
@@ -10,6 +9,8 @@ import {
 import dbConnect from '@/lib/mongodb';
 import AggregateSummary from '@/models/AggregateSummary';
 import { cn } from '@/lib/utils';
+import { RiskPieChart } from '@/components/dashboard/OverviewCharts';
+import { AIInsights } from '@/components/dashboard/AIInsights';
 
 export const dynamic = 'force-dynamic';
 
@@ -20,14 +21,22 @@ async function getRiskData() {
   const highRisk = summaries.filter((s: any) => s.avg_test_pass < 50 || s.avg_attendance < 65);
   const criticalSyllabus = summaries.filter((s: any) => s.syllabus_completion_percent < 30);
   
+  // Create distribution for chart
+  const distribution = [
+    { name: 'Healthy', count: summaries.filter((s: any) => s.performance_grade.startsWith('A') || s.performance_grade.startsWith('B')).length },
+    { name: 'Needs Attention', count: summaries.filter((s: any) => s.performance_grade === 'C').length },
+    { name: 'Critical', count: summaries.filter((s: any) => s.avg_test_pass < 50).length }
+  ];
+
   return {
     highRisk: JSON.parse(JSON.stringify(highRisk)),
-    criticalSyllabus: JSON.parse(JSON.stringify(criticalSyllabus))
+    criticalSyllabus: JSON.parse(JSON.stringify(criticalSyllabus)),
+    distribution
   };
 }
 
 export default async function RiskAnalysisPage() {
-  const { highRisk, criticalSyllabus } = await getRiskData();
+  const { highRisk, criticalSyllabus, distribution } = await getRiskData();
 
   return (
     <div className="space-y-8 pb-12">
@@ -36,6 +45,17 @@ export default async function RiskAnalysisPage() {
         <p className="text-slate-500">Identification of low-performing branches and syllabus lags</p>
       </div>
 
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+         <div className="md:col-span-1">
+            <RiskPieChart data={distribution} />
+         </div>
+         <div className="md:col-span-2 space-y-8">
+             {/* Existing Grid Layout Adjusted */}
+         </div>
+      </div>
+      
+      {/* Moving existing lists into the grid above or below */}
+      
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Performance Risk */}
         <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
@@ -123,24 +143,30 @@ export default async function RiskAnalysisPage() {
       </div>
 
       {/* Suggested Actions */}
-      <div className="bg-slate-900 rounded-2xl p-8 text-white">
-        <div className="flex items-center gap-3 mb-6">
-          <Target className="w-6 h-6 text-indigo-400" />
-          <h3 className="text-xl font-bold">Recommended Mitigation Strategies</h3>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="lg:col-span-2 bg-slate-900 rounded-2xl p-8 text-white">
+          <div className="flex items-center gap-3 mb-6">
+            <Target className="w-6 h-6 text-indigo-400" />
+            <h3 className="text-xl font-bold">Recommended Mitigation Strategies</h3>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="p-4 bg-slate-800 rounded-xl border border-slate-700">
+              <p className="text-xs font-bold text-indigo-400 uppercase mb-2">Academic</p>
+              <p className="text-sm text-slate-300">Schedule compensatory sessions for branches below 30% coverage.</p>
+            </div>
+            <div className="p-4 bg-slate-800 rounded-xl border border-slate-700">
+              <p className="text-xs font-bold text-cyan-400 uppercase mb-2">Participation</p>
+              <p className="text-sm text-slate-300">Investigate laptop availability impact for attendance below 65%.</p>
+            </div>
+            <div className="p-4 bg-slate-800 rounded-xl border border-slate-700">
+              <p className="text-xs font-bold text-rose-400 uppercase mb-2">Testing</p>
+              <p className="text-sm text-slate-300">Conduct doubt resolution camps for branches with low test pass percentage.</p>
+            </div>
+          </div>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="p-4 bg-slate-800 rounded-xl border border-slate-700">
-            <p className="text-xs font-bold text-indigo-400 uppercase mb-2">Academic</p>
-            <p className="text-sm text-slate-300">Schedule compensatory sessions for branches below 30% coverage.</p>
-          </div>
-          <div className="p-4 bg-slate-800 rounded-xl border border-slate-700">
-            <p className="text-xs font-bold text-cyan-400 uppercase mb-2">Participation</p>
-            <p className="text-sm text-slate-300">Investigate laptop availability impact for attendance below 65%.</p>
-          </div>
-          <div className="p-4 bg-slate-800 rounded-xl border border-slate-700">
-            <p className="text-xs font-bold text-rose-400 uppercase mb-2">Testing</p>
-            <p className="text-sm text-slate-300">Conduct doubt resolution camps for branches with low test pass percentage.</p>
-          </div>
+        
+        <div className="lg:col-span-1">
+           <AIInsights />
         </div>
       </div>
     </div>

@@ -1,8 +1,67 @@
 import CRTWeeklyReport from '@/models/CRTWeeklyReport';
+import AggregateSummary from '@/models/AggregateSummary'; // Ensure this model exists and is imported
 import dbConnect from '@/lib/mongodb';
+import { getPerformanceGrade } from '../metrics'; // Import helper if available, otherwise define inline
 
 export class AnalyticsService {
   
+  static async refreshAggregates() {
+    await dbConnect();
+    
+    // 1. Aggregation Pipeline
+    const aggregates = await CRTWeeklyReport.aggregate([
+      {
+        $group: {
+          _id: '$branch_code',
+          total_weeks: { $max: '$week_no' },
+          avg_attendance: { $avg: '$attendance.avg_attendance_percent' },
+          avg_test_attendance: { $avg: '$tests.avg_test_attendance_percent' },
+          avg_test_pass: { $avg: '$tests.avg_test_pass_percent' },
+          // For syllabus, we might want the MAX covered or AVG coverage of latest weeks. 
+          // Let's assume average coverage percent for now, or max if it's cumulative.
+          // Usually syllabus is cumulative, so we want the latest week's coverage.
+          // But aggregating across all weeks is tricky. Let's take the AVG of the "coverage_percent" field.
+          avg_syllabus_completion: { $avg: '$syllabus.coverage_percent' } 
+        }
+      }
+    ]);
+
+    // 2. Bulk Write to AggregateSummary
+    const ops = aggregates.map(agg => {
+      // Calculate grade
+      let grade = 'D';
+      const score = (agg.avg_attendance * 0.4) + (agg.avg_test_pass * 0.4) + (agg.avg_syllabus_completion * 0.2);
+       if (score >= 90) grade = 'A+';
+       else if (score >= 80) grade = 'A';
+       else if (score >= 70) grade = 'B+';
+       else if (score >= 60) grade = 'B';
+       else if (score >= 50) grade = 'C';
+
+      return {
+        updateOne: {
+          filter: { branch_code: agg._id },
+          update: {
+            $set: {
+              total_weeks: agg.total_weeks,
+              avg_attendance: agg.avg_attendance,
+              avg_test_attendance: agg.avg_test_attendance,
+              avg_test_pass: agg.avg_test_pass,
+              syllabus_completion_percent: agg.avg_syllabus_completion,
+              performance_grade: grade
+            }
+          },
+          upsert: true
+        }
+      };
+    });
+
+    if (ops.length > 0) {
+      await AggregateSummary.bulkWrite(ops);
+    }
+
+    return { updated: ops.length };
+  }
+
   static async getDashboardMetrics(weekNo?: number) {
     await dbConnect();
     
@@ -12,8 +71,6 @@ export class AnalyticsService {
       matchStage.week_no = weekNo;
     } else {
       // If no week specified, aim for the latest week available?
-      // Or maybe aggregate across all weeks. For now, let's assume "overall".
-      // But typically dashboards default to "latest week".
       const lastReport = await CRTWeeklyReport.findOne().sort({ week_no: -1 });
       if (lastReport) matchStage.week_no = lastReport.week_no;
     }
@@ -66,8 +123,6 @@ export class AnalyticsService {
     return await CRTWeeklyReport.find(matchStage)
       .sort({ week_no: 1 })
       .limit(10) // Careful, limit after sort with 1 gives oldest. We want last 10 weeks.
-      // Logic: sort desc, limit 10, then sort asc back?
-      // Actually if we want specific branch trend it's fine.
       .select('week_no branch_code attendance.avg_attendance_percent tests.avg_test_pass_percent')
       .lean();
   }

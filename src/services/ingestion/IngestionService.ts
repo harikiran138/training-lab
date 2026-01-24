@@ -93,6 +93,12 @@ export class IngestionService {
       log.anomalies = anomalies;
       await log.save();
 
+      // 6. Trigger Live Analytics Refresh
+      // Fire and forget (or await if strict) - awaiting for consistency
+      if (success > 0) {
+        await import('../analytics/AnalyticsService').then(mod => mod.AnalyticsService.refreshAggregates());
+      }
+
       return { success, fails, logId: log._id };
 
     } catch (error: any) {

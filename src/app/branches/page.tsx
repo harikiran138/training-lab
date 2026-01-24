@@ -11,6 +11,7 @@ import dbConnect from '@/lib/mongodb';
 import AggregateSummary from '@/models/AggregateSummary';
 import Branch from '@/models/Branch';
 import { cn } from '@/lib/utils';
+import { BranchBarChart } from '@/components/dashboard/OverviewCharts';
 
 export const dynamic = 'force-dynamic';
 
@@ -54,6 +55,10 @@ export default async function BranchesPage() {
             <Filter className="w-4 h-4 text-slate-600" />
           </button>
         </div>
+      </div>
+
+      <div className="w-full">
+         <BranchBarChart data={data} />
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
