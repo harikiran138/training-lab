@@ -212,35 +212,35 @@ export default function DataEntryPage() {
                                 </td>
                                 <GridInput 
                                     value={gridData[b.branch_code]?.attendance?.avg_attendance_percent} 
-                                    onChange={(v) => updateCell(b.branch_code, 'attendance', 'avg_attendance_percent', v)}
+                                    onChange={(v: any) => updateCell(b.branch_code, 'attendance', 'avg_attendance_percent', v)}
                                     color="text-indigo-600"
                                 />
                                 <GridInput 
                                     value={gridData[b.branch_code]?.tests?.avg_test_pass_percent} 
-                                    onChange={(v) => updateCell(b.branch_code, 'tests', 'avg_test_pass_percent', v)}
+                                    onChange={(v: any) => updateCell(b.branch_code, 'tests', 'avg_test_pass_percent', v)}
                                     color="text-emerald-600"
                                 />
                                 <GridInput 
                                     value={gridData[b.branch_code]?.motivation?.avg_score} 
-                                    onChange={(v) => updateCell(b.branch_code, 'motivation', 'avg_score', v)}
+                                    onChange={(v: any) => updateCell(b.branch_code, 'motivation', 'avg_score', v)}
                                     color="text-amber-600"
                                     max={10}
                                 />
                                 <GridInput 
                                     value={gridData[b.branch_code]?.personality_development?.avg_score} 
-                                    onChange={(v) => updateCell(b.branch_code, 'personality_development', 'avg_score', v)}
+                                    onChange={(v: any) => updateCell(b.branch_code, 'personality_development', 'avg_score', v)}
                                     color="text-purple-600"
                                     max={10}
                                 />
                                 <GridInput 
                                     value={gridData[b.branch_code]?.laptop_holders?.count} 
-                                    onChange={(v) => updateCell(b.branch_code, 'laptop_holders', 'count', v)}
+                                    onChange={(v: any) => updateCell(b.branch_code, 'laptop_holders', 'count', v)}
                                     color="text-slate-600"
                                     max={1000}
                                 />
                                 <GridInput 
                                     value={gridData[b.branch_code]?.reading_time?.avg_minutes_per_student} 
-                                    onChange={(v) => updateCell(b.branch_code, 'reading_time', 'avg_minutes_per_student', v)}
+                                    onChange={(v: any) => updateCell(b.branch_code, 'reading_time', 'avg_minutes_per_student', v)}
                                     color="text-cyan-600"
                                     max={300}
                                 />
