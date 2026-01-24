@@ -8,6 +8,8 @@ export interface IAggregateSummary extends Document {
   avg_test_pass: number;
   syllabus_completion_percent: number;
   performance_grade: string;
+  ai_risk_level?: 'Low' | 'Medium' | 'High';
+  ai_recommendation?: string;
 }
 
 const AggregateSummarySchema: Schema = new Schema({
@@ -17,7 +19,9 @@ const AggregateSummarySchema: Schema = new Schema({
   avg_test_attendance: { type: Number, required: true, default: 0 },
   avg_test_pass: { type: Number, required: true, default: 0 },
   syllabus_completion_percent: { type: Number, required: true, default: 0 },
-  performance_grade: { type: String, default: 'N/A' }
+  performance_grade: { type: String, default: 'N/A' },
+  ai_risk_level: { type: String, enum: ['Low', 'Medium', 'High'] },
+  ai_recommendation: { type: String }
 }, { timestamps: true });
 
 export default mongoose.models.AggregateSummary || mongoose.model<IAggregateSummary>('AggregateSummary', AggregateSummarySchema);

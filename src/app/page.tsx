@@ -111,17 +111,29 @@ export default function OverviewPage() {
       </span>
     ) },
     { header: 'Status', accessorKey: (row: any) => (
-      row.avg_test_pass < 50 ? (
-        <div className="flex items-center gap-1.5 text-rose-600 font-medium text-xs bg-rose-50 px-2 py-1 rounded-md border border-rose-100 w-fit">
-          <AlertCircle className="w-3.5 h-3.5" />
-          Critical
-        </div>
-      ) : (
-        <div className="flex items-center gap-1.5 text-emerald-600 font-medium text-xs bg-emerald-50 px-2 py-1 rounded-md border border-emerald-100 w-fit">
-          <CheckCircle2 className="w-3.5 h-3.5" />
-          Stable
-        </div>
-      )
+      <div className="flex flex-col gap-1">
+        {row.avg_test_pass < 50 ? (
+          <div className="flex items-center gap-1.5 text-rose-600 font-medium text-xs bg-rose-50 px-2 py-1 rounded-md border border-rose-100 w-fit">
+            <AlertCircle className="w-3.5 h-3.5" />
+            Critical
+          </div>
+        ) : (
+          <div className="flex items-center gap-1.5 text-emerald-600 font-medium text-xs bg-emerald-50 px-2 py-1 rounded-md border border-emerald-100 w-fit">
+            <CheckCircle2 className="w-3.5 h-3.5" />
+            Stable
+          </div>
+        )}
+        {row.ai_risk_level && (
+          <div className={cn(
+            "text-[9px] font-black uppercase px-2 py-0.5 rounded border w-fit",
+            row.ai_risk_level === 'High' ? "bg-rose-900/10 text-rose-600 border-rose-200" :
+            row.ai_risk_level === 'Medium' ? "bg-amber-900/10 text-amber-600 border-amber-200" :
+            "bg-emerald-900/10 text-emerald-600 border-emerald-200"
+          )}>
+            AI: {row.ai_risk_level}
+          </div>
+        )}
+      </div>
     )}
   ];
 
@@ -131,10 +143,21 @@ export default function OverviewPage() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 py-8">
         <div className="space-y-1">
           <h2 className="text-4xl font-black text-slate-900 tracking-tighter uppercase italic">Institutional Intelligence</h2>
-          <p className="text-blue-600 font-black text-[10px] uppercase tracking-[0.3em] flex items-center gap-2">
-            <span className="w-8 h-[2px] bg-blue-600"></span>
-            Performance Auditor v2.0
-          </p>
+          <div className="flex items-center gap-4">
+            <p className="text-blue-600 font-black text-[10px] uppercase tracking-[0.3em] flex items-center gap-2">
+              <span className="w-8 h-[2px] bg-blue-600"></span>
+              Performance Auditor v2.0
+            </p>
+            {data.summaries[0]?.ai_risk_level && (
+                <div className={cn(
+                    "px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border animate-pulse",
+                    data.summaries[0].ai_risk_level === 'High' ? "bg-rose-50 text-rose-600 border-rose-200" :
+                    "bg-emerald-50 text-emerald-600 border-emerald-200"
+                )}>
+                    System Risk: {data.summaries[0].ai_risk_level}
+                </div>
+            )}
+          </div>
         </div>
 
         <div className="flex bg-slate-100/50 p-1.5 rounded-[20px] border border-slate-200">

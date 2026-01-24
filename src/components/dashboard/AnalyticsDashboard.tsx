@@ -9,6 +9,7 @@ import {
   Users, Award, TrendingUp, BookOpen, Clock, 
   BrainCircuit, Zap, Monitor
 } from 'lucide-react';
+import { AIInsights } from './AIInsights';
 
 const COLORS = ['#1e40af', '#0369a1', '#0e7490', '#334155', '#475569']; // Professional Blues and Slates
 
@@ -213,7 +214,7 @@ export default function AnalyticsDashboard({ reports, branches, weeks }: any) {
          <div className="md:col-span-2 bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
             <div className="p-4 border-b border-slate-50 flex justify-between items-center bg-slate-50/50">
                 <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wider">Branch Performance</h3>
-                <span className="text-[10px] font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full">Top 5 Records</span>
+                <span className="text-[10px] font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full">Top 10 Records</span>
             </div>
             <div className="overflow-x-auto">
                 <table className="w-full text-left text-sm">
@@ -245,6 +246,19 @@ export default function AnalyticsDashboard({ reports, branches, weeks }: any) {
                 </table>
             </div>
          </div>
+      </div>
+
+      {/* AI Intelligence Section */}
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 mt-12">
+        <div className="lg:col-span-3">
+           <AIInsights />
+        </div>
+        <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm self-start">
+           <h3 className="text-[10px] font-black text-slate-400 mb-4 uppercase tracking-[0.2em]">Institutional Future</h3>
+           <p className="text-sm text-slate-600 leading-relaxed font-medium">
+             The AI Engine is currently tracking training-lab performance metrics. Future updates will include automated faculty rotation suggestions.
+           </p>
+        </div>
       </div>
     </div>
   );

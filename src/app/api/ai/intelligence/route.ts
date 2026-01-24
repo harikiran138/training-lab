@@ -100,6 +100,19 @@ export async function POST(req: Request) {
           } 
         }
       );
+    } else if (type === 'College') {
+      // Update AggregateSummary with the insights
+      // In a real system, we might update specific branches, but for now we update a general record or all.
+      // Let's assume we want to update the overall institution perspective or all active summaries.
+      await mongoose.model('AggregateSummary').updateMany(
+        {},
+        { 
+          $set: { 
+            ai_risk_level: aiResult.risk_level,
+            ai_recommendation: aiResult.insight_text
+          } 
+        }
+      );
     }
 
     // Save Recommendation
