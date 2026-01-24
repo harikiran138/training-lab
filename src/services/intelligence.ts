@@ -63,6 +63,8 @@ export async function analyzeStudentPerformance(studentId: string) {
   return aiResult;
 }
 
+import { AI_POLICY } from '@/config/ai-policy';
+
 /**
  * Logic-driven Priority Analyzer to complement AI insights
  */
@@ -70,7 +72,7 @@ export async function detectSystemPriorities(data: any) {
   const priorities: any[] = [];
   
   // 1. Critical Attendance Check
-  if (data.profile?.attendance_discipline_score < 60) {
+  if (data.profile?.attendance_discipline_score < AI_POLICY.RISK_THRESHOLDS.ATTENDANCE_CRITICAL) {
     priorities.push({
       task: "Urgent Counseling: Critical Attendance Drop",
       priority: "High"
@@ -78,7 +80,7 @@ export async function detectSystemPriorities(data: any) {
   }
 
   // 2. PRI Readiness Check
-  if (data.profile?.year === 4 && data.profile?.placement_readiness_index < 50) {
+  if (data.profile?.year === 4 && data.profile?.placement_readiness_index < AI_POLICY.PLACEMENT_READINESS.PRI_MINIMUM) {
     priorities.push({
       task: "Mandatory Resume & Interview Prep",
       priority: "High"
