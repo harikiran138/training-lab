@@ -61,7 +61,7 @@ export async function POST(request: NextRequest) {
     const existingReport = await CRTWeeklyReport.findOne({
       branch_code,
       week_no,
-      semester: semester || 'SEM1' // Defaulting for find
+      semester: semester || 'SEM1'
     });
 
     if (existingReport && existingReport.status === 'finalized') {

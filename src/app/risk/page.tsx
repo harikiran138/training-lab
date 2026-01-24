@@ -15,10 +15,13 @@ import {
 import { cn } from '@/lib/utils';
 import { MitigationModal } from '@/components/dashboard/MitigationModal';
 import { ActiveMitigations } from '@/components/dashboard/ActiveMitigations';
+import { RiskPieChart } from '@/components/dashboard/OverviewCharts';
+import { AIInsights } from '@/components/dashboard/AIInsights';
 
 export default function RiskAnalysisPage() {
   const [highRisk, setHighRisk] = useState<any[]>([]);
   const [criticalSyllabus, setCriticalSyllabus] = useState<any[]>([]);
+  const [distribution, setDistribution] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [selectedBranch, setSelectedBranch] = useState<string | null>(null);
@@ -28,8 +31,9 @@ export default function RiskAnalysisPage() {
       const res = await fetch('/api/risk');
       const data = await res.json();
       if (data.success) {
-        setHighRisk(data.highRisk);
-        setCriticalSyllabus(data.criticalSyllabus);
+        setHighRisk(data.highRisk || []);
+        setCriticalSyllabus(data.criticalSyllabus || []);
+        setDistribution(data.distribution || []);
       }
     } catch (err) {
       console.error(err);
@@ -40,7 +44,7 @@ export default function RiskAnalysisPage() {
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [refreshTrigger]);
 
   const handleMitigationSuccess = () => {
     setRefreshTrigger(prev => prev + 1);
@@ -59,7 +63,7 @@ export default function RiskAnalysisPage() {
         <p className="text-slate-500">Identification and mitigation of performance gaps and syllabus lags</p>
       </div>
 
-      {/* Active Interventions Section - MOVED TO TOP */}
+      {/* Active Interventions Section */}
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -71,6 +75,15 @@ export default function RiskAnalysisPage() {
           <span className="text-sm text-slate-400 font-medium">Tracking {highRisk.length + criticalSyllabus.length} major risks</span>
         </div>
         <ActiveMitigations refreshTrigger={refreshTrigger} />
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="md:col-span-1">
+          <RiskPieChart data={distribution} />
+        </div>
+        <div className="md:col-span-2">
+          <AIInsights />
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -175,7 +188,6 @@ export default function RiskAnalysisPage() {
         </div>
       </div>
 
-      {/* Static Strategies Footer */}
       <div className="bg-slate-900 rounded-[2.5rem] p-12 text-white overflow-hidden relative">
         <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500 rounded-full mix-blend-screen filter blur-3xl opacity-10 translate-x-1/2 -translate-y-1/2" />
         <div className="relative z-10">

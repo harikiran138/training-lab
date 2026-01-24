@@ -1,23 +1,44 @@
-
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import dbConnect from '@/lib/mongodb';
 import Branch from '@/models/Branch';
 import AggregateSummary from '@/models/AggregateSummary';
 import CRTWeeklyReport from '@/models/CRTWeeklyReport';
+import { AnalyticsService } from '@/services/analytics/AnalyticsService';
 
 export const dynamic = 'force-dynamic';
 
-export async function GET() {
+export async function GET(req: NextRequest) {
+    const searchParams = req.nextUrl.searchParams;
+    const week = searchParams.get('week');
+    const type = searchParams.get('type') || 'dashboard'; // 'dashboard' | 'trend'
+    const branch = searchParams.get('branch');
+
     try {
         await dbConnect();
 
+        // Use AnalyticsService if type is specified
+        if (type === 'trend' || type === 'dashboard') {
+            try {
+                if (type === 'trend') {
+                    const data = await AnalyticsService.getTrends(branch || undefined);
+                    return NextResponse.json(data);
+                }
+
+                const weekNo = week ? parseInt(week) : undefined;
+                const data = await AnalyticsService.getDashboardMetrics(weekNo);
+                return NextResponse.json(data);
+            } catch (err) {
+                console.warn("AnalyticsService failed, falling back to basic aggregation", err);
+            }
+        }
+
+        // Fallback or basic aggregation logic (from HEAD)
         const [branches, summaries, reports] = await Promise.all([
             Branch.find({}).lean(),
             AggregateSummary.find({}).lean(),
             CRTWeeklyReport.find({ status: 'finalized' }).sort({ week_no: 1 }).lean()
         ]);
 
-        // 1. Weekly Trends (Attendance & Test Pass)
         const weeklyTrendMap = new Map();
         reports.forEach((r: any) => {
             if (!weeklyTrendMap.has(r.week_no)) {
@@ -30,7 +51,7 @@ export async function GET() {
                 });
             }
             const data = weeklyTrendMap.get(r.week_no);
-            data.overall_score += r.computed.overall_score || 0;
+            data.overall_score += r.computed?.overall_score || 0;
             data.attendance += r.attendance?.avg_attendance_percent || 0;
             data.test_pass += r.tests?.avg_test_pass_percent || 0;
             data.count += 1;
@@ -43,23 +64,16 @@ export async function GET() {
             test_pass: parseFloat((d.test_pass / d.count).toFixed(1))
         })).sort((a, b) => parseInt(a.week_no.slice(1)) - parseInt(b.week_no.slice(1)));
 
-        // 2. Branch Comparison (already in summaries, but ensuring format)
-        // summaries has avg_attendance, avg_test_pass
+        const totalStudents = branches.reduce((sum: number, b: any) => sum + (b.total_students || 0), 0);
+        const totalLaptops = branches.reduce((sum: number, b: any) => sum + (b.laptop_holders || 0), 0);
+        const laptopPercent = totalStudents > 0 ? (totalLaptops / totalStudents) * 100 : 0;
 
-        // 3. Department Summary (Radar Chart Data)
-        // We can aggregate across all branches for a "Total" or compare top/bottom
-        // For now, let's create a summary that maps 5 key metrics
         const overallStats = {
             attendance: 0,
             test_pass: 0,
             syllabus: 0,
-            laptops: 0, // This is % from Branch
             count: 0
         };
-
-        const totalStudents = branches.reduce((sum: number, b: any) => sum + b.total_students, 0);
-        const totalLaptops = branches.reduce((sum: number, b: any) => sum + b.laptop_holders, 0);
-        const laptopPercent = totalStudents > 0 ? (totalLaptops / totalStudents) * 100 : 0;
 
         summaries.forEach((s: any) => {
             overallStats.attendance += s.avg_attendance;
@@ -69,7 +83,6 @@ export async function GET() {
         });
 
         const count = overallStats.count || 1;
-        // Calculate Average Sessions for Engagement score (Target: 10 sessions/week)
         const totalSessions = reports.reduce((sum: number, r: any) => sum + (r.sessions || 0), 0);
         const avgSessions = totalSessions / (reports.length || 1);
         const engagementScore = Math.min(100, (avgSessions / 10) * 100);

@@ -1,146 +1,294 @@
-import React from 'react';
-import { AlertCircle } from 'lucide-react';
+"use client"
+
+import React, { useState, useEffect } from 'react';
+import {
+  Users,
+  Laptop,
+  GraduationCap,
+  CheckCircle2,
+  AlertCircle,
+  LayoutDashboard,
+  BarChart3
+} from 'lucide-react';
+import { KpiCard } from '@/components/dashboard/KpiCard';
+import { TrendChart } from '@/components/dashboard/TrendChart';
+import { HeatMap } from '@/components/dashboard/HeatMap';
+import { ExpandableTable } from '@/components/dashboard/ExpandableTable';
+import { cn } from '@/lib/utils';
+import AnalyticsDashboard from '@/components/dashboard/AnalyticsDashboard';
 import { LiveAnalytics } from '@/components/dashboard/LiveAnalytics';
-import dbConnect from '@/lib/mongodb';
-import Branch from '@/models/Branch';
-import AggregateSummary from '@/models/AggregateSummary';
-import CRTWeeklyReport from '@/models/CRTWeeklyReport';
 
-export const dynamic = 'force-dynamic';
+export default function OverviewPage() {
+  const [view, setView] = useState<'standard' | 'analytics'>('standard');
+  const [data, setData] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
 
-async function getData() {
-  try {
-    await dbConnect();
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        const [bRes, sRes, rRes, wRes] = await Promise.all([
+          fetch('/api/branches'),
+          fetch('/api/summary'),
+          fetch('/api/reports'),
+          fetch('/api/weeks')
+        ]);
 
-    // Refreshing summaries on every page load is too heavy for serverless functions
-    // await refreshAggregateSummary();
+        const branches = await bRes.json();
+        const summaries = await sRes.json();
+        const reports = await rRes.json();
+        const weeks = await wRes.json();
 
-    const branches = await Branch.find({}).lean();
-    const summaries = await AggregateSummary.find({}).lean();
-    const reports = await CRTWeeklyReport.find({ status: 'finalized' }).sort({ week_no: 1 }).lean();
+        // Calculate institution-wide stats
+        const totalStudents = branches.reduce((sum: number, b: any) => sum + (b.total_students || 0), 0);
+        const totalLaptops = branches.reduce((sum: number, b: any) => sum + (b.laptop_holders || 0), 0);
+        const avgAttendance = summaries.reduce((sum: number, s: any) => sum + s.avg_attendance, 0) / (summaries.length || 1);
+        const avgPass = summaries.reduce((sum: number, s: any) => sum + s.avg_test_pass, 0) / (summaries.length || 1);
+        const avgSyllabus = summaries.reduce((sum: number, s: any) => sum + s.syllabus_completion_percent, 0) / (summaries.length || 1);
 
-    // Calculate institution-wide stats
-    const totalStudents = branches.reduce((sum, b: any) => sum + b.total_students, 0);
-    const totalLaptops = branches.reduce((sum, b: any) => sum + b.laptop_holders, 0);
-    const avgAttendance = summaries.reduce((sum, s: any) => sum + s.avg_attendance, 0) / (summaries.length || 1);
-    const avgPass = summaries.reduce((sum, s: any) => sum + s.avg_test_pass, 0) / (summaries.length || 1);
-    const avgSyllabus = summaries.reduce((sum, s: any) => sum + s.syllabus_completion_percent, 0) / (summaries.length || 1);
-
-    // Group reports by week for trend chart
-    const weeklyTrendMap = new Map();
-    reports.forEach((r: any) => {
-      if (!weeklyTrendMap.has(r.week_no)) {
-        weeklyTrendMap.set(r.week_no, {
-          week_no: r.week_no,
-          overall_score: 0,
-          attendance: 0,
-          test_pass: 0,
-          count: 0
+        // Group reports by week for trend chart
+        const weeklyTrendMap = new Map();
+        reports.forEach((r: any) => {
+          if (!weeklyTrendMap.has(r.week_no)) {
+            weeklyTrendMap.set(r.week_no, { week_no: r.week_no, overall_score: 0, attendance: 0, count: 0 });
+          }
+          const wData = weeklyTrendMap.get(r.week_no);
+          wData.overall_score += (r.computed?.overall_score || 0);
+          wData.attendance += (r.attendance?.avg_attendance_percent || 0);
+          wData.count += 1;
         });
+
+        const weeklyTrendData = Array.from(weeklyTrendMap.values()).map(d => ({
+          week_no: `W${d.week_no}`,
+          overall_score: parseFloat((d.overall_score / d.count).toFixed(1)),
+          attendance: parseFloat((d.attendance / d.count).toFixed(1))
+        })).sort((a, b) => parseInt(a.week_no.slice(1)) - parseInt(b.week_no.slice(1)));
+
+        setData({
+          stats: {
+            totalStudents,
+            laptopPercent: totalStudents > 0 ? (totalLaptops / totalStudents) * 100 : 0,
+            avgAttendance,
+            avgPass,
+            avgSyllabus
+          },
+          summaries,
+          reports,
+          weeks,
+          branches,
+          weeklyTrendData,
+          heatMapData: summaries.map((s: any) => ({
+            id: s.branch_code,
+            label: s.branch_code,
+            value: Math.round(s.avg_test_pass),
+            secondaryValue: Math.round(s.avg_attendance)
+          })).sort((a: any, b: any) => b.value - a.value)
+        });
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
       }
-      const data = weeklyTrendMap.get(r.week_no);
-      data.overall_score += r.computed.overall_score || 0;
-      data.attendance += r.attendance.avg_attendance_percent || 0;
-      data.test_pass += r.tests.avg_test_pass_percent || 0;
-      data.count += 1;
-    });
+    }
+    fetchData();
+  }, []);
 
-    const weeklyTrendData = Array.from(weeklyTrendMap.values()).map(d => ({
-      week_no: `W${d.week_no}`,
-      overall_score: parseFloat((d.overall_score / d.count).toFixed(1)),
-      attendance: parseFloat((d.attendance / d.count).toFixed(1)),
-      test_pass: parseFloat((d.test_pass / d.count).toFixed(1))
-    })).sort((a, b) => parseInt(a.week_no.slice(1)) - parseInt(b.week_no.slice(1)));
+  if (loading) return <div className="p-12 text-center text-slate-500 font-bold">Loading analytical data...</div>;
+  if (!data) return <div className="p-12 text-center text-rose-500 font-bold">Failed to load dashboard. Please try again.</div>;
 
-    // Calculate Department Summary Data for Radar Chart
-    const overallStats = {
-      attendance: 0,
-      test_pass: 0,
-      syllabus: 0,
-      laptops: 0,
-      count: 0
-    };
-
-    summaries.forEach((s: any) => {
-      overallStats.attendance += s.avg_attendance;
-      overallStats.test_pass += s.avg_test_pass;
-      overallStats.syllabus += s.syllabus_completion_percent;
-      overallStats.count++;
-    });
-
-    const count = overallStats.count || 1;
-    const laptopPercent = totalStudents > 0 ? (totalLaptops / totalStudents) * 100 : 0;
-
-    // Calculate Average Sessions for Engagement score (Target: 10 sessions/week)
-    const totalSessions = reports.reduce((sum, r: any) => sum + (r.sessions || 0), 0);
-    const avgSessions = totalSessions / (reports.length || 1);
-    const engagementScore = Math.min(100, (avgSessions / 10) * 100);
-
-    const departmentSummaryData = [
-      { subject: 'Attendance', A: parseFloat((overallStats.attendance / count).toFixed(1)), fullMark: 100 },
-      { subject: 'Test Pass', A: parseFloat((overallStats.test_pass / count).toFixed(1)), fullMark: 100 },
-      { subject: 'Syllabus', A: parseFloat((overallStats.syllabus / count).toFixed(1)), fullMark: 100 },
-      { subject: 'Laptop %', A: parseFloat(laptopPercent.toFixed(1)), fullMark: 100 },
-      { subject: 'Sessions', A: parseFloat(engagementScore.toFixed(1)), fullMark: 100 },
-    ];
-
-    return {
-      stats: {
-        totalStudents,
-        laptopPercent,
-        avgAttendance,
-        avgPass,
-        avgSyllabus
-      },
-      summaries: JSON.parse(JSON.stringify(summaries)),
-      weeklyTrendData,
-      departmentSummaryData,
-      error: null
-    };
-  } catch (error) {
-    console.error('Error fetching dashboard data:', error);
-    return {
-      stats: {
-        totalStudents: 0,
-        laptopPercent: 0,
-        avgAttendance: 0,
-        avgPass: 0,
-        avgSyllabus: 0
-      },
-      summaries: [],
-      weeklyTrendData: [],
-      departmentSummaryData: [],
-      error: 'Failed to load data. Please check database connection.'
-    };
-  }
-}
-
-export default async function OverviewPage() {
-  const { stats, summaries, weeklyTrendData, departmentSummaryData, error } = await getData();
-
-  const initialData = {
-    weeklyTrendData,
-    branchComparisonData: summaries,
-    departmentSummaryData,
-    stats
-  };
+  const tableColumns = [
+    { header: 'Branch', accessorKey: 'branch_code', sortable: true, className: 'font-bold text-slate-700' },
+    { header: 'Avg Attendance', accessorKey: (row: any) => `${row.avg_attendance.toFixed(1)}%`, sortable: true },
+    { header: 'Test Pass', accessorKey: (row: any) => `${row.avg_test_pass.toFixed(1)}%`, sortable: true, className: 'text-indigo-600 font-semibold' },
+    { header: 'Weekly Reports', accessorKey: 'total_weeks', sortable: true },
+    {
+      header: 'Grade', accessorKey: (row: any) => (
+        <span className={cn(
+          "px-2.5 py-1 rounded-full text-xs font-bold border",
+          row.performance_grade?.startsWith('A') ? "bg-emerald-50 text-emerald-700 border-emerald-200" :
+            row.performance_grade?.startsWith('B') ? "bg-indigo-50 text-indigo-700 border-indigo-200" :
+              "bg-amber-50 text-amber-700 border-amber-200"
+        )}>
+          {row.performance_grade}
+        </span>
+      )
+    },
+    {
+      header: 'Status', accessorKey: (row: any) => (
+        <div className="flex flex-col gap-1">
+          {row.avg_test_pass < 50 ? (
+            <div className="flex items-center gap-1.5 text-rose-600 font-medium text-xs bg-rose-50 px-2 py-1 rounded-md border border-rose-100 w-fit">
+              <AlertCircle className="w-3.5 h-3.5" />
+              Critical
+            </div>
+          ) : (
+            <div className="flex items-center gap-1.5 text-emerald-600 font-medium text-xs bg-emerald-50 px-2 py-1 rounded-md border border-emerald-100 w-fit">
+              <CheckCircle2 className="w-3.5 h-3.5" />
+              Stable
+            </div>
+          )}
+          {row.ai_risk_level && (
+            <div className={cn(
+              "text-[9px] font-black uppercase px-2 py-0.5 rounded border w-fit",
+              row.ai_risk_level === 'High' ? "bg-rose-900/10 text-rose-600 border-rose-200" :
+                row.ai_risk_level === 'Medium' ? "bg-amber-900/10 text-amber-600 border-amber-200" :
+                  "bg-emerald-900/10 text-emerald-600 border-emerald-200"
+            )}>
+              AI: {row.ai_risk_level}
+            </div>
+          )}
+        </div>
+      )
+    }
+  ];
 
   return (
     <div className="space-y-8 pb-12">
-      <div className="flex flex-col gap-2">
-        <h2 className="text-3xl font-bold text-slate-900 tracking-tight">Institution Overview</h2>
-        <p className="text-slate-500">Real-time performance metrics across all branches</p>
+      {/* 1. Header with Toggle */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 py-8">
+        <div className="space-y-1">
+          <h2 className="text-4xl font-black text-slate-900 tracking-tighter uppercase italic">Institutional Intelligence</h2>
+          <div className="flex items-center gap-4">
+            <p className="text-blue-600 font-black text-[10px] uppercase tracking-[0.3em] flex items-center gap-2">
+              <span className="w-8 h-[2px] bg-blue-600"></span>
+              Performance Auditor v2.0
+            </p>
+            {data.summaries[0]?.ai_risk_level && (
+              <div className={cn(
+                "px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border animate-pulse",
+                data.summaries[0].ai_risk_level === 'High' ? "bg-rose-50 text-rose-600 border-rose-200" :
+                  "bg-emerald-50 text-emerald-600 border-emerald-200"
+              )}>
+                System Risk: {data.summaries[0].ai_risk_level}
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div className="flex bg-slate-100/50 p-1.5 rounded-[20px] border border-slate-200">
+          <button
+            onClick={() => setView('standard')}
+            className={cn(
+              "flex items-center gap-2 px-6 py-2.5 rounded-[14px] text-xs font-black uppercase tracking-widest transition-all",
+              view === 'standard' ? "bg-white text-slate-900 shadow-md border border-slate-100" : "text-slate-400 hover:text-slate-600"
+            )}
+          >
+            <LayoutDashboard className="w-4 h-4" />
+            Core Metrics
+          </button>
+          <button
+            onClick={() => setView('analytics')}
+            className={cn(
+              "flex items-center gap-2 px-6 py-2.5 rounded-[14px] text-xs font-black uppercase tracking-widest transition-all",
+              view === 'analytics' ? "bg-blue-700 text-white shadow-xl shadow-blue-100" : "text-slate-400 hover:text-slate-600"
+            )}
+          >
+            <BarChart3 className="w-4 h-4" />
+            Insight Analytics
+          </button>
+        </div>
       </div>
 
-      {error && (
-        <div className="p-4 bg-red-50 border border-red-200 rounded-lg flex items-center gap-3 text-red-700">
-          <AlertCircle className="w-5 h-5 flex-shrink-0" />
-          <p className="font-medium">{error}</p>
+      {view === 'analytics' ? (
+        <AnalyticsDashboard reports={data.reports} branches={data.branches} weeks={data.weeks} />
+      ) : (
+        <div className="space-y-8 animate-in fade-in duration-500">
+          {/* Top Section - KPI Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+            <KpiCard
+              title="Avg Attendance"
+              value={`${data.stats.avgAttendance.toFixed(1)}%`}
+              icon={Users}
+              trend="+2.1%"
+              trendDirection="up"
+              status="success"
+              description="Average attendance across all branches this week"
+            />
+            <KpiCard
+              title="Test Pass Rate"
+              value={`${data.stats.avgPass.toFixed(1)}%`}
+              icon={GraduationCap}
+              trend="-0.5%"
+              trendDirection="down"
+              status={data.stats.avgPass < 60 ? 'warning' : 'neutral'}
+              description="Average test pass percentage"
+            />
+            <KpiCard
+              title="Syllabus Completion"
+              value={`${data.stats.avgSyllabus.toFixed(1)}%`}
+              icon={CheckCircle2}
+              trend="+5%"
+              trendDirection="up"
+              status="neutral"
+              description="Overall syllabus completion status"
+            />
+            <KpiCard
+              title="Laptop Coverage"
+              value={`${data.stats.laptopPercent.toFixed(1)}%`}
+              icon={Laptop}
+              status="neutral"
+              description="Percentage of students with laptops"
+            />
+            <KpiCard
+              title="Total Students"
+              value={data.stats.totalStudents}
+              icon={Users}
+              status="neutral"
+              description="Total active students"
+            />
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-[400px]">
+            <div className="lg:col-span-2 h-full">
+              <TrendChart
+                title="Performance Trends (Weekly)"
+                data={data.weeklyTrendData}
+                categories={['overall_score', 'attendance']}
+                index="week_no"
+                colors={['#3b82f6', '#10b981']}
+              />
+            </div>
+            <div className="h-full">
+              <HeatMap
+                title="Branch Performance Heatmap (Pass %)"
+                data={data.heatMapData}
+              />
+            </div>
+          </div>
+
+          <div className="mt-8">
+            <ExpandableTable
+              title="Detailed Branch Performance"
+              data={data.summaries}
+              columns={tableColumns}
+              rowId={(row) => row.branch_code}
+              expandableContent={(row) => (
+                <div className="p-4 grid grid-cols-3 gap-4 bg-slate-50/50">
+                  <div>
+                    <span className="text-xs text-slate-500 uppercase font-semibold">Total Students</span>
+                    <div className="text-sm font-medium">{row.total_students}</div>
+                  </div>
+                  <div>
+                    <span className="text-xs text-slate-500 uppercase font-semibold">Laptop Holders</span>
+                    <div className="text-sm font-medium">{row.laptop_holders}</div>
+                  </div>
+                  <div>
+                    <span className="text-xs text-slate-500 uppercase font-semibold">Syllabus</span>
+                    <div className="text-sm font-medium">{row.syllabus_completion_percent}%</div>
+                  </div>
+                </div>
+              )}
+            />
+          </div>
         </div>
       )}
 
-      {/* Replaced static charts with LiveAnalytics */}
-      <LiveAnalytics initialData={initialData} />
+      {/* LiveAnalytics for real-time insights */}
+      <LiveAnalytics initialData={{
+        weeklyTrendData: data.weeklyTrendData,
+        branchComparisonData: data.summaries,
+        departmentSummaryData: [], // Add required property
+        stats: data.stats
+      }} />
     </div>
   );
 }

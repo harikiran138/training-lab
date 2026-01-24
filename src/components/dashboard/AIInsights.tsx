@@ -1,0 +1,169 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import { useChat } from '@ai-sdk/react';
+import { Sparkles, Send, Bot, Zap } from 'lucide-react';
+
+export function AIInsights() {
+  const [input, setInput] = useState('');
+  const [intelligence, setIntelligence] = useState<any>(null);
+  const [isAuditing, setIsAuditing] = useState(false);
+
+  // @ts-ignore
+  const { messages, append, isLoading } = useChat({
+    api: '/api/ai',
+    initialMessages: [
+      {
+        id: '1',
+        role: 'system',
+        content: 'You are the Academic Performance Analyst. I can help you with student placement readiness, branch risk analysis, and faculty effectiveness.'
+      }
+    ]
+  } as any);
+
+  useEffect(() => {
+    const fetchLatest = async () => {
+      try {
+        const res = await fetch('/api/intelligence/recommendations');
+        const data = await res.json();
+        if (data && data.length > 0) {
+          setIntelligence(data[0]);
+        }
+      } catch (e) {
+        console.error('Failed to fetch initial insights:', e);
+      }
+    };
+    fetchLatest();
+  }, []);
+
+  const runIntelligenceAudit = async () => {
+    setIsAuditing(true);
+    try {
+      const res = await fetch('/api/intelligence/GLOBAL?type=Department&refresh=true');
+      const data = await res.json();
+      if (data && data.length > 0) {
+        setIntelligence(data[0]);
+      }
+    } catch (error) {
+      console.error('Audit failed:', error);
+    } finally {
+      setIsAuditing(false);
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!input.trim()) return;
+    
+    const userMessage = input;
+    setInput('');
+    // @ts-ignore
+    await append({ role: 'user', content: userMessage });
+  };
+
+  return (
+    <div className="bg-slate-900 rounded-2xl p-6 text-white border border-slate-700 shadow-xl overflow-hidden flex flex-col h-[600px]">
+      <div className="flex items-center justify-between mb-6 pb-4 border-b border-slate-800">
+        <div className="flex items-center gap-3">
+          <div className="p-2 bg-indigo-500/20 rounded-lg">
+            <Sparkles className="w-5 h-5 text-indigo-400" />
+          </div>
+          <div>
+            <h3 className="text-lg font-bold uppercase tracking-tight">Intelligence Engine</h3>
+            <p className="text-[10px] text-slate-400 uppercase font-black">Powered by Gemini & Real-Time DB</p>
+          </div>
+        </div>
+        <button 
+          onClick={runIntelligenceAudit}
+          disabled={isAuditing}
+          className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 rounded-xl text-xs font-bold transition-all shadow-lg shadow-indigo-900/40 disabled:opacity-50"
+        >
+          {isAuditing ? 'Generating...' : <><Zap className="w-3 h-3" /> AI Audit</>}
+        </button>
+      </div>
+
+      <div className="flex-1 overflow-y-auto space-y-4 pr-2 custom-scrollbar">
+        {/* Intelligence Report Card */}
+        {intelligence && (
+          <div className="bg-indigo-950/40 border border-indigo-500/30 rounded-2xl p-5 mb-6 animate-in fade-in zoom-in duration-500">
+            <div className="flex justify-between items-start mb-4">
+              <div className="bg-indigo-500 text-[10px] px-2 py-0.5 rounded font-black uppercase tracking-widest text-white">
+                Live Analysis
+              </div>
+              <div className={`text-[10px] px-2 py-0.5 rounded font-black uppercase ${
+                intelligence.risk_level === 'High' ? 'bg-red-500/20 text-red-400 border border-red-500/30' : 
+                intelligence.risk_level === 'Medium' ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30' : 
+                'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+              }`}>
+                Risk: {intelligence.risk_level}
+              </div>
+            </div>
+            <p className="text-sm text-indigo-100 leading-relaxed mb-4">
+              {intelligence.insight_text}
+            </p>
+            <div className="space-y-2">
+              <h4 className="text-[10px] font-black text-indigo-400 uppercase tracking-widest">Recommended Actions:</h4>
+              {(intelligence.action_plan || []).map((rec: any, idx: number) => (
+                <div key={idx} className="flex gap-3 items-center bg-slate-900/50 p-2 rounded-lg border border-slate-700/50">
+                   <div className={`w-1.5 h-1.5 rounded-full ${
+                     rec.priority === 'High' ? 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]' : 
+                     rec.priority === 'Medium' ? 'bg-amber-500' : 'bg-indigo-500'
+                   }`} />
+                   <p className="text-xs text-slate-300 font-medium">{rec.task}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {messages.filter(m => m.role !== 'system').map((m: any) => (
+          <div key={m.id} className={`flex gap-3 ${m.role === 'user' ? 'flex-row-reverse' : ''}`}>
+            <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
+              m.role === 'user' ? 'bg-slate-700' : 'bg-indigo-600'
+            }`}>
+              {m.role === 'user' ? <div className="text-xs">You</div> : <Bot className="w-4 h-4" />}
+            </div>
+            <div className={`p-3 rounded-2xl max-w-[80%] text-sm ${
+              m.role === 'user' 
+                ? 'bg-slate-800 text-slate-200 rounded-tr-none' 
+                : 'bg-indigo-900/30 text-indigo-100 border border-indigo-500/30 rounded-tl-none'
+            }`}>
+              {m.content}
+            </div>
+          </div>
+        ))}
+        {isLoading && (
+          <div className="flex gap-3">
+             <div className="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center flex-shrink-0 animate-pulse">
+                <Bot className="w-4 h-4" />
+             </div>
+             <div className="p-3 rounded-2xl bg-indigo-900/30 border border-indigo-500/30 rounded-tl-none">
+               <span className="flex gap-1">
+                 <span className="w-1.5 h-1.5 bg-indigo-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}/>
+                 <span className="w-1.5 h-1.5 bg-indigo-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}/>
+                 <span className="w-1.5 h-1.5 bg-indigo-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}/>
+               </span>
+             </div>
+          </div>
+        )}
+      </div>
+
+      <form onSubmit={handleSubmit} className="mt-4 relative">
+        <input
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          placeholder="Type specifically to student or class..."
+          className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 pr-12 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 placeholder:text-slate-500"
+        />
+        <button 
+          type="submit"
+          disabled={isLoading || !input.trim()}
+          className="absolute right-2 top-1/2 -translate-y-1/2 p-2 bg-indigo-600 rounded-lg hover:bg-indigo-500 disabled:opacity-50 transition-colors"
+        >
+          <Send className="w-4 h-4" />
+        </button>
+      </form>
+    </div>
+  );
+}
+
