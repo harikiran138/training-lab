@@ -1,12 +1,13 @@
 import React from 'react';
-import { 
-  BarChart, 
-  Search, 
-  ArrowUpRight, 
+import {
+  BarChart,
+  Search,
+  ArrowUpRight,
   Filter,
   Users,
   Award
 } from 'lucide-react';
+import Link from 'next/link';
 import dbConnect from '@/lib/mongodb';
 import AggregateSummary from '@/models/AggregateSummary';
 import Branch from '@/models/Branch';
@@ -18,7 +19,7 @@ async function getBranchData() {
   await dbConnect();
   const summaries = await AggregateSummary.find({}).lean();
   const branches = await Branch.find({}).lean();
-  
+
   const branchMap: any = {};
   branches.forEach((b: any) => {
     branchMap[b.branch_code] = b;
@@ -40,13 +41,13 @@ export default async function BranchesPage() {
           <h2 className="text-3xl font-bold text-slate-900 tracking-tight">Branch Analytics</h2>
           <p className="text-slate-500">Comparative analysis of performance across departments</p>
         </div>
-        
+
         <div className="flex items-center gap-3">
           <div className="relative">
             <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-            <input 
-              type="text" 
-              placeholder="Search branch..." 
+            <input
+              type="text"
+              placeholder="Search branch..."
               className="pl-10 pr-4 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none w-64"
             />
           </div>
@@ -73,7 +74,7 @@ export default async function BranchesPage() {
                 </span>
               </div>
             </div>
-            
+
             <div className="p-6 space-y-6">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1">
@@ -92,8 +93,8 @@ export default async function BranchesPage() {
                   <span className="text-indigo-600 font-bold">{branch.syllabus_completion_percent.toFixed(1)}%</span>
                 </div>
                 <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
-                  <div 
-                    className="h-full bg-indigo-500 rounded-full" 
+                  <div
+                    className="h-full bg-indigo-500 rounded-full"
                     style={{ width: `${branch.syllabus_completion_percent}%` }}
                   />
                 </div>
@@ -111,10 +112,13 @@ export default async function BranchesPage() {
               </div>
             </div>
 
-            <button className="w-full py-3 bg-slate-50 text-slate-600 text-sm font-bold flex items-center justify-center gap-2 group-hover:bg-indigo-600 group-hover:text-white transition-colors">
+            <Link
+              href={`/branches/${branch.branch_code}`}
+              className="w-full py-3 bg-slate-50 text-slate-600 text-sm font-bold flex items-center justify-center gap-2 group-hover:bg-indigo-600 group-hover:text-white transition-colors"
+            >
               View Detailed Report
               <ArrowUpRight className="w-4 h-4" />
-            </button>
+            </Link>
           </div>
         ))}
       </div>

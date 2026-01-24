@@ -8,6 +8,16 @@ export interface IAggregateSummary extends Document {
   avg_test_pass: number;
   syllabus_completion_percent: number;
   performance_grade: string;
+  ai_values: {
+    avg_attendance?: number;
+    avg_test_pass?: number;
+    syllabus_completion_percent?: number;
+  };
+  overrides: {
+    avg_attendance?: number;
+    avg_test_pass?: number;
+    syllabus_completion_percent?: number;
+  };
 }
 
 const AggregateSummarySchema: Schema = new Schema({
@@ -17,7 +27,9 @@ const AggregateSummarySchema: Schema = new Schema({
   avg_test_attendance: { type: Number, required: true, default: 0 },
   avg_test_pass: { type: Number, required: true, default: 0 },
   syllabus_completion_percent: { type: Number, required: true, default: 0 },
-  performance_grade: { type: String, default: 'N/A' }
+  performance_grade: { type: String, default: 'N/A' },
+  ai_values: { type: Map, of: Number, default: {} },
+  overrides: { type: Map, of: Number, default: {} }
 }, { timestamps: true });
 
 export default mongoose.models.AggregateSummary || mongoose.model<IAggregateSummary>('AggregateSummary', AggregateSummarySchema);

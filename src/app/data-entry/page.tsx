@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useState, useEffect } from 'react';
-import { Save, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { Save, AlertCircle, CheckCircle2, ArrowRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export default function DataEntryPage() {
@@ -90,6 +90,13 @@ export default function DataEntryPage() {
         <p className="text-slate-500">Record weekly CRT performance for a specific branch</p>
       </div>
 
+      <div className="flex justify-end">
+        <a href="/data-entry/bulk" className="flex items-center gap-2 text-indigo-600 hover:text-indigo-800 font-medium transition-colors">
+          <span className="text-sm">Switch to Bulk Upload</span>
+          <ArrowRight className="w-4 h-4" />
+        </a>
+      </div>
+
       {message.text && (
         <div className={cn(
           "p-4 rounded-lg flex items-center gap-3",
@@ -104,7 +111,7 @@ export default function DataEntryPage() {
         <div className="grid grid-cols-2 gap-6">
           <div className="space-y-2">
             <label className="text-sm font-semibold text-slate-700">Branch</label>
-            <select 
+            <select
               required
               className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
               value={formData.branch_code}
@@ -118,7 +125,7 @@ export default function DataEntryPage() {
           </div>
           <div className="space-y-2">
             <label className="text-sm font-semibold text-slate-700">Week</label>
-            <select 
+            <select
               required
               className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
               value={formData.week_no}
@@ -134,8 +141,8 @@ export default function DataEntryPage() {
 
         <div className="space-y-2">
           <label className="text-sm font-semibold text-slate-700">Number of Sessions</label>
-          <input 
-            type="number" 
+          <input
+            type="number"
             className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
             value={formData.sessions}
             onChange={(e) => setFormData({ ...formData, sessions: parseInt(e.target.value) })}
@@ -146,13 +153,13 @@ export default function DataEntryPage() {
           <h4 className="text-xs font-bold text-indigo-700 uppercase tracking-wider">Attendance Metrics</h4>
           <div className="space-y-2">
             <label className="text-sm font-medium text-slate-700">Average Attendance %</label>
-            <input 
+            <input
               type="number" step="0.1" max="100" min="0" required
               className="w-full p-2.5 bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
               value={formData.attendance.avg_attendance_percent}
-              onChange={(e) => setFormData({ 
-                ...formData, 
-                attendance: { avg_attendance_percent: parseFloat(e.target.value) } 
+              onChange={(e) => setFormData({
+                ...formData,
+                attendance: { avg_attendance_percent: parseFloat(e.target.value) }
               })}
             />
           </div>
@@ -163,25 +170,25 @@ export default function DataEntryPage() {
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <label className="text-sm font-medium text-slate-700">Avg Test Attendance %</label>
-              <input 
+              <input
                 type="number" step="0.1" max="100" min="0" required
                 className="w-full p-2.5 bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
                 value={formData.tests.avg_test_attendance_percent}
-                onChange={(e) => setFormData({ 
-                  ...formData, 
-                  tests: { ...formData.tests, avg_test_attendance_percent: parseFloat(e.target.value) } 
+                onChange={(e) => setFormData({
+                  ...formData,
+                  tests: { ...formData.tests, avg_test_attendance_percent: parseFloat(e.target.value) }
                 })}
               />
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium text-slate-700">Avg Test Pass %</label>
-              <input 
+              <input
                 type="number" step="0.1" max="100" min="0" required
                 className="w-full p-2.5 bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
                 value={formData.tests.avg_test_pass_percent}
-                onChange={(e) => setFormData({ 
-                  ...formData, 
-                  tests: { ...formData.tests, avg_test_pass_percent: parseFloat(e.target.value) } 
+                onChange={(e) => setFormData({
+                  ...formData,
+                  tests: { ...formData.tests, avg_test_pass_percent: parseFloat(e.target.value) }
                 })}
               />
             </div>
@@ -193,33 +200,33 @@ export default function DataEntryPage() {
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <label className="text-sm font-medium text-slate-700">Syllabus Covered</label>
-              <input 
+              <input
                 type="number" step="1" min="0" required
                 className="w-full p-2.5 bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
                 value={formData.syllabus.covered}
-                onChange={(e) => setFormData({ 
-                  ...formData, 
-                  syllabus: { ...formData.syllabus, covered: parseFloat(e.target.value) } 
+                onChange={(e) => setFormData({
+                  ...formData,
+                  syllabus: { ...formData.syllabus, covered: parseFloat(e.target.value) }
                 })}
               />
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium text-slate-700">Total Syllabus</label>
-              <input 
+              <input
                 type="number" step="1" min="1" required
                 className="w-full p-2.5 bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
                 value={formData.syllabus.total}
-                onChange={(e) => setFormData({ 
-                  ...formData, 
-                  syllabus: { ...formData.syllabus, total: parseFloat(e.target.value) } 
+                onChange={(e) => setFormData({
+                  ...formData,
+                  syllabus: { ...formData.syllabus, total: parseFloat(e.target.value) }
                 })}
               />
             </div>
           </div>
         </div>
 
-        <button 
-          type="submit" 
+        <button
+          type="submit"
           disabled={saving}
           className="w-full py-3 bg-indigo-600 text-white font-bold rounded-lg hover:bg-slate-900 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
         >
