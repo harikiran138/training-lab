@@ -34,18 +34,26 @@ export default function AnalyticsDashboard({ reports, branches, weeks }: any) {
     };
   }, [reports]);
 
-  // Data for Branch Comparison (Bar Chart)
+  // Data for Branch Comparison (Cumulative Average across all weeks)
   const branchData = useMemo(() => {
     if (!reports?.length) return [];
-    const latestWeek = Math.max(...reports.map((r: any) => r.week_no));
-    return reports
-      .filter((r: any) => r.week_no === latestWeek)
-      .map((r: any) => ({
-        name: r.branch_code,
-        attendance: r.attendance.avg_attendance_percent,
-        pass: r.tests.avg_test_pass_percent,
-        motivation: (r.motivation?.avg_score || 0) * 10 
-      }));
+    
+    const branchStats = new Map();
+    reports.forEach((r: any) => {
+      if (!branchStats.has(r.branch_code)) {
+        branchStats.set(r.branch_code, { attendance: 0, pass: 0, count: 0 });
+      }
+      const b = branchStats.get(r.branch_code);
+      b.attendance += r.attendance.avg_attendance_percent;
+      b.pass += r.tests.avg_test_pass_percent;
+      b.count += 1;
+    });
+
+    return Array.from(branchStats.entries()).map(([code, data]) => ({
+      name: code,
+      attendance: parseFloat((data.attendance / data.count).toFixed(1)),
+      pass: parseFloat((data.pass / data.count).toFixed(1))
+    })).sort((a, b) => b.attendance - a.attendance);
   }, [reports]);
 
   // Trend Data (Line Chart)
@@ -110,9 +118,12 @@ export default function AnalyticsDashboard({ reports, branches, weeks }: any) {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Branch Comparison */}
         <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-          <h3 className="text-sm font-bold text-slate-500 mb-6 flex items-center gap-2 uppercase tracking-wider">
-            <TrendingUp className="w-4 h-4 text-blue-600" />
-            Branch Distribution
+          <h3 className="text-sm font-black text-slate-400 mb-6 flex items-center justify-between uppercase tracking-widest">
+            <span className="flex items-center gap-2">
+                <TrendingUp className="w-4 h-4 text-blue-600" />
+                Branch Benchmark (Cumulative)
+            </span>
+            <span className="text-[9px] bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full">Overall Avg</span>
           </h3>
           <div className="h-80">
             <ResponsiveContainer width="100%" height="100%">
@@ -215,16 +226,17 @@ export default function AnalyticsDashboard({ reports, branches, weeks }: any) {
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-50">
-                        {branchData.slice(0, 5).map((b: any, i: number) => (
+                        {branchData.slice(0, 10).map((b: any, i: number) => (
                             <tr key={i} className="hover:bg-blue-50/30 transition-colors">
                                 <td className="px-6 py-4 font-black text-slate-900">{b.name}</td>
                                 <td className="px-6 py-4 text-slate-600 font-medium">{b.attendance}%</td>
                                 <td className="px-6 py-4 text-blue-600 font-bold">{b.pass}%</td>
                                 <td className="px-6 py-4">
                                     <span className={`px-2 py-1 rounded-md text-[10px] font-black uppercase tracking-tighter ${
-                                        b.attendance > 80 ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-600'
+                                        b.attendance > 90 ? 'bg-blue-700 text-white shadow-lg shadow-blue-100' : 
+                                        b.attendance > 80 ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-500'
                                     }`}>
-                                        {b.attendance > 80 ? 'Target Met' : 'Review'}
+                                        {b.attendance > 90 ? 'Excellence' : b.attendance > 80 ? 'Standard' : 'Review'}
                                     </span>
                                 </td>
                             </tr>
