@@ -31,12 +31,13 @@ async function getRiskData() {
   return {
     highRisk: JSON.parse(JSON.stringify(highRisk)),
     criticalSyllabus: JSON.parse(JSON.stringify(criticalSyllabus)),
-    distribution
+    distribution,
+    summaries: JSON.parse(JSON.stringify(summaries))
   };
 }
 
 export default async function RiskAnalysisPage() {
-  const { highRisk, criticalSyllabus, distribution } = await getRiskData();
+  const { highRisk, criticalSyllabus, distribution, summaries: riskSummaries } = await getRiskData();
 
   return (
     <div className="space-y-8 pb-12">
@@ -153,19 +154,19 @@ export default async function RiskAnalysisPage() {
             <div className="p-4 bg-slate-800 rounded-xl border border-slate-700">
               <p className="text-xs font-bold text-indigo-400 uppercase mb-2">AI Summary</p>
               <p className="text-sm text-slate-300">
-                {summaries[0]?.ai_recommendation || "Run AI Audit for real-time mitigation strategies."}
+                {(riskSummaries && riskSummaries[0])?.ai_recommendation || "Run AI Audit for real-time mitigation strategies."}
               </p>
             </div>
             <div className={`p-4 rounded-xl border ${
-              summaries[0]?.ai_risk_level === 'High' ? 'bg-rose-900/20 border-rose-500/30' : 
-              summaries[0]?.ai_risk_level === 'Medium' ? 'bg-amber-900/20 border-amber-500/30' : 
+              (riskSummaries && riskSummaries[0])?.ai_risk_level === 'High' ? 'bg-rose-900/20 border-rose-500/30' : 
+              (riskSummaries && riskSummaries[0])?.ai_risk_level === 'Medium' ? 'bg-amber-900/20 border-amber-500/30' : 
               'bg-emerald-900/20 border-emerald-500/30'
             }`}>
-              <p className="text-xs font-bold uppercase mb-2" style={{ color: summaries[0]?.ai_risk_level === 'High' ? '#fb7185' : summaries[0]?.ai_risk_level === 'Medium' ? '#fbbf24' : '#34d399' }}>
+              <p className="text-xs font-bold uppercase mb-2" style={{ color: (riskSummaries && riskSummaries[0])?.ai_risk_level === 'High' ? '#fb7185' : (riskSummaries && riskSummaries[0])?.ai_risk_level === 'Medium' ? '#fbbf24' : '#34d399' }}>
                 AI Risk Status
               </p>
               <p className="text-sm text-slate-300">
-                Current institutional risk is rated as <span className="font-bold">{summaries[0]?.ai_risk_level || 'Unknown'}</span> based on latest metrics.
+                Current institutional risk is rated as <span className="font-bold">{(riskSummaries && riskSummaries[0])?.ai_risk_level || 'Unknown'}</span> based on latest metrics.
               </p>
             </div>
             <div className="p-4 bg-slate-800 rounded-xl border border-slate-700">

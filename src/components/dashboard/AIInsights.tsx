@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useChat } from '@ai-sdk/react';
-import { Sparkles, Send, Bot } from 'lucide-react';
+import { Sparkles, Send, Bot, Zap } from 'lucide-react';
 
 export function AIInsights() {
   const [input, setInput] = useState('');
