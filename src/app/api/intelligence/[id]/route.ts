@@ -10,6 +10,8 @@ export async function GET(
   try {
     const { id } = await params;
     const { searchParams } = new URL(request.url);
+    const type = searchParams.get('type') || 'Student';
+    const forceRefresh = searchParams.get('refresh') === 'true';
 
     if (forceRefresh) {
       if (type === 'Student') {
