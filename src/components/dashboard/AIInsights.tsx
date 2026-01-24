@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useChat } from '@ai-sdk/react';
 import { Sparkles, Send, Bot, Zap } from 'lucide-react';
 
@@ -10,28 +10,39 @@ export function AIInsights() {
   const [isAuditing, setIsAuditing] = useState(false);
 
   // @ts-ignore
-  const { messages, sendMessage, isLoading } = useChat({
+  const { messages, append, isLoading } = useChat({
     api: '/api/ai',
     initialMessages: [
       {
         id: '1',
         role: 'system',
-        content: 'You are an AI analyst. How can I help you with the performance data?'
+        content: 'You are the Academic Performance Analyst. I can help you with student placement readiness, branch risk analysis, and faculty effectiveness.'
       }
     ]
   } as any);
 
+  useEffect(() => {
+    const fetchLatest = async () => {
+      try {
+        const res = await fetch('/api/intelligence/recommendations');
+        const data = await res.json();
+        if (data && data.length > 0) {
+          setIntelligence(data[0]);
+        }
+      } catch (e) {
+        console.error('Failed to fetch initial insights:', e);
+      }
+    };
+    fetchLatest();
+  }, []);
+
   const runIntelligenceAudit = async () => {
     setIsAuditing(true);
     try {
-      const res = await fetch('/api/ai/intelligence', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ type: 'College' })
-      });
+      const res = await fetch('/api/intelligence/GLOBAL?type=Department&refresh=true');
       const data = await res.json();
-      if (data.success) {
-        setIntelligence(data.result);
+      if (data && data.length > 0) {
+        setIntelligence(data[0]);
       }
     } catch (error) {
       console.error('Audit failed:', error);
@@ -46,7 +57,8 @@ export function AIInsights() {
     
     const userMessage = input;
     setInput('');
-    await sendMessage({ role: 'user', content: userMessage } as any);
+    // @ts-ignore
+    await append({ role: 'user', content: userMessage });
   };
 
   return (
@@ -90,14 +102,14 @@ export function AIInsights() {
               {intelligence.insight_text}
             </p>
             <div className="space-y-2">
-              <h4 className="text-[10px] font-black text-indigo-400 uppercase tracking-widest">Actionable Recommendations:</h4>
-              {intelligence.recommendations.map((rec: any, idx: number) => (
+              <h4 className="text-[10px] font-black text-indigo-400 uppercase tracking-widest">Recommended Actions:</h4>
+              {(intelligence.action_plan || []).map((rec: any, idx: number) => (
                 <div key={idx} className="flex gap-3 items-center bg-slate-900/50 p-2 rounded-lg border border-slate-700/50">
                    <div className={`w-1.5 h-1.5 rounded-full ${
-                     rec.priority === 'High' ? 'bg-red-500' : 
+                     rec.priority === 'High' ? 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]' : 
                      rec.priority === 'Medium' ? 'bg-amber-500' : 'bg-indigo-500'
                    }`} />
-                   <p className="text-xs text-slate-300">{rec.task}</p>
+                   <p className="text-xs text-slate-300 font-medium">{rec.task}</p>
                 </div>
               ))}
             </div>
