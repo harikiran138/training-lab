@@ -88,7 +88,7 @@ export async function analyzeStudentExtended(studentId: string) {
 
   try {
     const { text } = await generateText({
-      model: google('gemini-pro'),
+      model: google('gemini-pro-latest'),
       system: systemPrompt,
       prompt: userPrompt,
     });

@@ -2,6 +2,7 @@ import { streamText } from 'ai';
 import { createOpenAI } from '@ai-sdk/openai';
 import { AnalyticsService } from '@/services/analytics/AnalyticsService';
 import { analyzeStudentExtended } from '@/services/ai/StudentAnalysisService';
+import { analyzeFacultyExtended } from '@/services/ai/FacultyAnalysisService';
 
 // Configure the provider. 
 // Note: The user provided key starts with 'vck_', which implies Vercel. 
@@ -25,9 +26,9 @@ export const maxDuration = 60; // Increased for complex analysis
 
 export async function POST(req: Request) {
   const body = await req.json();
-  const { messages, action, studentId } = body;
+  const { messages, action, studentId, facultyId } = body; // Added facultyId
 
-  // 1. Handle Structured Analysis Action
+  // 1. Handle Student Analysis
   if (action === 'analyze_student' && studentId) {
     try {
       const result = await analyzeStudentExtended(studentId);
@@ -42,7 +43,22 @@ export async function POST(req: Request) {
     }
   }
 
-  // 2. Default Streaming Feedback (Existing behavior)
+  // 2. Handle Faculty Analysis
+  if (action === 'analyze_faculty' && facultyId) {
+    try {
+      const result = await analyzeFacultyExtended(facultyId);
+      return new Response(JSON.stringify(result), {
+        headers: { 'Content-Type': 'application/json' },
+      });
+    } catch (error: any) {
+      return new Response(JSON.stringify({ error: error.message }), {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+  }
+
+  // 3. Default Streaming Feedback (Existing behavior) // Updated comment number
   // 1. Fetch Context
   const dashboardMetrics = await AnalyticsService.getDashboardMetrics();
   

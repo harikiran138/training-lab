@@ -1,6 +1,5 @@
 import { 
   AlertTriangle, 
-  Target, 
   ArrowRight,
   ShieldAlert,
   Ghost,
@@ -11,6 +10,7 @@ import AggregateSummary from '@/models/AggregateSummary';
 import { cn } from '@/lib/utils';
 import { RiskPieChart } from '@/components/dashboard/OverviewCharts';
 import { AIInsights } from '@/components/dashboard/AIInsights';
+import { StatisticalAudit } from '@/components/dashboard/StatisticalAudit';
 
 export const dynamic = 'force-dynamic';
 
@@ -23,7 +23,7 @@ async function getRiskData() {
   
   // Create distribution for chart
   const distribution = [
-    { name: 'Healthy', count: summaries.filter((s: any) => s.performance_grade.startsWith('A') || s.performance_grade.startsWith('B')).length },
+    { name: 'Healthy', count: summaries.filter((s: any) => s.performance_grade?.startsWith('A') || s.performance_grade?.startsWith('B')).length },
     { name: 'Needs Attention', count: summaries.filter((s: any) => s.performance_grade === 'C').length },
     { name: 'Critical', count: summaries.filter((s: any) => s.avg_test_pass < 50).length }
   ];
@@ -37,25 +37,27 @@ async function getRiskData() {
 }
 
 export default async function RiskAnalysisPage() {
-  const { highRisk, criticalSyllabus, distribution, summaries: riskSummaries } = await getRiskData();
+  const { highRisk, criticalSyllabus, distribution } = await getRiskData();
 
   return (
-    <div className="space-y-8 pb-12">
+    <div className="space-y-12 pb-12">
       <div className="flex flex-col gap-2">
-        <h2 className="text-3xl font-bold text-slate-900 tracking-tight">Risk Analysis</h2>
-        <p className="text-slate-500">Identification of low-performing branches and syllabus lags</p>
+        <h2 className="text-3xl font-bold text-slate-900 tracking-tight">Risk & Statistical Analysis</h2>
+        <p className="text-slate-500">Real-time NumPy-driven institutional analytical audit</p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-         <div className="md:col-span-1">
-            <RiskPieChart data={distribution} />
-         </div>
-         <div className="md:col-span-2 space-y-8">
-             {/* Existing Grid Layout Adjusted */}
-         </div>
+      {/* NEW: Pure Mathematical Audit Section */}
+      <StatisticalAudit />
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="lg:col-span-1">
+           <RiskPieChart data={distribution} />
+        </div>
+        
+        <div className="lg:col-span-2">
+           <AIInsights />
+        </div>
       </div>
-      
-      {/* Moving existing lists into the grid above or below */}
       
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Performance Risk */}
@@ -140,46 +142,6 @@ export default async function RiskAnalysisPage() {
               </div>
             )}
           </div>
-        </div>
-      </div>
-
-      {/* Suggested Actions */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-2 bg-slate-900 rounded-2xl p-8 text-white">
-          <div className="flex items-center gap-3 mb-6">
-            <Target className="w-6 h-6 text-indigo-400" />
-            <h3 className="text-xl font-bold">Recommended Mitigation Strategies</h3>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="p-4 bg-slate-800 rounded-xl border border-slate-700">
-              <p className="text-xs font-bold text-indigo-400 uppercase mb-2">AI Summary</p>
-              <p className="text-sm text-slate-300">
-                {(riskSummaries && riskSummaries[0])?.ai_recommendation || "Run AI Audit for real-time mitigation strategies."}
-              </p>
-            </div>
-            <div className={`p-4 rounded-xl border ${
-              (riskSummaries && riskSummaries[0])?.ai_risk_level === 'High' ? 'bg-rose-900/20 border-rose-500/30' : 
-              (riskSummaries && riskSummaries[0])?.ai_risk_level === 'Medium' ? 'bg-amber-900/20 border-amber-500/30' : 
-              'bg-emerald-900/20 border-emerald-500/30'
-            }`}>
-              <p className="text-xs font-bold uppercase mb-2" style={{ color: (riskSummaries && riskSummaries[0])?.ai_risk_level === 'High' ? '#fb7185' : (riskSummaries && riskSummaries[0])?.ai_risk_level === 'Medium' ? '#fbbf24' : '#34d399' }}>
-                AI Risk Status
-              </p>
-              <p className="text-sm text-slate-300">
-                Current institutional risk is rated as <span className="font-bold">{(riskSummaries && riskSummaries[0])?.ai_risk_level || 'Unknown'}</span> based on latest metrics.
-              </p>
-            </div>
-            <div className="p-4 bg-slate-800 rounded-xl border border-slate-700">
-              <p className="text-xs font-bold text-cyan-400 uppercase mb-2">Next Step</p>
-              <p className="text-sm text-slate-300">
-                Check the AI Performance Analyst chat for granular student-level guidance.
-              </p>
-            </div>
-          </div>
-        </div>
-        
-        <div className="lg:col-span-1">
-           <AIInsights />
         </div>
       </div>
     </div>

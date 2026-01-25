@@ -1,36 +1,56 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# College CRT & Placement Intelligence System
 
-## Getting Started
+## Overview
 
-First, run the development server:
+This platform is a full-scale academic, CRT, and placement management system
+powered by AI-driven analytics and strict role-based access control.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## Roles
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+- Student
+- Faculty
+- CRT Trainer
+- HOD
+- Placement Officer
+- Admin
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Core Features
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- Student 360° profile
+- Faculty performance analytics
+- Training & placement tracking
+- AI-based readiness prediction
+- Automated reports (NAAC/NBA)
+- Secure document & certificate handling
+- Notification & event system
 
-## Learn More
+## Technology Stack
 
-To learn more about Next.js, take a look at the following resources:
+Frontend: React + TypeScript + Tailwind  
+Backend: FastAPI / NestJS  
+Database: PostgreSQL  
+Auth: JWT + RBAC  
+AI: Gemini / GPT (backend-only)  
+Infra: Docker + AWS
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## AI Safety
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- AI never directly accesses database
+- AI works only on validated JSON
+- All outputs are reviewed before persistence
 
-## Deploy on Vercel
+## Testing
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- Automated UI & API tests
+- AI-based full system audit
+- Staging-only execution
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Deployment
+
+- Dockerized services
+- Environment-based configs
+- Secure secret management
+
+## Status
+
+Production-ready after audit score ≥ 8/10
