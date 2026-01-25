@@ -4,157 +4,154 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { 
-  BarChart3, 
   LayoutDashboard, 
+  BarChart3, 
   TrendingUp, 
   AlertTriangle, 
-  Settings,
-  Menu,
-  X,
   Database,
-  ChevronRight
+  ChevronLeft,
+  ChevronRight,
+  Activity,
+  Server,
+  ShieldCheck,
+  Menu,
+  X
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { ScientificCard } from '@/components/ui/ScientificCard';
 
 const navigation = [
-  { name: 'Overview', href: '/', icon: LayoutDashboard },
-  { name: 'Branch Analytics', href: '/branches', icon: BarChart3 },
-  { name: 'Weekly Trends', href: '/trends', icon: TrendingUp },
-  { name: 'Risk Analysis', href: '/risk', icon: AlertTriangle },
-  { name: 'Data Entry', href: '/data-entry', icon: Database },
+  { name: 'Mission Control', href: '/', icon: LayoutDashboard },
+  { name: 'Branch Performance', href: '/branches', icon: BarChart3 },
+  { name: 'Trend Analysis', href: '/trends', icon: TrendingUp },
+  { name: 'Risk Assessment', href: '/risk', icon: AlertTriangle },
+  { name: 'Data Ingestion', href: '/data-entry', icon: Database },
 ];
 
 export function DashboardLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-900 flex">
-      {/* Desktop Sidebar */}
-      <aside className="hidden lg:flex flex-col w-64 bg-white dark:bg-slate-950 border-r border-slate-200 dark:border-slate-800 fixed h-full z-30 transition-all duration-300">
-        <div className="p-6 flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold">
-            C
-          </div>
-          <h1 className="text-xl font-bold tracking-tight text-slate-800 dark:text-white">
-            CRT Analytics
-          </h1>
+    <div className="min-h-screen bg-slate-950 text-slate-200 font-sans flex flex-col">
+      {/* System Status Header */}
+      <header className="h-10 bg-slate-900 border-b border-slate-800 flex items-center justify-between px-4 z-40 sticky top-0">
+        <div className="flex items-center gap-4 text-xs font-mono text-slate-400">
+          <span className="flex items-center gap-1.5">
+            <Activity className="w-3 h-3 text-cyan-500" />
+            SYSTEM: <span className="text-cyan-400">ONLINE</span>
+          </span>
+          <span className="hidden md:flex items-center gap-1.5 border-l border-slate-800 pl-4">
+            <Server className="w-3 h-3 text-emerald-500" />
+            DB_CONNECTION: <span className="text-emerald-400">STABLE</span>
+          </span>
+          <span className="hidden md:flex items-center gap-1.5 border-l border-slate-800 pl-4">
+            <ShieldCheck className="w-3 h-3 text-indigo-500" />
+            SECURITY: <span className="text-indigo-400">ENFORCED</span>
+          </span>
         </div>
-        
-        <nav className="flex-1 px-3 space-y-1 mt-6">
-          <div className="px-3 mb-2 text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">
-            Main Menu
-          </div>
-          {navigation.map((item) => {
-            const isActive = pathname === item.href;
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={cn(
-                  "group flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 relative overflow-hidden",
-                  isActive 
-                    ? "text-indigo-600 bg-indigo-50 dark:bg-indigo-900/20 dark:text-indigo-300" 
-                    : "text-slate-600 hover:text-slate-900 hover:bg-slate-50 dark:text-slate-400 dark:hover:text-slate-200 dark:hover:bg-slate-900"
-                )}
-              >
-                <item.icon className={cn(
-                  "w-5 h-5 transition-colors",
-                  isActive ? "text-indigo-600 dark:text-indigo-400" : "text-slate-400 group-hover:text-slate-600 dark:text-slate-500 dark:group-hover:text-slate-300"
-                )} />
-                {item.name}
-                {isActive && (
-                  <div className="absolute right-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-indigo-600 rounded-l-full" />
-                )}
-              </Link>
-            );
-          })}
-        </nav>
-        
-        <div className="p-4 border-t border-slate-200 dark:border-slate-800">
-          <div className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-50 dark:text-slate-400 dark:hover:text-white dark:hover:bg-slate-900 cursor-pointer transition-colors">
-            <Settings className="w-5 h-5 text-slate-400" />
-            System Settings
-          </div>
-          <div className="mt-4 px-3 flex items-center gap-3">
-            <div className="w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-800 flex items-center justify-center">
-              <span className="text-xs font-bold text-slate-600 dark:text-slate-400">AD</span>
-            </div>
-            <div className="flex flex-col">
-              <span className="text-sm font-medium text-slate-800 dark:text-slate-200">Admin User</span>
-              <span className="text-xs text-slate-500">admin@crt.edu</span>
-            </div>
-          </div>
+        <div className="text-xs font-mono text-slate-500">
+          V2.4.0-DETERMINISTIC
         </div>
-      </aside>
+      </header>
 
-      {/* Mobile Top Bar */}
-      <div className="lg:hidden fixed top-0 left-0 right-0 bg-white dark:bg-slate-950/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 h-16 flex items-center justify-between px-6 z-40">
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center text-white font-bold">
-            C
-          </div>
-          <h1 className="text-lg font-bold text-slate-800 dark:text-white">
-            CRT Analytics
-          </h1>
-        </div>
-        <button 
-          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-          className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+      <div className="flex flex-1 relative">
+        {/* Desktop Sidebar */}
+        <aside 
+          className={cn(
+            "hidden lg:flex flex-col bg-slate-950 border-r border-slate-800 transition-all duration-300 sticky top-10 h-[calc(100vh-2.5rem)]",
+            isSidebarCollapsed ? "w-16" : "w-64"
+          )}
         >
-          {isMobileMenuOpen ? 
-            <X className="w-6 h-6 text-slate-600 dark:text-slate-300" /> : 
-            <Menu className="w-6 h-6 text-slate-600 dark:text-slate-300" />
-          }
-        </button>
-      </div>
+          {/* Brand */}
+          <div className="h-16 flex items-center px-4 border-b border-slate-900/50">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded bg-gradient-to-br from-cyan-600 to-blue-700 flex items-center justify-center text-white font-bold shadow-lg shadow-cyan-900/20">
+                CA
+              </div>
+              {!isSidebarCollapsed && (
+                <div>
+                  <h1 className="text-sm font-bold text-slate-100 tracking-wider">CRT ANALYTICS</h1>
+                  <p className="text-[10px] text-cyan-500 font-mono tracking-widest">NOISE: 0% | MATH: 100%</p>
+                </div>
+              )}
+            </div>
+          </div>
 
-      {/* Mobile Menu Overlay */}
-      {isMobileMenuOpen && (
-        <div className="lg:hidden fixed inset-0 z-50">
-          <div 
-            className="absolute inset-0 bg-slate-900/50 backdrop-blur-sm"
-            onClick={() => setIsMobileMenuOpen(false)}
-          />
-          <div className="absolute top-0 left-0 w-3/4 max-w-xs h-full bg-white dark:bg-slate-950 shadow-2xl p-6 flex flex-col animate-in slide-in-from-left duration-200">
-             <div className="flex items-center justify-between mb-8">
-               <span className="text-xl font-bold text-slate-900 dark:text-white">Menu</span>
-               <button onClick={() => setIsMobileMenuOpen(false)}>
-                 <X className="w-6 h-6 text-slate-500" />
-               </button>
-             </div>
-             <nav className="space-y-2 flex-1">
-              {navigation.map((item) => {
-                const isActive = pathname === item.href;
-                return (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    onClick={() => setIsMobileMenuOpen(false)}
-                    className={cn(
-                      "flex items-center gap-3 px-4 py-3 rounded-lg text-base font-medium transition-colors",
-                      isActive 
-                        ? "bg-indigo-50 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400" 
-                        : "text-slate-600 dark:text-slate-400"
-                    )}
-                  >
-                    <item.icon className="w-5 h-5" />
-                    {item.name}
-                    {isActive && <ChevronRight className="w-4 h-4 ml-auto" />}
-                  </Link>
-                );
-              })}
+          {/* Navigation */}
+          <nav className="flex-1 py-6 px-2 space-y-1">
+            {navigation.map((item) => {
+              const isActive = pathname === item.href;
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={cn(
+                    "flex items-center gap-3 px-3 py-2.5 rounded hover:bg-slate-800/50 transition-all group relative",
+                    isActive ? "bg-slate-800 text-cyan-400" : "text-slate-400 hover:text-slate-200",
+                    isSidebarCollapsed ? "justify-center" : ""
+                  )}
+                  title={isSidebarCollapsed ? item.name : undefined}
+                >
+                  <item.icon className={cn("w-5 h-5", isActive ? "text-cyan-400" : "group-hover:text-cyan-200")} />
+                  {!isSidebarCollapsed && <span className="text-sm font-medium">{item.name}</span>}
+                  {isActive && !isSidebarCollapsed && (
+                    <div className="absolute right-0 top-0 bottom-0 w-0.5 bg-cyan-500 shadow-[0_0_8px_rgba(6,182,212,0.5)]" />
+                  )}
+                </Link>
+              );
+            })}
+          </nav>
+
+          {/* Collapse Toggle */}
+          <button
+            onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+            className="p-4 border-t border-slate-900 flex justify-center hover:bg-slate-900 text-slate-500 hover:text-cyan-400 transition-colors"
+          >
+            {isSidebarCollapsed ? <ChevronRight size={16} /> : <div className="flex gap-2 items-center text-xs uppercase tracking-widest"><ChevronLeft size={16} /> Collapse Menu</div>}
+          </button>
+        </aside>
+
+        {/* Mobile Header & Menu */}
+        <div className="lg:hidden fixed top-10 left-0 right-0 h-14 bg-slate-950 border-b border-slate-800 flex items-center justify-between px-4 z-30">
+           <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded bg-cyan-600 flex items-center justify-center text-white font-bold">CA</div>
+              <span className="font-bold text-slate-100">CRT Analytics</span>
+           </div>
+           <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="text-slate-300">
+             {isMobileMenuOpen ? <X /> : <Menu />}
+           </button>
+        </div>
+
+        {isMobileMenuOpen && (
+          <div className="fixed inset-0 top-24 z-50 bg-slate-950 p-4 lg:hidden animate-in slide-in-from-top-10">
+            <nav className="space-y-2">
+              {navigation.map((item) => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className={cn(
+                    "flex items-center gap-4 px-4 py-4 rounded-lg bg-slate-900 text-slate-300",
+                    pathname === item.href && "border border-cyan-500/30 text-cyan-400 bg-slate-800"
+                  )}
+                >
+                  <item.icon size={20} />
+                  {item.name}
+                </Link>
+              ))}
             </nav>
           </div>
-        </div>
-      )}
+        )}
 
-      {/* Main Content */}
-      <main className="flex-1 lg:ml-64 p-4 lg:p-8 pt-20 lg:pt-8 min-h-screen transition-all duration-200">
-        <div className="max-w-[1600px] mx-auto space-y-8 animate-in fade-in duration-500">
-          {children}
-        </div>
-      </main>
+        {/* Main Content Area */}
+        <main className="flex-1 p-4 lg:p-8 pt-20 lg:pt-8 bg-slate-950 overflow-x-hidden">
+          <div className="max-w-7xl mx-auto space-y-6">
+             {children}
+          </div>
+        </main>
+      </div>
     </div>
   );
 }

@@ -1,73 +1,55 @@
 @import "tailwindcss";
 
 :root {
-  /* Soft efficient background */
-  --background: #f8f9fc;
-  --foreground: #1e293b;
-
-  /* Strict Color System */
-  --color-success: #10b981;
-  --color-warning: #f59e0b;
-  --color-danger: #ef4444;
-  --color-neutral: #64748b;
-  --color-primary: #3b82f6;
-
-  /* Card styles */
-  --card-bg: #ffffff;
-  --card-border: #e2e8f0;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --color-success: var(--color-success);
-  --color-warning: var(--color-warning);
-  --color-danger: var(--color-danger);
-  --color-neutral: var(--color-neutral);
-  --color-primary: var(--color-primary);
-
+  /* Scientific Dark Mode Palette */
+  --background: #0B1120; /* Deep Blue-Black */
+  --foreground: #E2E8F0; /* Slate 200 */
+  
+  --card-bg: #151F32; /* Rich Dark Blue */
+  --card-border: #334155; /* Slate 700 */
+  
+  /* Data Visualization Colors */
+  --color-success: #10B981; /* Emerald 500 */
+  --color-warning: #F59E0B; /* Amber 500 */
+  --color-danger: #EF4444; /* Red 500 */
+  --color-primary: #06B6D4; /* Cyan 500 - Main Data Color */
+  --color-secondary: #6366F1; /* Indigo 500 */
+  --color-neutral: #64748B; /* Slate 500 */
+  
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-
-  --shadow-card: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
-  --shadow-card-hover:
-    0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0f172a;
-    --foreground: #f1f5f9;
-    --card-bg: #1e293b;
-    --card-border: #334155;
-  }
-}
-
+/* Force Dark Mode aesthetic always */
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+  -webkit-font-smoothing: antialiased;
 }
 
-/* Base styles for premium feel */
-@layer base {
-  button {
-    cursor: pointer;
-  }
-}
-
-/* Utilities for cards */
 @layer components {
-  .dashboard-card {
+  /* Scientific Card - The building block */
+  .scientific-card {
     background-color: var(--card-bg);
     border: 1px solid var(--card-border);
-    border-radius: 0.75rem; /* rounded-xl */
-    box-shadow: var(--shadow-card);
-    transition: all 0.2s ease-in-out;
+    border-radius: 0.5rem;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.15);
   }
 
-  .dashboard-card:hover {
-    box-shadow: var(--shadow-card-hover);
-    transform: translateY(-1px);
+  /* Glass Panel for high-tech overlays */
+  .glass-panel {
+    background: rgba(15, 23, 42, 0.7);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  /* Data Grid for dense information */
+  .data-grid-header {
+    @apply text-xs font-mono text-slate-400 uppercase tracking-wider bg-slate-800/50 p-2;
+  }
+  
+  .data-grid-cell {
+    @apply text-sm font-mono p-2 border-b border-slate-800 text-slate-300;
   }
 }
