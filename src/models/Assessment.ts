@@ -1,8 +1,11 @@
 import mongoose from 'mongoose';
 
 const AssessmentSchema = new mongoose.Schema({
-  assessment_name: { type: String, required: true },
-  type: { type: String, enum: ['Aptitude', 'Coding', 'English', 'Mock Interview'], required: true },
+  title: { type: String, required: true }, // "AMCAT 1"
+  type: { type: String, enum: ['INTERNAL', 'EXTERNAL', 'MOCK'], required: true },
+  platform: { type: String }, // "HackerRank", "CoCubes"
+  date_conducted: { type: Date, required: true },
+  academic_year: { type: String, required: true }, // "2025-26"
   max_score: { type: Number, required: true }
 }, {
   timestamps: true

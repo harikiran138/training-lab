@@ -6,6 +6,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip,
 import { ScientificCard } from '@/components/ui/ScientificCard';
 import { FacultyEffectiveness } from '@/components/dashboard/FacultyEffectiveness';
 import { PredictionSimulator } from '@/components/dashboard/PredictionSimulator';
+import { TrendChart } from '@/components/dashboard/TrendChart';
 
 // Scientific Palette Hex Codes (matching globals.css)
 const COLORS = {
@@ -132,10 +133,9 @@ export function StatisticalAudit() {
   );
 
 
-// Import TrendChart
-import { TrendChart } from '@/components/dashboard/TrendChart';
 
-// ... (existing imports, COLORS constant) ...
+
+
 
   const { population, correlations, distribution, risk_summary, formulas, outliers, is_mock, faculty_effectiveness, trends } = data;
   const chartData = Object.entries(distribution).map(([name, count]) => ({ name, count }));

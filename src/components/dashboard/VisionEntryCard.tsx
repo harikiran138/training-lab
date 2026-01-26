@@ -14,7 +14,7 @@ import {
 import { cn } from '@/lib/utils';
 
 interface Props {
-    onExtracted: (data: any[]) => void;
+    onExtracted: (data: Record<string, any>[]) => void;
 }
 
 export default function VisionEntryCard({ onExtracted }: Props) {

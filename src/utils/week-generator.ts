@@ -12,7 +12,7 @@ export interface WeekData {
 
 export const generateWeeks = (startDate: Date, endDate: Date): WeekData[] => {
   const weeks: WeekData[] = [];
-  let currentStart = new Date(startDate);
+  const currentStart = new Date(startDate);
   let weekNo = 1;
 
   while (currentStart < endDate) {

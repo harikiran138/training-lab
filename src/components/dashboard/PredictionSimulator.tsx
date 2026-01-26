@@ -103,7 +103,7 @@ export function PredictionSimulator() {
                 min={-30} 
                 max={30} 
                 step={1} 
-                onValueChange={(val) => handleChangeInput(field, val)} 
+                onValueChange={(val: number[]) => handleChangeInput(field, val)} 
                 className="py-2"
              />
          </div>
@@ -119,7 +119,7 @@ export function PredictionSimulator() {
             <CardTitle className="text-slate-100">Prediction Simulator</CardTitle>
         </div>
         <CardDescription className="text-slate-400">
-          Run "What-If" scenarios to see how performance improvements affect Overall Score and Placement Probability.
+          Run &quot;What-If&quot; scenarios to see how performance improvements affect Overall Score and Placement Probability.
           <br/>
           <span className="text-xs text-slate-500 mt-1 inline-block">Engine: Python SciPy/NumPy Logic</span>
         </CardDescription>

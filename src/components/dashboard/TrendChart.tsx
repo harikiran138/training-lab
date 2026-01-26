@@ -7,7 +7,10 @@ import {
 
 interface TrendChartProps {
   title: string;
-  data: any[];
+  data: Record<string, any>[];
+  categories?: string[];
+  index?: string;
+  colors?: string[];
 }
 
 export function TrendChart({ title, data }: TrendChartProps) {

@@ -69,6 +69,7 @@ export interface ICRTWeeklyReport extends Document {
 
 const CRTWeeklyReportSchema: Schema = new Schema({
   branch_code: { type: String, required: true, index: true },
+  branch_id: { type: Schema.Types.ObjectId, ref: 'Branch', index: true }, // V2 Link
   week_no: { type: Number, required: true, index: true },
   week_start_date: { type: Date },
   week_end_date: { type: Date },

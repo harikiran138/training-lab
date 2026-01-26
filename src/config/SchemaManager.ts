@@ -16,84 +16,90 @@ export type TableSchema = {
 };
 
 export const INSTITUTIONAL_SCHEMAS: Record<string, TableSchema> = {
-  // 1. CRT TRAINING ATTENDANCE
-  'crt_attendance': {
+  // 1. ATTENDANCE (CORE)
+  crt_attendance: {
     id: 'crt_attendance',
-    name: 'CRT Attendance',
+    name: 'CRT Attendance Log',
     category: 'CRT',
-    description: 'Daily training participation tracking (D1-D6).',
+    description: 'Day-wise attendance tracking for training sessions',
     fields: [
-      { key: 'branch', label: 'Branch Code', type: 'text' },
-      { key: 'strength', label: 'Total Strength', type: 'number' },
-      { key: 'd1', label: 'Day 1', type: 'number' },
-      { key: 'd2', label: 'Day 2', type: 'number' },
-      { key: 'd3', label: 'Day 3', type: 'number' },
-      { key: 'd4', label: 'Day 4', type: 'number' },
-      { key: 'd5', label: 'Day 5', type: 'number' },
-      { key: 'd6', label: 'Day 6', type: 'number' },
-      { 
-        key: 'avg', 
-        label: 'Weekly Avg %', 
-        type: 'readOnly', 
-        calculate: (row) => {
-          const days = [row.d1, row.d2, row.d3, row.d4, row.d5, row.d6].filter(d => typeof d === 'number');
-          if (days.length === 0) return 0;
-          const sum = days.reduce((a, b) => a + b, 0);
-          return Math.round((sum / (days.length * (row.strength || 1))) * 100);
-        }
-      }
+      { key: 'branch_code', label: 'Branch Code', type: 'text' },
+      { key: 'total_strength', label: 'Total Strength', type: 'number' },
+      { key: 'day1_attended', label: 'Day 1', type: 'number' },
+      { key: 'day2_attended', label: 'Day 2', type: 'number' },
+      { key: 'day3_attended', label: 'Day 3', type: 'number' },
+      { key: 'day4_attended', label: 'Day 4', type: 'number' },
+      { key: 'day5_attended', label: 'Day 5', type: 'number' },
+      { key: 'day6_attended', label: 'Day 6', type: 'number' },
     ],
-    defaultData: [
-      { branch: 'CSE-A', strength: 71, d1: 46, d2: 49, d3: 44, d4: 50, d5: 52, d6: 48 },
-      { branch: 'CSE-B', strength: 70, d1: 26, d2: 40, d3: 45, d4: 48, d5: 53, d6: 50 }
-    ]
+    defaultData: []
   },
 
-  // 2. PLACEMENTS SUMMARY ANALYSIS (YEARLY)
-  'placement_summary': {
+  // 2. ASSESSMENT SERIES
+  assessment_weekly: {
+    id: 'assessment_weekly',
+    name: 'Assessment Series',
+    category: 'Assessment',
+    description: 'Weekly branch-wise exam performance',
+    fields: [], // Placeholder for Fixed Form
+    defaultData: []
+  },
+
+  // 3. CAREER PATH
+  student_career: {
+    id: 'student_career',
+    name: 'Career Path Log',
+    category: 'Strategic',
+    description: 'Student career goal evolution',
+    fields: [],
+    defaultData: []
+  },
+
+  // 4. ASSETS (LAPTOPS)
+  student_asset: {
+    id: 'student_asset',
+    name: 'Laptop Asset Registry',
+    category: 'Strategic', // Categorized under Strategic/Ops
+    description: 'Device allocation and health status',
+    fields: [],
+    defaultData: []
+  },
+
+  // 5. SYLLABUS
+  syllabus_log: {
+    id: 'syllabus_log',
+    name: 'Syllabus Time-Series',
+    category: 'CRT',
+    description: 'Module completion tracking',
+    fields: [],
+    defaultData: []
+  },
+
+  // 6. FEEDBACK
+  student_feedback: {
+    id: 'student_feedback',
+    name: 'Feedback Loops',
+    category: 'Strategic',
+    description: 'Weekly satisfaction indices',
+    fields: [],
+    defaultData: []
+  },
+
+  // 7. CONCLUSION
+  program_concluson: {
+    id: 'program_concluson',
+    name: 'Exec. Conclusion',
+    category: 'Strategic', // The "Overall Conclusion"
+    description: 'High-level executive summary',
+    fields: [],
+    defaultData: []
+  },
+
+  // PLACEMENT (CORE)
+  placement_summary: {
     id: 'placement_summary',
     name: 'Placement Summary',
     category: 'Placement',
-    description: 'Executive overview of institutional placement performance.',
-    fields: [
-      { key: 'branch', label: 'Dept / Branch', type: 'text' },
-      { key: 'students', label: 'No. of Students', type: 'number' },
-      { key: 'enrolled', label: 'Enrolled', type: 'number' },
-      { key: 'offers', label: 'Offers', type: 'number' },
-      { key: 'placed', label: 'Placed Students', type: 'number' },
-      { key: 'drives', label: 'No. of Drives', type: 'number' },
-      { key: 'max_ctc', label: 'Max CTC (LPA)', type: 'number' },
-      { 
-        key: 'placement_percent', 
-        label: '% Placed', 
-        type: 'readOnly',
-        calculate: (row) => row.enrolled > 0 ? Math.round((row.placed / row.enrolled) * 100) : 0
-      }
-    ],
-    defaultData: [
-      { branch: 'CSE', students: 180, enrolled: 175, offers: 210, placed: 165, drives: 42, max_ctc: 12.5 },
-      { branch: 'ECE', students: 140, enrolled: 130, offers: 115, placed: 98, drives: 35, max_ctc: 8.2 }
-    ]
-  },
-
-  // 3. PLACEMENT DRIVE LOG
-  'drive_log': {
-    id: 'drive_log',
-    name: 'Placement Drive Log',
-    category: 'Placement',
-    description: 'Operational tracking of every placement drive event.',
-    fields: [
-      { key: 'date', label: 'Date of Drive', type: 'text' },
-      { key: 'company', label: 'Company Name', type: 'text' },
-      { key: 'ctc', label: 'CTC (LPA)', type: 'number' },
-      { key: 'mode', label: 'Mode (On/Off)', type: 'text' },
-      { key: 'appeared', label: 'Total Appeared', type: 'number' },
-      { key: 'selected', label: 'Total Selected', type: 'number' },
-      { 
-        key: 'success_rate', 
-        label: 'Success %', 
-        type: 'readOnly',
-        calculate: (row) => row.appeared > 0 ? Math.round((row.selected / row.appeared) * 100) : 0
       }
     ],
     defaultData: [

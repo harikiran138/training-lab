@@ -6,7 +6,7 @@ export async function GET() {
   try {
     const scriptPath = path.join(process.cwd(), 'scripts', 'analytics_engine.py');
     
-    return new Promise((resolve) => {
+    return new Promise<NextResponse>((resolve) => {
       exec(`python3 ${scriptPath}`, (error, stdout, stderr) => {
         if (error) {
           console.error(`Error executing python script: ${error.message}`);
@@ -32,6 +32,7 @@ export async function GET() {
     console.error('Analytics API Error:', error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
+}
 
 export async function POST(request: Request) {
   try {
@@ -43,7 +44,7 @@ export async function POST(request: Request) {
     //Ideally we'd use spawn with array args, but exec is simpler for this quick prototype
     const safeArgs = simulationArgs.replace(/'/g, "'\\''");
 
-    return new Promise((resolve) => {
+    return new Promise<NextResponse>((resolve) => {
       exec(`python3 ${scriptPath} --simulate '${safeArgs}'`, (error, stdout, stderr) => {
         if (error) {
           console.error(`Error executing python script: ${error.message}`);

@@ -20,12 +20,18 @@ import { ScientificCard } from '@/components/ui/ScientificCard';
 import { PieChart as PieIcon, Activity, BarChart as BarIcon } from 'lucide-react';
 
 interface ChartProps {
-  data: any[];
+  data: Record<string, any>[];
 }
 
 const COLORS = ['#10b981', '#f59e0b', '#ef4444', '#06b6d4']; // Emerald, Amber, Red, Cyan
 
-const CustomTooltip = ({ active, payload, label }: any) => {
+interface CustomTooltipProps {
+  active?: boolean;
+  payload?: any[];
+  label?: string;
+}
+
+const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
   if (active && payload && payload.length) {
     return (
       <div className="bg-slate-900 border border-slate-700 p-3 rounded shadow-xl">

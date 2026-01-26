@@ -38,8 +38,48 @@ export default function OverviewPage() {
   const [view, setView] = useState<'standard' | 'analytics'>('standard');
   const [isPresented, setIsPresented] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [realData, setRealData] = useState<any[] | null>(null);
 
   const schema = INSTITUTIONAL_SCHEMAS[activeDomain];
+
+  // Fetch Real Data for CRT Attendance
+  useEffect(() => {
+    if (activeDomain === 'crt_attendance') {
+        const fetchData = async () => {
+            setLoading(true);
+            try {
+                const res = await fetch('/api/crt/records?week_number=1'); // Defaulting to week 1 for demo
+                const data = await res.json();
+                
+                // Transform API Key structure to Schema Key structure
+                // API keys: branch_code, daily_stats (for days), total_strength, attendance_percentage
+                // Schema keys: branch, strength, d1..d6
+                const transformed = data.map((r: any) => ({
+                    branch: r.branch_code,
+                    strength: r.total_strength,
+                    d1: r.daily_stats?.[0]?.attended || 0,
+                    d2: r.daily_stats?.[1]?.attended || 0,
+                    d3: r.daily_stats?.[2]?.attended || 0,
+                    d4: r.daily_stats?.[3]?.attended || 0,
+                    d5: r.daily_stats?.[4]?.attended || 0,
+                    d6: r.daily_stats?.[5]?.attended || 0,
+                    avg: r.attendance_percentage // Optionally override calculation if API provides it
+                }));
+                
+                setRealData(transformed);
+            } catch (err) {
+                console.error("Failed to fetch CRT data", err);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchData();
+    } else {
+        setRealData(null);
+    }
+  }, [activeDomain]);
+
+  const activeData = realData || schema.defaultData;
 
   const groupedSchemas = useMemo(() => {
     const groups: Record<string, typeof INSTITUTIONAL_SCHEMAS[string][]> = {};
@@ -284,7 +324,7 @@ export default function OverviewPage() {
             </div>
             
             <div className="p-8 grid grid-cols-1 md:grid-cols-3 gap-8">
-                {schema.defaultData.slice(0, 3).map((row, i) => (
+                {activeData.slice(0, 3).map((row, i) => (
                     <div key={i} className={cn(
                         "group p-8 border rounded-lg hover:shadow-xl hover:-translate-y-1 transition-all",
                         isPresented ? "bg-white/5 border-white/10" : "bg-slate-50 border-slate-100"

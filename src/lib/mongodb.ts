@@ -6,18 +6,24 @@ if (!MONGODB_URI) {
   throw new Error('Please define the MONGODB_URI environment variable inside .env.local');
 }
 
-/**
- * Global is used here to maintain a cached connection across hot reloads
- * in development. This prevents connections growing exponentially
- * during API Route usage.
- */
-let cached = (global as any).mongoose;
+/* eslint-disable no-var */
+declare global {
+  var mongoose: { conn: any; promise: any } | undefined;
+}
+/* eslint-enable no-var */
+
+let cached = global.mongoose;
 
 if (!cached) {
-  cached = (global as any).mongoose = { conn: null, promise: null };
+  cached = global.mongoose = { conn: null, promise: null };
 }
 
 async function dbConnect() {
+  // Ensure cached is initialized if it somehow becomes undefined between calls (though unlikely in a single-threaded Node.js context)
+  // This also helps with type inference within the function if `cached` was only conditionally initialized outside.
+  if (!cached) {
+      cached = global.mongoose = { conn: null, promise: null };
+  }
   if (cached.conn) {
     return cached.conn;
   }

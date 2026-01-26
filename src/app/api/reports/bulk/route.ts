@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import dbConnect from '@/lib/mongodb';
 import CRTWeeklyReport from '@/models/CRTWeeklyReport';
+import Branch from '@/models/Branch';
 import { 
   calculateSyllabusCompletion, 
   calculateTestEffectiveness, 
@@ -24,6 +25,10 @@ export async function POST(request: NextRequest) {
           throw new Error(`branch_code and week_no are required for all reports`);
         }
 
+        // V2: Resolve Branch ID
+        const branch = await Branch.findOne({ branch_code });
+        const branch_id = branch ? branch._id : undefined;
+
         // Calculate computed fields
         const syllabus_completion = calculateSyllabusCompletion(syllabus.covered, syllabus.total);
         const test_effectiveness = calculateTestEffectiveness(tests.avg_test_attendance_percent, tests.avg_test_pass_percent);
@@ -40,7 +45,7 @@ export async function POST(request: NextRequest) {
 
         return CRTWeeklyReport.findOneAndUpdate(
           { branch_code, week_no },
-          { ...data, computed },
+          { ...data, branch_id, computed },
           { upsert: true, new: true }
         );
       })
