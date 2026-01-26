@@ -4,6 +4,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import CompactCrtEntryForm from '@/components/dashboard/CompactCrtEntryForm';
 import CompactPlacementEntryForm from '@/components/dashboard/CompactPlacementEntryForm';
+import GenericTableEntryForm from '@/components/dashboard/GenericTableEntryForm';
 import VisionEntryCard from '@/components/dashboard/VisionEntryCard';
 import { INSTITUTIONAL_SCHEMAS } from '@/config/SchemaManager';
 import { 
@@ -188,10 +189,17 @@ export default function DataEntryPage() {
                   <CompactCrtEntryForm weekNumber={weekNumber} initialData={data} onSave={handleSave} onClose={() => router.push('/')} />
                 ) : activeSchema === 'placement_summary' ? (
                   <CompactPlacementEntryForm initialData={data} onSave={handleSave} onClose={() => router.push('/')} />
+                ) : INSTITUTIONAL_SCHEMAS[activeSchema] ? (
+                  <GenericTableEntryForm 
+                    schema={INSTITUTIONAL_SCHEMAS[activeSchema]} 
+                    initialData={data} 
+                    onSave={(newData) => handleSave(newData)} 
+                    onClose={() => router.push('/')} 
+                  />
                 ) : (
                   <div className="bg-white p-12 rounded-xl border border-slate-200 text-center space-y-6 shadow-sm">
                     <Database className="w-12 h-12 text-slate-200 mx-auto" />
-                    <p className="text-[12px] font-black text-slate-400 uppercase tracking-widest">Fixed Form for "{INSTITUTIONAL_SCHEMAS[activeSchema].name}" is being calibrated.</p>
+                    <p className="text-[12px] font-black text-slate-400 uppercase tracking-widest">Repository Domain "{activeSchema}" not initialized.</p>
                   </div>
                 )}
             </div>

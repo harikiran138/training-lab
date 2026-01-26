@@ -43,7 +43,17 @@ export class CrtAttendanceService {
       // 1. Day-wise Attendance % (Auto)
       const percents = b.daily.map((attended) => {
         if (attended === "No CRT") return "No CRT";
-        return Math.round((attended / strength) * 100);
+        
+        // BUG-03: Invalid Data Entry Validation
+        if (attended > strength) {
+          throw new Error(`Data Corruption Detected: Attended (${attended}) > Strength (${strength}) for branch ${b.branch_code}`);
+        }
+        if (attended < 0) {
+          throw new Error(`Negative Telemetry: Attended (${attended}) is invalid for branch ${b.branch_code}`);
+        }
+
+       const percent = strength > 0 ? Math.min(100, Math.round((attended / strength) * 100)) : 0;
+       return percent;
       });
 
       // 2. Weekly Average %
@@ -69,7 +79,8 @@ export class CrtAttendanceService {
       const performance_level = weekly_average_percent >= 75 ? 'High' : (weekly_average_percent >= 50 ? 'Medium' : 'Low');
 
       // 6. Risk Flag
-      const risk_flag = weekly_average_percent < 50 ? 'RED' : 'GREEN';
+      // P2 Recommendation: Increase RED flag threshold to < 75%
+      const risk_flag = weekly_average_percent < 75 ? 'RED' : 'GREEN';
 
       // 7. Auto Remarks
       const remarks = risk_flag === 'RED' ? "Immediate intervention required" : "Stable";

@@ -97,8 +97,8 @@ export const INSTITUTIONAL_SCHEMAS: Record<string, TableSchema> = {
   },
 
   // 7. CONCLUSION
-  program_concluson: {
-    id: 'program_concluson',
+  program_conclusion: {
+    id: 'program_conclusion',
     name: 'Exec. Conclusion',
     category: 'Strategic', // The "Overall Conclusion"
     description: 'High-level executive summary',

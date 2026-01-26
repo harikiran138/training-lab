@@ -145,9 +145,19 @@ export default function CompactPlacementEntryForm({ initialData, onSave, onClose
              <Plus className="w-3.5 h-3.5" /> ADD DEPARTMENT
            </button>
            
-           <div className="flex gap-4">
+            <div className="flex gap-4">
               <button onClick={onClose} className="px-4 py-2 text-[10px] font-black text-slate-400 uppercase tracking-widest">CANCEL</button>
-              <button onClick={() => onSave(data)} className="flex items-center gap-2 bg-[#1E3A8A] text-white px-8 py-2.5 rounded text-[10px] font-black uppercase tracking-widest shadow-lg shadow-blue-100 hover:bg-blue-900 transition-all">
+              <button 
+                onClick={() => {
+                  const invalid = data.find(r => r.placed > r.enrolled);
+                  if (invalid) {
+                    alert(`Validation Error: ${invalid.branch} has more placed students (${invalid.placed}) than enrolled (${invalid.enrolled}).`);
+                    return;
+                  }
+                  onSave(data);
+                }} 
+                className="flex items-center gap-2 bg-[#1E3A8A] text-white px-8 py-2.5 rounded text-[10px] font-black uppercase tracking-widest shadow-lg shadow-blue-100 hover:bg-blue-900 transition-all"
+              >
                 <Database className="w-3.5 h-3.5" /> COMMIT YEARLY DATA
               </button>
            </div>
