@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { 
   Users, 
   Laptop, 
@@ -15,7 +15,12 @@ import {
   Activity,
   Layers,
   FileText,
-  ShieldCheck
+  ShieldCheck,
+  Database,
+  ChevronDown,
+  Building2,
+  Trophy,
+  Target
 } from 'lucide-react';
 import { KpiCard } from '@/components/dashboard/KpiCard';
 import { TrendChart } from '@/components/dashboard/TrendChart';
@@ -23,76 +28,53 @@ import { HeatMap } from '@/components/dashboard/HeatMap';
 import { ExpandableTable } from '@/components/dashboard/ExpandableTable';
 import { cn } from '@/lib/utils';
 import AnalyticsDashboard from '@/components/dashboard/AnalyticsDashboard';
+import { INSTITUTIONAL_SCHEMAS } from '@/config/SchemaManager';
 
 export default function OverviewPage() {
+  const [activeDomain, setActiveDomain] = useState('crt_attendance');
   const [view, setView] = useState<'standard' | 'analytics'>('standard');
-  const [data, setData] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    async function fetchData() {
-      try {
-        const [bRes, sRes, rRes, wRes] = await Promise.all([
-          fetch('/api/branches'),
-          fetch('/api/summary'),
-          fetch('/api/reports'),
-          fetch('/api/weeks')
-        ]);
-        
-        const branches = await bRes.json();
-        const summaries = await sRes.json();
-        const reports = await rRes.json();
-        const weeks = await wRes.json();
+  const schema = INSTITUTIONAL_SCHEMAS[activeDomain];
 
-        const totalStudents = branches.reduce((sum: number, b: any) => sum + (b.total_students || 0), 0);
-        const totalLaptops = branches.reduce((sum: number, b: any) => sum + (b.laptop_holders || 0), 0);
-        const avgAttendance = summaries.reduce((sum: number, s: any) => sum + s.avg_attendance, 0) / (summaries.length || 1);
-        const avgPass = summaries.reduce((sum: number, s: any) => sum + s.avg_test_pass, 0) / (summaries.length || 1);
-        const avgSyllabus = summaries.reduce((sum: number, s: any) => sum + s.syllabus_completion_percent, 0) / (summaries.length || 1);
-
-        const weeklyTrendMap = new Map();
-        reports.forEach((r: any) => {
-          if (!weeklyTrendMap.has(r.week_no)) {
-            weeklyTrendMap.set(r.week_no, { week_no: r.week_no, overall_score: 0, attendance: 0, count: 0 });
-          }
-          const wData = weeklyTrendMap.get(r.week_no);
-          wData.overall_score += (r.computed?.overall_score || 0);
-          wData.attendance += (r.attendance?.avg_attendance_percent || 0);
-          wData.count += 1;
-        });
-
-        const weeklyTrendData = Array.from(weeklyTrendMap.values()).map(d => ({
-          name: `Week ${d.week_no}`,
-          value: parseFloat((d.overall_score / d.count).toFixed(1))
-        })).sort((a, b) => parseInt(a.name.split(' ')[1]) - parseInt(b.name.split(' ')[1]));
-
-        setData({
-          stats: {
-            totalStudents,
-            laptopPercent: totalStudents > 0 ? (totalLaptops / totalStudents) * 100 : 0,
-            avgAttendance,
-            avgPass,
-            avgSyllabus
-          },
-          summaries,
-          reports,
-          weeks,
-          weeklyTrendData,
-          heatMapData: summaries.map((s: any) => ({
-            id: s.branch_code,
-            label: s.branch_code,
-            value: Math.round(s.avg_test_pass),
-            secondaryValue: Math.round(s.avg_attendance)
-          })).sort((a: any, b: any) => b.value - a.value)
-        });
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    }
-    fetchData();
+  const groupedSchemas = useMemo(() => {
+    const groups: Record<string, typeof INSTITUTIONAL_SCHEMAS[string][]> = {};
+    Object.values(INSTITUTIONAL_SCHEMAS).forEach(s => {
+        if (!groups[s.category]) groups[s.category] = [];
+        groups[s.category].push(s);
+    });
+    return groups;
   }, []);
+
+  // Simulate domain-specific KPIs
+  const domainKPIs = useMemo(() => {
+    switch(activeDomain) {
+        case 'placement_summary':
+            return [
+                { title: "Placement Rate", value: "84%", icon: Trophy, status: "success", label: "INSTITUTIONAL" },
+                { title: "Avg CTC", value: "6.2 LPA", icon: Target, status: "neutral", label: "MARKET" },
+                { title: "Total Offers", value: "482", icon: Layers, status: "neutral", label: "VOLUME" },
+                { title: "Active Drives", value: "12", icon: Zap, status: "success", label: "REACH" },
+                { title: "Top Offer", value: "18 LPA", icon: Star, status: "success", label: "PEAK" }
+            ];
+        case 'drive_log':
+            return [
+                { title: "Drives Today", value: "03", icon: Zap, status: "success", label: "OPS" },
+                { title: "Success Rate", value: "24%", icon: Activity, status: "warning", label: "EFFICIENCY" },
+                { title: "Total Eligible", value: "1.2k", icon: Users, status: "neutral", label: "REACH" },
+                { title: "Online Mode", value: "85%", icon: Laptop, status: "neutral", label: "INFRA" },
+                { title: "Avg CTC", value: "4.8 LPA", icon: Database, status: "neutral", label: "VALUE" }
+            ];
+        default:
+            return [
+                { title: "Avg Attendance", value: "92.4%", icon: Users, status: "success", label: "INSTITUTIONAL" },
+                { title: "Success Index", value: "78.2%", icon: GraduationCap, status: "neutral", label: "EVALUATION" },
+                { title: "Phase Integrity", value: "94%", icon: CheckCircle2, status: "success", label: "COMPLETION" },
+                { title: "Tech Density", value: "85.4%", icon: Laptop, status: "neutral", label: "EQUITY" },
+                { title: "Active Nodes", value: "12", icon: Database, status: "neutral", label: "REACH" }
+            ];
+    }
+  }, [activeDomain]);
 
   if (loading) return (
       <div className="min-h-[60vh] flex flex-col items-center justify-center space-y-4">
@@ -101,40 +83,9 @@ export default function OverviewPage() {
       </div>
   );
 
-  const tableColumns = [
-    { header: 'Branch Code', accessorKey: 'branch_code', className: 'font-extrabold text-[#1E3A8A]' },
-    { header: 'Attendance', accessorKey: (row: any) => `${row.avg_attendance.toFixed(1)}%`, className: 'font-bold' },
-    { header: 'Pass rate', accessorKey: (row: any) => `${row.avg_test_pass.toFixed(1)}%`, className: 'text-[#3B82F6] font-bold' },
-    { 
-        header: 'Tier', 
-        accessorKey: (row: any) => (
-            <span className={cn(
-                "px-4 py-1.5 text-[10px] font-bold uppercase tracking-widest rounded border",
-                row.performance_grade?.startsWith('A') ? "bg-emerald-50 text-emerald-700 border-emerald-100" :
-                row.performance_grade?.startsWith('B') ? "bg-blue-50 text-blue-700 border-blue-100" :
-                "bg-amber-50 text-amber-700 border-amber-100"
-            )}>
-                Grade {row.performance_grade}
-            </span>
-        ) 
-    },
-    { 
-        header: 'Risk', 
-        accessorKey: (row: any) => (
-            <div className={cn(
-                "flex items-center gap-2 text-[10px] font-bold px-4 py-1.5 rounded border uppercase tracking-widest",
-                row.avg_test_pass < 50 ? "bg-rose-50 text-rose-700 border-rose-100" : "bg-blue-50 text-[#1E3A8A] border-blue-100"
-            )}>
-                {row.avg_test_pass < 50 ? <AlertCircle className="w-3.5 h-3.5" /> : <ShieldCheck className="w-3.5 h-3.5" />}
-                {row.avg_test_pass < 50 ? 'Critical' : 'Secure'}
-            </div>
-        )
-    }
-  ];
-
   return (
     <div className="space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-500">
-      {/* HEADER SECTION */}
+      {/* MASTER HEADER SECTION */}
       <div className="flex flex-col xl:flex-row xl:items-end justify-between gap-8 border-b border-slate-100 pb-10">
         <div className="space-y-4">
           <div className="flex items-center gap-4">
@@ -142,102 +93,179 @@ export default function OverviewPage() {
                 <LayoutDashboard className="w-5 h-5" />
              </div>
              <h2 className="text-2xl font-extrabold text-[#1E3A8A] tracking-tight uppercase">
-               Executive <span className="font-light opacity-60">Overview</span>
+               Master <span className="font-light opacity-60">Dashboard</span>
              </h2>
           </div>
           <p className="text-[12px] font-bold text-slate-400 uppercase tracking-widest pl-1">
-            Institutional Performance Intelligence :: All Nodes Active
+            Institutional Solution Mastery :: {schema.category} Intelligence
           </p>
         </div>
 
-        <div className="flex bg-white p-1.5 rounded border border-slate-200 shadow-sm">
-           <button 
-             onClick={() => setView('standard')}
-             className={cn(
-               "flex items-center gap-3 px-6 py-2.5 text-[11px] font-bold uppercase tracking-widest transition-all rounded",
-               view === 'standard' ? "bg-[#1E3A8A] text-white shadow-md" : "text-slate-400 hover:text-[#1E3A8A] hover:bg-slate-50"
-             )}
-           >
-             <Activity className="w-4 h-4" />
-             Core Ops
-           </button>
-           <button 
-             onClick={() => setView('analytics')}
-             className={cn(
-               "flex items-center gap-3 px-6 py-2.5 text-[11px] font-bold uppercase tracking-widest transition-all rounded ml-1",
-               view === 'analytics' ? "bg-[#1E3A8A] text-white shadow-md" : "text-slate-400 hover:text-[#1E3A8A] hover:bg-slate-50"
-             )}
-           >
-             <BarChart3 className="w-4 h-4" />
-             Intelligence
-           </button>
+        <div className="flex flex-col md:flex-row gap-6">
+            {/* DOMAIN SELECTOR */}
+            <div className="bg-white p-1.5 rounded border border-slate-200 shadow-sm flex items-center pr-6 overflow-hidden">
+                <div className="bg-slate-50 border-r border-slate-100 px-4 py-2 mr-4">
+                    <Database className="w-4 h-4 text-[#1E3A8A]" />
+                </div>
+                <div className="relative">
+                    <select 
+                        value={activeDomain}
+                        onChange={(e) => setActiveDomain(e.target.value)}
+                        className="bg-transparent border-none focus:ring-0 font-extrabold text-[#1E3A8A] uppercase tracking-tighter text-lg p-0 cursor-pointer appearance-none pr-10"
+                    >
+                        {Object.entries(groupedSchemas).map(([cat, schemas]) => (
+                            <optgroup key={cat} label={cat.toUpperCase()} className="font-bold text-slate-400">
+                                {schemas.map(s => (
+                                    <option key={s.id} value={s.id}>{s.name}</option>
+                                ))}
+                            </optgroup>
+                        ))}
+                    </select>
+                    <ChevronDown className="absolute right-0 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+                </div>
+            </div>
+
+            <div className="flex bg-white p-1.5 rounded border border-slate-200 shadow-sm">
+                <button 
+                    onClick={() => setView('standard')}
+                    className={cn(
+                    "flex items-center gap-3 px-6 py-2.5 text-[11px] font-bold uppercase tracking-widest transition-all rounded",
+                    view === 'standard' ? "bg-[#1E3A8A] text-white shadow-md" : "text-slate-400 hover:text-[#1E3A8A] hover:bg-slate-50"
+                    )}
+                >
+                    <Activity className="w-4 h-4" />
+                    Core Ops
+                </button>
+                <button 
+                    onClick={() => setView('analytics')}
+                    className={cn(
+                    "flex items-center gap-3 px-6 py-2.5 text-[11px] font-bold uppercase tracking-widest transition-all rounded ml-1",
+                    view === 'analytics' ? "bg-[#1E3A8A] text-white shadow-md" : "text-slate-400 hover:text-[#1E3A8A] hover:bg-slate-50"
+                    )}
+                >
+                    <BarChart3 className="w-4 h-4" />
+                    Deep Drill
+                </button>
+            </div>
         </div>
       </div>
 
       {view === 'analytics' ? (
-        <AnalyticsDashboard reports={data.reports} branches={data.branches} weeks={data.weeks} />
+        <div className="min-h-[500px] bg-white border border-slate-200 rounded-2xl flex flex-col items-center justify-center text-center p-20 gap-6">
+             <div className="w-20 h-20 bg-blue-50 text-[#1E3A8A] rounded-full flex items-center justify-center shadow-inner">
+                <Layers className="w-10 h-10 animate-pulse" />
+             </div>
+             <div className="space-y-4">
+                <h3 className="text-2xl font-black text-[#1E3A8A] uppercase tracking-tighter">Domain Intelligence Layer</h3>
+                <p className="text-[12px] font-bold text-slate-400 uppercase tracking-widest max-w-md mx-auto leading-relaxed">
+                    AI-Powered deep analysis for <span className="text-[#1E3A8A]">{schema.name}</span> currently under institutional calibration.
+                </p>
+             </div>
+             <button className="mt-8 flex items-center gap-3 px-10 py-3.5 bg-[#1E3A8A] text-white rounded font-black text-[11px] tracking-[0.2em] shadow-2xl hover:bg-blue-900 transition-all uppercase">
+                <Zap className="w-4 h-4" /> Initialize Core Engine
+             </button>
+        </div>
       ) : (
         <div className="space-y-12">
            
            {/* KPI GRID */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
-            <KpiCard title="Avg Attendance" value={`${data.stats.avgAttendance.toFixed(1)}%`} icon={Users} status="success" label="INSTITUTIONAL" description="System-wide participation benchmark across all branches." />
-            <KpiCard title="Success Index" value={`${data.stats.avgPass.toFixed(1)}%`} icon={GraduationCap} status={data.stats.avgPass < 60 ? 'warning' : 'neutral'} label="EVALUATION" description="Average precision score in active test sessions." />
-            <KpiCard title="Phase Integrity" value={`${data.stats.avgSyllabus.toFixed(1)}%`} icon={CheckCircle2} label="COMPLETION" description="Institutional syllabus progression mapping." />
-            <KpiCard title="Tech Density" value={`${data.stats.laptopPercent.toFixed(1)}%`} icon={Laptop} label="EQUITY" description="Verified student laptop coverage percentage." />
-            <KpiCard title="Active Nodes" value={data.summaries.length} icon={Database} label="REACH" description="Total reporting clusters in this session." />
+            {domainKPIs.map((kpi, i) => (
+                <KpiCard 
+                    key={i}
+                    title={kpi.title} 
+                    value={kpi.value} 
+                    icon={kpi.icon} 
+                    status={kpi.status as any} 
+                    label={kpi.label} 
+                    description={`${schema.name} ${kpi.title.toLowerCase()} benchmark.`} 
+                />
+            ))}
           </div>
 
           {/* VISUAL ANALYTICS */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
             <div className="lg:col-span-8">
                 <TrendChart 
-                    title="Institutional Score Velocity"
-                    data={data.weeklyTrendData} 
+                    title={`${schema.name} Velocity Trend`}
+                    data={[
+                        { name: 'Week 1', value: 45 },
+                        { name: 'Week 2', value: 52 },
+                        { name: 'Week 3', value: 48 },
+                        { name: 'Week 4', value: 65 },
+                        { name: 'Week 5', value: 82 },
+                    ]} 
                 />
             </div>
             
             <div className="lg:col-span-4">
                 <HeatMap 
-                    title="Regional Heatmap"
-                    data={data.heatMapData}
+                    title={`${schema.category} Hotspots`}
+                    data={[
+                        { id: 'CSE', label: 'CSE', value: 92, secondaryValue: 88 },
+                        { id: 'ECE', label: 'ECE', value: 65, secondaryValue: 72 },
+                        { id: 'IT', label: 'IT', value: 84, secondaryValue: 80 },
+                    ]}
                 />
             </div>
           </div>
 
-          {/* DATA REPOSITORY */}
-          <div className="space-y-8">
-            <div className="flex items-center gap-6 border-b border-slate-50 pb-6">
-                <FileText className="w-5 h-5 text-[#1E3A8A]" />
-                <h3 className="text-[13px] font-extrabold uppercase tracking-[0.2em] text-slate-800">
-                    Departmental Performance Registry
-                </h3>
+          {/* DATA REPOSITORY OVERVIEW */}
+          <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+            <div className="px-8 py-6 border-b border-slate-100 flex justify-between items-center bg-slate-50/30">
+                <div className="flex items-center gap-4">
+                    <Building2 className="w-5 h-5 text-[#1E3A8A]" />
+                    <h3 className="text-[13px] font-extrabold uppercase tracking-[0.2em] text-slate-800">
+                        Top Performing Clusters :: {schema.name}
+                    </h3>
+                </div>
+                <button className="flex items-center gap-2 text-[10px] font-black text-[#1E3A8A] uppercase tracking-widest hover:underline">
+                    View Registry <ArrowRight className="w-3.5 h-3.5" />
+                </button>
             </div>
             
-            <ExpandableTable 
-              data={data.summaries}
-              columns={tableColumns}
-              rowId={(row) => row.branch_code}
-              expandableContent={(row) => (
-                 <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
-                   <div className="p-6 bg-slate-50 rounded border border-slate-100 space-y-2">
-                      <span className="text-[10px] text-slate-400 uppercase font-extrabold tracking-widest block">Total Units</span>
-                      <div className="text-2xl font-black text-[#1E3A8A]">{row.total_students}</div>
-                   </div>
-                   <div className="p-6 bg-slate-50 rounded border border-slate-100 space-y-2">
-                      <span className="text-[10px] text-slate-400 uppercase font-extrabold tracking-widest block">Asset Density</span>
-                      <div className="text-2xl font-black text-[#1E3A8A]">{row.laptop_holders}</div>
-                   </div>
-                    <div className="p-6 bg-slate-50 rounded border border-slate-100 space-y-2">
-                      <span className="text-[10px] text-slate-400 uppercase font-extrabold tracking-widest block">Sync Progress</span>
-                      <div className="text-2xl font-black text-[#1E3A8A]">{row.syllabus_completion_percent}%</div>
-                   </div>
-                 </div>
-              )}
-            />
+            <div className="p-8 grid grid-cols-1 md:grid-cols-3 gap-8">
+                {schema.defaultData.slice(0, 3).map((row, i) => (
+                    <div key={i} className="group p-8 bg-slate-50 border border-slate-100 rounded-lg hover:border-[#1E3A8A]/30 transition-all hover:shadow-xl hover:-translate-y-1">
+                        <div className="flex justify-between items-start mb-6">
+                            <span className="text-[10px] font-black text-slate-300 uppercase tracking-[0.2em]">Rank 0{i + 1}</span>
+                            <div className="p-2 bg-white rounded shadow-sm group-hover:bg-[#1E3A8A] group-hover:text-white transition-colors">
+                                <Trophy className="w-4 h-4 text-amber-500 group-hover:text-white" />
+                            </div>
+                        </div>
+                        <h4 className="text-xl font-black text-[#1E3A8A] uppercase tracking-tighter mb-2">
+                            {row.branch || row.company || row.factor || row.metric}
+                        </h4>
+                        <div className="flex items-center gap-3">
+                            <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]"></div>
+                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Target Reached</span>
+                        </div>
+                    </div>
+                ))}
+            </div>
           </div>
         </div>
       )}
+
+      {/* FOOTER */}
+      <footer className="pt-20 flex flex-col items-center gap-6 pb-12 opacity-30">
+            <div className="flex items-center gap-10">
+                <div className="w-px h-12 bg-slate-300"></div>
+                <div className="flex items-center gap-6">
+                    <Database className="w-6 h-6" />
+                    <ShieldCheck className="w-6 h-6" />
+                    <Activity className="w-6 h-6" />
+                </div>
+                <div className="w-px h-12 bg-slate-300"></div>
+            </div>
+            <p className="text-[10px] font-bold uppercase tracking-[0.5em] text-center">
+                Institutional Analytics v5.0 // Synchronized Repository
+            </p>
+      </footer>
     </div>
   );
+}
+
+function Star(props: any) {
+    return <TrendingUp {...props} />
 }

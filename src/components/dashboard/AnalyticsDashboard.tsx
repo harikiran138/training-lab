@@ -7,7 +7,8 @@ import {
 } from 'recharts';
 import { 
   Users, Award, TrendingUp, BookOpen, Clock, 
-  BrainCircuit, Zap, Monitor, ArrowRight, ShieldCheck, Activity, FileText
+  BrainCircuit, Zap, Monitor, ArrowRight, ShieldCheck, Activity, FileText,
+  CheckCircle2
 } from 'lucide-react';
 import { AIInsights } from './AIInsights';
 import { cn } from '@/lib/utils';

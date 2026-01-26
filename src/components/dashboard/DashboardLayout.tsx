@@ -16,14 +16,18 @@ import {
   Calendar,
   LogOut,
   ChevronDown,
-  Building2
+  Building2,
+  Presentation,
+  CloudUpload
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { PresentationMode } from '@/components/presentation/PresentationMode';
 
 const sidebarLinks = [
   { name: 'Dashboard', href: '/', icon: LayoutDashboard },
   { name: 'CRT Attendance', href: '/crt/attendance', icon: BarChart3 },
   { name: 'Data Entry', href: '/data-entry', icon: PlusCircle },
+  { name: 'Uploads', href: '/uploads', icon: CloudUpload },
   { name: 'Reports', href: '/reports', icon: Users },
   { name: 'Settings', href: '/settings', icon: Settings },
 ];
@@ -31,9 +35,20 @@ const sidebarLinks = [
 export function DashboardLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [isPresenting, setIsPresenting] = useState(false);
 
   return (
     <div className="min-h-screen bg-[#EFF6FF] text-[#374151] selection:bg-blue-100">
+      
+      {/* PRESENTATION MODE WRAPPER */}
+      <PresentationMode 
+        isOpen={isPresenting} 
+        onClose={() => setIsPresenting(false)}
+        title="Institutional Review"
+        subtitle="Meeting Presentation Mode v5.0"
+      >
+        {children}
+      </PresentationMode>
       
       {/* TOP NAVIGATION BAR */}
       <header className="fixed top-0 left-0 right-0 h-16 bg-white border-b border-blue-100 z-50 flex items-center justify-between px-6 shadow-sm">
@@ -56,6 +71,15 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
         </div>
 
         <div className="flex items-center gap-8">
+            <button 
+                onClick={() => setIsPresenting(true)}
+                className="hidden lg:flex items-center gap-3 px-6 py-1.5 bg-blue-50 border border-blue-100 rounded-full text-[11px] font-bold text-[#1E3A8A] hover:bg-[#1E3A8A] hover:text-white transition-all group"
+                title="Meeting Presentation Mode"
+            >
+                <Presentation className="w-4 h-4" />
+                PRESENTATION MODE
+            </button>
+
             <div className="hidden md:flex items-center gap-3 bg-blue-50/50 border border-blue-100 px-4 py-1.5 rounded-full">
                 <Calendar className="w-4 h-4 text-[#1E3A8A]" />
                 <span className="text-xs font-bold text-[#1E3A8A]">W1 (20 Jan - 26 Jan)</span>
