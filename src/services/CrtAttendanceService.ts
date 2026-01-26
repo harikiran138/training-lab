@@ -134,6 +134,7 @@ export class CrtAttendanceService {
       risk_flag: record.risk_flag,
       performance_level: record.performance_level,
       remarks: record.remarks,
+      trend: record.trend || "Stable (+0%)",
       
       is_locked: meta.status === 'LOCKED'
     };

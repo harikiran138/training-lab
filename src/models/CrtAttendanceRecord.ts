@@ -34,6 +34,7 @@ export interface ICrtAttendanceRecord extends Document {
   performance_level: 'High' | 'Medium' | 'Low';
   risk_flag: 'RED' | 'AMBER' | 'GREEN';
   remarks?: string;
+  trend?: string; // e.g. "Improving (+5%)"
 
   is_locked: boolean;
   created_at: Date;
@@ -74,10 +75,11 @@ const CrtAttendanceRecordSchema: Schema = new Schema({
   day5_attended: { type: Number, default: 0 },
   day6_attended: { type: Number, default: 0 },
 
-  // Intelligence
-  risk_flag: { type: String, enum: ['RED', 'AMBER', 'GREEN'], default: 'GREEN' },
+  // Analysis
   performance_level: { type: String, enum: ['High', 'Medium', 'Low'], default: 'Medium' },
-  remarks: { type: String },
+  risk_flag: { type: String, enum: ['RED', 'AMBER', 'GREEN'], default: 'GREEN' },
+  remarks: { type: String, default: '' },
+  trend: { type: String, default: 'Stable (+0%)' }, // Added for dashboard compatibility
 
   is_locked: { type: Boolean, default: false }
 }, { 
@@ -85,6 +87,6 @@ const CrtAttendanceRecordSchema: Schema = new Schema({
 });
 
 // Composite index for uniqueness
-CrtAttendanceRecordSchema.index({ branch_id: 1, academic_year: 1, week_number: 1 }, { unique: true });
+CrtAttendanceRecordSchema.index({ branch_id: 1, academic_year: 1, week_number: 1, batch: 1 }, { unique: true });
 
 export default mongoose.models.CrtAttendanceRecord || mongoose.model<ICrtAttendanceRecord>('CrtAttendanceRecord', CrtAttendanceRecordSchema);

@@ -12,6 +12,8 @@ const BranchSchema: Schema = new Schema({
   branch_name: { type: String, required: true },
   department: { type: String, required: true }, // "CSE"
   current_strength: { type: Number, default: 0 },
+  laptop_available: { type: Number, default: 0 },
+  laptop_not_available: { type: Number, default: 0 },
   deleted_at: { type: Date, default: null },
 }, { timestamps: true });
 

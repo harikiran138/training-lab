@@ -2,71 +2,75 @@
 
 import React, { useState, useEffect } from 'react';
 import CrtAttendanceDashboard from '@/components/dashboard/CrtAttendanceDashboard';
-import { BranchAttendance } from '@/services/CrtAttendanceService';
+interface BranchAttendance {
+  branch_code: string;
+  strength: number;
+  daily: (number | string)[];
+}
 
 const DEFAULT_NSRIT_DATA: BranchAttendance[] = [
   {
-    branch: "CE",
+    branch_code: "CE",
     strength: 34,
     daily: ["No CRT", 19, "No CRT", 26, 17, 25]
   },
   {
-    branch: "EEE",
+    branch_code: "EEE",
     strength: 71,
     daily: ["No CRT", "No CRT", 60, 67, 62, "No CRT"]
   },
   {
-    branch: "ME-A",
+    branch_code: "ME-A",
     strength: 52,
     daily: [32, 36, 33, 32, 21, "No CRT"]
   },
   {
-    branch: "ME-B",
+    branch_code: "ME-B",
     strength: 53,
     daily: [25, 30, 27, 25, 31, "No CRT"]
   },
   {
-    branch: "ECE-A",
+    branch_code: "ECE-A",
     strength: 69,
     daily: [34, 35, "No CRT", 53, 54, 50]
   },
   {
-    branch: "ECE-B",
+    branch_code: "ECE-B",
     strength: 70,
     daily: [47, 40, "No CRT", 56, 57, 44]
   },
   {
-    branch: "ECE-C",
+    branch_code: "ECE-C",
     strength: 69,
     daily: [35, 40, "No CRT", 52, 58, 43]
   },
   {
-    branch: "EVT",
+    branch_code: "EVT",
     strength: 66,
     daily: [23, "No CRT", "No CRT", "No CRT", 45, 18]
   },
   {
-    branch: "CSE-A",
+    branch_code: "CSE-A",
     strength: 71,
     daily: [46, 49, 44, "No CRT", "No CRT", "No CRT"]
   },
   {
-    branch: "CSE-B",
+    branch_code: "CSE-B",
     strength: 70,
     daily: [26, "No CRT", "No CRT", 48, 53, "No CRT"]
   },
   {
-    branch: "CSE-C",
+    branch_code: "CSE-C",
     strength: 66,
     daily: ["No CRT", 17, 34, 36, 32, "No CRT"]
   },
   {
-    branch: "CSM",
+    branch_code: "CSM",
     strength: 72,
     daily: [27, 39, 43, 38, "No CRT", "No CRT"]
   },
   {
-    branch: "CSD",
+    branch_code: "CSD",
     strength: 68,
     daily: [33, 39, "No CRT", 45, 52, "No CRT"]
   }

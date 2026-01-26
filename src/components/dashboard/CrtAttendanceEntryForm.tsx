@@ -2,17 +2,17 @@
 
 import React, { useState, useMemo } from 'react';
 import { Plus, Trash2, Save, X, Info, Database, Layers, ArrowUpRight, ArrowDownRight, AlertTriangle, CheckCircle2, ChevronRight, FileEdit } from 'lucide-react';
-import { CrtAttendanceService, BranchAttendance, CalculatedRecord } from '@/services/CrtAttendanceService';
+import { CrtAttendanceService, BranchAttendanceInput, CalculatedRecord } from '@/services/CrtAttendanceService';
 import { cn } from '@/lib/utils';
 
 interface Props {
-  initialData: BranchAttendance[];
-  onSave: (data: BranchAttendance[]) => void;
+  initialData: BranchAttendanceInput[];
+  onSave: (data: BranchAttendanceInput[]) => void;
   onClose: () => void;
 }
 
 export default function CrtAttendanceEntryForm({ initialData, onSave, onClose }: Props) {
-  const [data, setData] = useState<BranchAttendance[]>(initialData);
+  const [data, setData] = useState<BranchAttendanceInput[]>(initialData);
 
   // Real-time calculation engine
   const calculatedRecords = useMemo(() => {
@@ -20,7 +20,7 @@ export default function CrtAttendanceEntryForm({ initialData, onSave, onClose }:
   }, [data]);
 
   const handleAddBranch = () => {
-    setData([...data, { branch: "", strength: 0, daily: Array(6).fill(0) }]);
+    setData([...data, { branch_code: "", strength: 0, daily: Array(6).fill(0) }]);
   };
 
   const handleRemoveBranch = (index: number) => {
@@ -29,7 +29,7 @@ export default function CrtAttendanceEntryForm({ initialData, onSave, onClose }:
 
   const handleUpdateBranch = (index: number, field: string, value: any) => {
     const newData = [...data];
-    if (field === 'branch' || field === 'strength') {
+    if (field === 'branch_code' || field === 'strength') {
       newData[index] = { ...newData[index], [field]: value };
     }
     setData(newData);
@@ -118,7 +118,7 @@ export default function CrtAttendanceEntryForm({ initialData, onSave, onClose }:
                     <input 
                       type="text" 
                       value={rec.branch_code}
-                      onChange={(e) => handleUpdateBranch(i, 'branch', e.target.value.toUpperCase())}
+                      onChange={(e) => handleUpdateBranch(i, 'branch_code', e.target.value.toUpperCase())}
                       placeholder="BRANCH CODE"
                       className="w-full bg-white border border-slate-200 px-3 py-2 text-[13px] font-bold text-[#1E3A8A] focus:border-[#1E3A8A] rounded transition-all shadow-sm uppercase placeholder:opacity-20"
                     />
@@ -164,7 +164,7 @@ export default function CrtAttendanceEntryForm({ initialData, onSave, onClose }:
                         </div>
                         <div className={cn(
                             "px-3 py-1 rounded text-[9px] font-bold uppercase tracking-widest text-center border",
-                            rec.risk_flag === 'OK' ? "bg-emerald-50 text-emerald-700 border-emerald-100" : "bg-rose-50 text-rose-700 border-rose-100"
+                            rec.risk_flag === 'GREEN' ? "bg-emerald-50 text-emerald-700 border-emerald-100" : "bg-rose-50 text-rose-700 border-rose-100"
                         )}>
                             {rec.risk_flag}
                         </div>

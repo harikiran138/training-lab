@@ -23,7 +23,7 @@ import { KpiCard } from './KpiCard';
 import { ExpandableTable } from './ExpandableTable';
 import { HeatMap } from './HeatMap';
 
-export default function CrtAttendanceDashboard() {
+export default function CrtAttendanceDashboard(props: any) {
   const [records, setRecords] = useState<any[]>([]);
   const [weekNumber, setWeekNumber] = useState(1);
   const [loading, setLoading] = useState(true);
@@ -99,10 +99,10 @@ export default function CrtAttendanceDashboard() {
                 )}>{row.weekly_average_percent}%</span>
                 <span className={cn(
                     "text-[10px] font-bold uppercase flex items-center gap-1",
-                    row.trend.includes('Improving') ? "text-emerald-500" : (row.trend.includes('Dropping') ? "text-rose-500" : "text-slate-400")
+                    (row.trend || '').includes('Improving') ? "text-emerald-500" : ((row.trend || '').includes('Dropping') ? "text-rose-500" : "text-slate-400")
                 )}>
-                    {row.trend.includes('Improving') ? <ArrowUpRight className="w-3 h-3" /> : (row.trend.includes('Dropping') ? <ArrowDownRight className="w-3 h-3" /> : null)}
-                    {row.trend.split(' ')[0]}
+                    {(row.trend || '').includes('Improving') ? <ArrowUpRight className="w-3 h-3" /> : ((row.trend || '').includes('Dropping') ? <ArrowDownRight className="w-3 h-3" /> : null)}
+                    {(row.trend || 'Stable').split(' ')[0]}
                 </span>
             </div>
         )
@@ -112,7 +112,7 @@ export default function CrtAttendanceDashboard() {
         accessorKey: (row: any) => (
             <div className={cn(
                 "px-4 py-1.5 rounded text-[10px] font-bold uppercase tracking-wider border text-center font-bold",
-                row.risk_flag === 'OK' ? "bg-emerald-50 text-emerald-700 border-emerald-100" : "bg-rose-50 text-rose-700 border-rose-100"
+                row.risk_flag === 'GREEN' ? "bg-emerald-50 text-emerald-700 border-emerald-100" : "bg-rose-50 text-rose-700 border-rose-100"
             )}>
                 {row.risk_flag}
             </div>

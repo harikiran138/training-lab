@@ -28,9 +28,11 @@ import {
 import { KpiCard } from '@/components/dashboard/KpiCard';
 import { TrendChart } from '@/components/dashboard/TrendChart';
 import { HeatMap } from '@/components/dashboard/HeatMap';
+import DataHealthCard from '@/components/dashboard/DataHealthCard';
 import { ExpandableTable } from '@/components/dashboard/ExpandableTable';
 import { cn } from '@/lib/utils';
 import AnalyticsDashboard from '@/components/dashboard/AnalyticsDashboard';
+
 import { INSTITUTIONAL_SCHEMAS } from '@/config/SchemaManager';
 
 export default function OverviewPage() {
@@ -39,6 +41,11 @@ export default function OverviewPage() {
   const [isPresented, setIsPresented] = useState(false);
   const [loading, setLoading] = useState(false);
   const [realData, setRealData] = useState<any[] | null>(null);
+  const [currentTime, setCurrentTime] = useState<string>("");
+
+  useEffect(() => {
+    setCurrentTime(new Date().toLocaleTimeString());
+  }, []);
 
   const schema = INSTITUTIONAL_SCHEMAS[activeDomain];
 
@@ -304,47 +311,29 @@ export default function OverviewPage() {
             </div>
           </div>
 
-          {/* DATA REPOSITORY OVERVIEW */}
-          <div className={cn(
-             "bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm",
-             isPresented && "border-white/10"
-          )}>
-            <div className="px-8 py-6 border-b border-slate-100 flex justify-between items-center bg-slate-50/30">
-                <div className="flex items-center gap-4">
-                    <Building2 className="w-5 h-5 text-[#1E3A8A]" />
-                    <h3 className="text-[13px] font-extrabold uppercase tracking-[0.2em] text-slate-800">
-                        Top Performing Clusters :: {schema.name}
-                    </h3>
-                </div>
-                {!isPresented && (
-                    <button className="flex items-center gap-2 text-[10px] font-black text-[#1E3A8A] uppercase tracking-widest hover:underline">
-                        View Registry <ArrowRight className="w-3.5 h-3.5" />
-                    </button>
-                )}
-            </div>
-            
-            <div className="p-8 grid grid-cols-1 md:grid-cols-3 gap-8">
-                {activeData.slice(0, 3).map((row, i) => (
-                    <div key={i} className={cn(
-                        "group p-8 border rounded-lg hover:shadow-xl hover:-translate-y-1 transition-all",
-                        isPresented ? "bg-white/5 border-white/10" : "bg-slate-50 border-slate-100"
-                    )}>
-                        <div className="flex justify-between items-start mb-6">
-                            <span className="text-[10px] font-black text-slate-300 uppercase tracking-[0.2em]">Rank 0{i + 1}</span>
-                            <div className="p-2 bg-white rounded shadow-sm group-hover:bg-[#1E3A8A] group-hover:text-white transition-colors">
-                                <Trophy className="w-4 h-4 text-amber-500 group-hover:text-white" />
-                            </div>
-                        </div>
-                        <h4 className="text-xl font-black uppercase tracking-tighter mb-2">
-                            {row.branch || row.company || row.factor || row.metric}
-                        </h4>
-                        <div className="flex items-center gap-3">
-                            <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]"></div>
-                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Target Reached</span>
-                        </div>
+          {/* MASTER DATA HEALTH & REPOSITORY */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              <DataHealthCard />
+              
+              <div className={cn(
+                "bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm",
+                isPresented && "border-white/10"
+              )}>
+                <div className="px-8 py-6 border-b border-slate-100 flex justify-between items-center bg-slate-50/30">
+                    <div className="flex items-center gap-4">
+                        <Building2 className="w-5 h-5 text-[#1E3A8A]" />
+                        <h3 className="text-[12px] font-black uppercase tracking-[0.2em] text-[#1E3A8A]">
+                            Top Cluster :: {schema.name}
+                        </h3>
                     </div>
-                ))}
-            </div>
+                </div>
+                
+                <div className="p-8 flex items-center justify-center h-full">
+                     <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest text-center">
+                        Select a domain to view granular cluster performance.
+                     </p>
+                </div>
+              </div>
           </div>
 
           {/* REAL-TIME TRANSACTION LEDGER */}
@@ -372,8 +361,8 @@ export default function OverviewPage() {
                         ].map((tx, idx) => (
                             <div key={idx} className="flex items-center justify-between p-4 bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 transition-all group">
                                 <div className="flex items-center gap-6">
-                                    <div className="text-[10px] font-black text-slate-500 font-mono tracking-tighter">
-                                        [{new Date().toLocaleTimeString()}]
+                                    <div className="text-[10px] font-black text-slate-500 font-mono tracking-tighter w-20">
+                                        [{currentTime || "..."}]
                                     </div>
                                     <div>
                                         <p className="text-[11px] font-black uppercase tracking-widest text-blue-300">{tx.event}</p>

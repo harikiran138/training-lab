@@ -4,6 +4,7 @@ import React from 'react';
 import { 
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer 
 } from 'recharts';
+import { cn } from "@/lib/utils";
 
 interface TrendChartProps {
   title: string;
@@ -11,11 +12,12 @@ interface TrendChartProps {
   categories?: string[];
   index?: string;
   colors?: string[];
+  className?: string; // Added className
 }
 
-export function TrendChart({ title, data }: TrendChartProps) {
+export function TrendChart({ title, data, className }: TrendChartProps) {
   return (
-    <div className="bg-white border border-slate-200 p-8 rounded shadow-sm">
+    <div className={cn("bg-white border border-slate-200 p-8 rounded shadow-sm", className)}>
       <h3 className="text-[14px] font-extrabold text-[#1E3A8A] uppercase tracking-wider mb-10 border-l-4 border-[#1E3A8A] pl-4">
         {title}
       </h3>

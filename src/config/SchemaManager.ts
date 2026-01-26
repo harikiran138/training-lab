@@ -41,7 +41,13 @@ export const INSTITUTIONAL_SCHEMAS: Record<string, TableSchema> = {
     name: 'Assessment Series',
     category: 'Assessment',
     description: 'Weekly branch-wise exam performance',
-    fields: [], // Placeholder for Fixed Form
+    fields: [
+      { key: 'branch', label: 'Branch', type: 'text' },
+      { key: 'week', label: 'Week', type: 'number' },
+      { key: 'type', label: 'Exam Type', type: 'text' },
+      { key: 'appeared', label: 'Appeared', type: 'number' },
+      { key: 'pass_percent', label: 'Pass %', type: 'percent' }
+    ], // Placeholder for Fixed Form
     defaultData: []
   },
 
@@ -61,7 +67,12 @@ export const INSTITUTIONAL_SCHEMAS: Record<string, TableSchema> = {
     name: 'Laptop Asset Registry',
     category: 'Strategic', // Categorized under Strategic/Ops
     description: 'Device allocation and health status',
-    fields: [],
+    fields: [
+      { key: 'branch', label: 'Branch', type: 'text' },
+      { key: 'total_strength', label: 'Total Strength', type: 'number' },
+      { key: 'laptop_available', label: 'Allocated', type: 'number' },
+      { key: 'laptop_not_available', label: 'Unallocated', type: 'number' }
+    ],
     defaultData: []
   },
 
@@ -100,7 +111,14 @@ export const INSTITUTIONAL_SCHEMAS: Record<string, TableSchema> = {
     id: 'placement_summary',
     name: 'Placement Summary',
     category: 'Placement',
-      }
+    description: 'Track placement drive details including company, CTC, and selection stats.',
+    fields: [
+       { key: 'date', label: 'Date', type: 'text' },
+       { key: 'company', label: 'Company', type: 'text' },
+       { key: 'ctc', label: 'CTC (LPA)', type: 'number' },
+       { key: 'mode', label: 'Mode', type: 'text' },
+       { key: 'appeared', label: 'Appeared', type: 'number' },
+       { key: 'selected', label: 'Selected', type: 'number' }
     ],
     defaultData: [
       { date: '2026-01-15', company: 'Amazon', ctc: 18.0, mode: 'Online', appeared: 450, selected: 12 },
@@ -175,15 +193,10 @@ export const INSTITUTIONAL_SCHEMAS: Record<string, TableSchema> = {
     category: 'Strategic',
     description: 'Qualitative analysis for board-level strategic planning.',
     fields: [
-        { key: 'factor', label: 'Academic Segment', type: 'text' },
-        { key: 'strengths', label: 'Strengths', type: 'textarea' },
-        { key: 'weaknesses', label: 'Weaknesses', type: 'textarea' },
-        { key: 'opportunities', label: 'Opportunities', type: 'textarea' },
-        { key: 'threats', label: 'Threats', type: 'textarea' }
+        { key: 'category', label: 'Category', type: 'text' },
+        { key: 'points', label: 'Key Points', type: 'textarea' }
     ],
-    defaultData: [
-        { factor: 'CRT Program', strengths: 'Consistent faculty engagement', weaknesses: 'Absence of daily labs', opportunities: 'New platform tie-ups', threats: 'Declining student focus' }
-    ]
+    defaultData: []
   },
 
   // 7. GENERIC TIME-SERIES

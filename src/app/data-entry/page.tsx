@@ -83,9 +83,10 @@ export default function DataEntryPage() {
         ? {
             records: newData.map(n => ({
               branch_code: n.branch,
-              total_strength: n.strength,
-              day1_attended: n.d1, day2_attended: n.d2, day3_attended: n.d3,
-              day4_attended: n.d4, day5_attended: n.d5, day6_attended: n.d6
+              strength: n.strength,
+              daily: [n.d1, n.d2, n.d3, n.d4, n.d5, n.d6],
+              academic_year: '2025-26', // Context padding
+              batch: '3-2'
             })),
             week_number: weekNumber,
             status: isLocked ? 'LOCKED' : 'DRAFT'
