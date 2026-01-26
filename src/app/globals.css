@@ -92,3 +92,66 @@ body {
   color: var(--primary-blue);
   letter-spacing: -0.05em;
 }
+
+/* Presentation Mode System */
+.presentation-mode-active {
+  background-color: #0b1120 !important; /* Deep Midnight Blue */
+  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.presentation-mode-active #main-content {
+  max-width: 1600px;
+  margin: 0 auto;
+  padding: 40px;
+}
+
+.presentation-mode-active .bg-white {
+  background-color: rgba(255, 255, 255, 0.03) !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+  backdrop-filter: blur(10px);
+}
+
+.presentation-mode-active [class~="text-[#1E3A8A]"], 
+.presentation-mode-active .text-slate-800,
+.presentation-mode-active .text-slate-900,
+.presentation-mode-active h2, 
+.presentation-mode-active h3,
+.presentation-mode-active h4 {
+  color: #f8fafc !important;
+}
+
+.presentation-mode-active .text-slate-400,
+.presentation-mode-active .text-slate-500 {
+  color: #94a3b8 !important;
+}
+
+.presentation-mode-active .kpi-number,
+.presentation-mode-active .text-2xl,
+.presentation-mode-active .text-xl {
+  font-size: 1.5em !important;
+  color: #f8fafc !important;
+}
+
+.presentation-mode-active .recharts-text {
+  fill: #94a3b8 !important;
+  font-size: 14px !important;
+  font-weight: 600;
+}
+
+.presentation-mode-active .recharts-cartesian-grid-horizontal line,
+.presentation-mode-active .recharts-cartesian-grid-vertical line {
+  stroke: rgba(255, 255, 255, 0.1) !important;
+}
+
+.presentation-mode-active .hide-in-presentation {
+  display: none !important;
+}
+
+.presentation-mode-active .animate-presentation-slide {
+  animation: slideIn 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes slideIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}

@@ -20,7 +20,10 @@ import {
   ChevronDown,
   Building2,
   Trophy,
-  Target
+  Target,
+  RefreshCw,
+  Star,
+  Monitor
 } from 'lucide-react';
 import { KpiCard } from '@/components/dashboard/KpiCard';
 import { TrendChart } from '@/components/dashboard/TrendChart';
@@ -33,6 +36,7 @@ import { INSTITUTIONAL_SCHEMAS } from '@/config/SchemaManager';
 export default function OverviewPage() {
   const [activeDomain, setActiveDomain] = useState('crt_attendance');
   const [view, setView] = useState<'standard' | 'analytics'>('standard');
+  const [isPresented, setIsPresented] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const schema = INSTITUTIONAL_SCHEMAS[activeDomain];
@@ -45,6 +49,17 @@ export default function OverviewPage() {
     });
     return groups;
   }, []);
+
+  // Toggle Presentation Mode with Escape Key
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+        if (e.key === 'Escape' && isPresented) {
+            setIsPresented(false);
+        }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isPresented]);
 
   // Simulate domain-specific KPIs
   const domainKPIs = useMemo(() => {
@@ -84,71 +99,107 @@ export default function OverviewPage() {
   );
 
   return (
-    <div className="space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-500">
-      {/* MASTER HEADER SECTION */}
-      <div className="flex flex-col xl:flex-row xl:items-end justify-between gap-8 border-b border-slate-100 pb-10">
-        <div className="space-y-4">
-          <div className="flex items-center gap-4">
-             <div className="bg-[#1E3A8A] p-2 rounded text-white shadow-sm">
-                <LayoutDashboard className="w-5 h-5" />
-             </div>
-             <h2 className="text-2xl font-extrabold text-[#1E3A8A] tracking-tight uppercase">
-               Master <span className="font-light opacity-60">Dashboard</span>
-             </h2>
-          </div>
-          <p className="text-[12px] font-bold text-slate-400 uppercase tracking-widest pl-1">
-            Institutional Solution Mastery :: {schema.category} Intelligence
-          </p>
-        </div>
-
-        <div className="flex flex-col md:flex-row gap-6">
-            {/* DOMAIN SELECTOR */}
-            <div className="bg-white p-1.5 rounded border border-slate-200 shadow-sm flex items-center pr-6 overflow-hidden">
-                <div className="bg-slate-50 border-r border-slate-100 px-4 py-2 mr-4">
-                    <Database className="w-4 h-4 text-[#1E3A8A]" />
+    <div className={cn(
+        "min-h-screen transition-all duration-700",
+        isPresented ? "presentation-mode-active p-0" : "p-8 md:p-12"
+    )}>
+        <div id="main-content" className={cn(
+            "space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-500",
+            isPresented && "animate-presentation-slide"
+        )}>
+        {/* MASTER HEADER SECTION */}
+        <div className={cn(
+            "flex flex-col xl:flex-row xl:items-end justify-between gap-8 border-b pb-10",
+            isPresented ? "border-white/10" : "border-slate-100"
+        )}>
+            <div className="space-y-4">
+            <div className="flex items-center gap-4">
+                <div className={cn(
+                    "p-2 rounded shadow-sm transition-colors",
+                    isPresented ? "bg-blue-500 text-white" : "bg-[#1E3A8A] text-white"
+                )}>
+                    <LayoutDashboard className="w-5 h-5" />
                 </div>
-                <div className="relative">
-                    <select 
-                        value={activeDomain}
-                        onChange={(e) => setActiveDomain(e.target.value)}
-                        className="bg-transparent border-none focus:ring-0 font-extrabold text-[#1E3A8A] uppercase tracking-tighter text-lg p-0 cursor-pointer appearance-none pr-10"
+                <h2 className="text-2xl font-extrabold tracking-tight uppercase">
+                {isPresented ? "Executive Review" : "Master Dashboard"} <span className="font-light opacity-60 font-mono">:: v5.0</span>
+                </h2>
+            </div>
+            <p className="text-[12px] font-bold text-slate-400 uppercase tracking-widest pl-1">
+                Institutional Solution Mastery :: {schema.category} Intelligence
+            </p>
+            </div>
+
+            <div className="flex flex-col md:flex-row gap-6">
+                {/* PRESENTATION TOGGLE */}
+                <button 
+                    onClick={() => setIsPresented(!isPresented)}
+                    className={cn(
+                        "flex items-center gap-3 px-6 py-2.5 text-[11px] font-black uppercase tracking-[0.2em] transition-all rounded border-2 shadow-xl",
+                        isPresented 
+                            ? "bg-rose-600 border-rose-500 text-white hover:bg-rose-700 animate-pulse" 
+                            : "bg-emerald-600 border-emerald-500 text-white hover:bg-emerald-700"
+                    )}
+                >
+                    <Monitor className="w-4 h-4" />
+                    {isPresented ? "Exit Review Mode" : "Start Presentation"}
+                </button>
+
+                {/* DOMAIN SELECTOR */}
+                <div className={cn(
+                    "p-1.5 rounded border shadow-sm flex items-center pr-6 overflow-hidden transition-all",
+                    isPresented ? "bg-white/5 border-white/10" : "bg-white border-slate-200"
+                )}>
+                    <div className={cn(
+                        "border-r px-4 py-2 mr-4",
+                        isPresented ? "bg-white/5 border-white/10" : "bg-slate-50 border-slate-100"
+                    )}>
+                        <Database className="w-4 h-4 text-[#1E3A8A]" />
+                    </div>
+                    <div className="relative">
+                        <select 
+                            value={activeDomain}
+                            onChange={(e) => setActiveDomain(e.target.value)}
+                            className="bg-transparent border-none focus:ring-0 font-extrabold uppercase tracking-tighter text-lg p-0 cursor-pointer appearance-none pr-10"
+                        >
+                            {Object.entries(groupedSchemas).map(([cat, schemas]) => (
+                                <optgroup key={cat} label={cat.toUpperCase()} className="font-bold text-slate-400">
+                                    {schemas.map(s => (
+                                        <option key={s.id} value={s.id} className="text-slate-900">{s.name}</option>
+                                    ))}
+                                </optgroup>
+                            ))}
+                        </select>
+                        <ChevronDown className="absolute right-0 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+                    </div>
+                </div>
+
+                <div className={cn(
+                    "flex p-1.5 rounded border shadow-sm hide-in-presentation",
+                    isPresented ? "bg-white/5 border-white/10" : "bg-white border-slate-200"
+                )}>
+                    <button 
+                        onClick={() => setView('standard')}
+                        className={cn(
+                        "flex items-center gap-3 px-6 py-2.5 text-[11px] font-bold uppercase tracking-widest transition-all rounded",
+                        view === 'standard' ? "bg-[#1E3A8A] text-white shadow-md" : "text-slate-400 hover:text-[#1E3A8A] hover:bg-slate-50"
+                        )}
                     >
-                        {Object.entries(groupedSchemas).map(([cat, schemas]) => (
-                            <optgroup key={cat} label={cat.toUpperCase()} className="font-bold text-slate-400">
-                                {schemas.map(s => (
-                                    <option key={s.id} value={s.id}>{s.name}</option>
-                                ))}
-                            </optgroup>
-                        ))}
-                    </select>
-                    <ChevronDown className="absolute right-0 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+                        <Activity className="w-4 h-4" />
+                        Core Ops
+                    </button>
+                    <button 
+                        onClick={() => setView('analytics')}
+                        className={cn(
+                        "flex items-center gap-3 px-6 py-2.5 text-[11px] font-bold uppercase tracking-widest transition-all rounded ml-1",
+                        view === 'analytics' ? "bg-[#1E3A8A] text-white shadow-md" : "text-slate-400 hover:text-[#1E3A8A] hover:bg-slate-50"
+                        )}
+                    >
+                        <BarChart3 className="w-4 h-4" />
+                        Deep Drill
+                    </button>
                 </div>
             </div>
-
-            <div className="flex bg-white p-1.5 rounded border border-slate-200 shadow-sm">
-                <button 
-                    onClick={() => setView('standard')}
-                    className={cn(
-                    "flex items-center gap-3 px-6 py-2.5 text-[11px] font-bold uppercase tracking-widest transition-all rounded",
-                    view === 'standard' ? "bg-[#1E3A8A] text-white shadow-md" : "text-slate-400 hover:text-[#1E3A8A] hover:bg-slate-50"
-                    )}
-                >
-                    <Activity className="w-4 h-4" />
-                    Core Ops
-                </button>
-                <button 
-                    onClick={() => setView('analytics')}
-                    className={cn(
-                    "flex items-center gap-3 px-6 py-2.5 text-[11px] font-bold uppercase tracking-widest transition-all rounded ml-1",
-                    view === 'analytics' ? "bg-[#1E3A8A] text-white shadow-md" : "text-slate-400 hover:text-[#1E3A8A] hover:bg-slate-50"
-                    )}
-                >
-                    <BarChart3 className="w-4 h-4" />
-                    Deep Drill
-                </button>
-            </div>
         </div>
-      </div>
 
       {view === 'analytics' ? (
         <div className="min-h-[500px] bg-white border border-slate-200 rounded-2xl flex flex-col items-center justify-center text-center p-20 gap-6">
@@ -169,7 +220,10 @@ export default function OverviewPage() {
         <div className="space-y-12">
            
            {/* KPI GRID */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
+          <div className={cn(
+            "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6",
+            isPresented && "lg:grid-cols-3 xl:grid-cols-5"
+          )}>
             {domainKPIs.map((kpi, i) => (
                 <KpiCard 
                     key={i}
@@ -185,7 +239,7 @@ export default function OverviewPage() {
 
           {/* VISUAL ANALYTICS */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
-            <div className="lg:col-span-8">
+            <div className={cn(isPresented ? "lg:col-span-12" : "lg:col-span-8")}>
                 <TrendChart 
                     title={`${schema.name} Velocity Trend`}
                     data={[
@@ -198,7 +252,7 @@ export default function OverviewPage() {
                 />
             </div>
             
-            <div className="lg:col-span-4">
+            <div className={cn(isPresented ? "lg:col-span-12" : "lg:col-span-4")}>
                 <HeatMap 
                     title={`${schema.category} Hotspots`}
                     data={[
@@ -211,7 +265,10 @@ export default function OverviewPage() {
           </div>
 
           {/* DATA REPOSITORY OVERVIEW */}
-          <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+          <div className={cn(
+             "bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm",
+             isPresented && "border-white/10"
+          )}>
             <div className="px-8 py-6 border-b border-slate-100 flex justify-between items-center bg-slate-50/30">
                 <div className="flex items-center gap-4">
                     <Building2 className="w-5 h-5 text-[#1E3A8A]" />
@@ -219,21 +276,26 @@ export default function OverviewPage() {
                         Top Performing Clusters :: {schema.name}
                     </h3>
                 </div>
-                <button className="flex items-center gap-2 text-[10px] font-black text-[#1E3A8A] uppercase tracking-widest hover:underline">
-                    View Registry <ArrowRight className="w-3.5 h-3.5" />
-                </button>
+                {!isPresented && (
+                    <button className="flex items-center gap-2 text-[10px] font-black text-[#1E3A8A] uppercase tracking-widest hover:underline">
+                        View Registry <ArrowRight className="w-3.5 h-3.5" />
+                    </button>
+                )}
             </div>
             
             <div className="p-8 grid grid-cols-1 md:grid-cols-3 gap-8">
                 {schema.defaultData.slice(0, 3).map((row, i) => (
-                    <div key={i} className="group p-8 bg-slate-50 border border-slate-100 rounded-lg hover:border-[#1E3A8A]/30 transition-all hover:shadow-xl hover:-translate-y-1">
+                    <div key={i} className={cn(
+                        "group p-8 border rounded-lg hover:shadow-xl hover:-translate-y-1 transition-all",
+                        isPresented ? "bg-white/5 border-white/10" : "bg-slate-50 border-slate-100"
+                    )}>
                         <div className="flex justify-between items-start mb-6">
                             <span className="text-[10px] font-black text-slate-300 uppercase tracking-[0.2em]">Rank 0{i + 1}</span>
                             <div className="p-2 bg-white rounded shadow-sm group-hover:bg-[#1E3A8A] group-hover:text-white transition-colors">
                                 <Trophy className="w-4 h-4 text-amber-500 group-hover:text-white" />
                             </div>
                         </div>
-                        <h4 className="text-xl font-black text-[#1E3A8A] uppercase tracking-tighter mb-2">
+                        <h4 className="text-xl font-black uppercase tracking-tighter mb-2">
                             {row.branch || row.company || row.factor || row.metric}
                         </h4>
                         <div className="flex items-center gap-3">
@@ -243,6 +305,52 @@ export default function OverviewPage() {
                     </div>
                 ))}
             </div>
+          </div>
+
+          {/* REAL-TIME TRANSACTION LEDGER */}
+          <div className={cn(
+            "rounded-2xl p-10 shadow-2xl relative overflow-hidden",
+            isPresented ? "bg-blue-900/40 border border-white/10" : "bg-slate-900 text-white"
+          )}>
+                <div className="relative z-10 space-y-8">
+                    <div className="flex justify-between items-center border-b border-white/10 pb-6">
+                        <div className="flex items-center gap-4">
+                            <Activity className="w-5 h-5 text-emerald-400" />
+                            <h3 className="text-[14px] font-black uppercase tracking-[0.2em]">Real-Time Transaction Ledger</h3>
+                        </div>
+                        <div className="flex items-center gap-3 px-3 py-1 bg-white/10 rounded text-[9px] font-bold text-blue-300">
+                             <RefreshCw className="w-3 h-3 animate-spin-slow" /> LIVE STREAM ACTIVE
+                        </div>
+                    </div>
+
+                    <div className="space-y-4">
+                        {[
+                            { event: "CRT ATTENDANCE COMMIT", node: "CSE-A", time: "Just Now", status: "SYNCED" },
+                            { event: "PLACEMENT LOG UPDATE", node: "TCS DRIVE", time: "2m ago", status: "VERIFIED" },
+                            { event: "ASSESSMENT REGISTRY SYNC", node: "ECE-B", time: "15m ago", status: "SYNCED" },
+                            { event: "SYSTEM BOOTSTRAP", node: "CORE v5.0", time: "1h ago", status: "MASTER" }
+                        ].map((tx, idx) => (
+                            <div key={idx} className="flex items-center justify-between p-4 bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 transition-all group">
+                                <div className="flex items-center gap-6">
+                                    <div className="text-[10px] font-black text-slate-500 font-mono tracking-tighter">
+                                        [{new Date().toLocaleTimeString()}]
+                                    </div>
+                                    <div>
+                                        <p className="text-[11px] font-black uppercase tracking-widest text-blue-300">{tx.event}</p>
+                                        <p className="text-[10px] font-bold text-slate-400 mt-1 uppercase">NODE :: {tx.node}</p>
+                                    </div>
+                                </div>
+                                <div className="flex items-center gap-6">
+                                    <span className="text-[10px] font-bold text-slate-500 uppercase">{tx.time}</span>
+                                    <div className="px-3 py-1 bg-white/10 rounded text-[8px] font-black uppercase tracking-widest border border-white/5 opacity-60 group-hover:opacity-100 transition-opacity">
+                                        {tx.status}
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+                <div className="absolute bottom-0 right-0 w-96 h-96 bg-blue-500/5 rounded-full blur-[100px] translate-y-1/2 translate-x-1/2"></div>
           </div>
         </div>
       )}
@@ -262,10 +370,7 @@ export default function OverviewPage() {
                 Institutional Analytics v5.0 // Synchronized Repository
             </p>
       </footer>
+        </div>
     </div>
   );
-}
-
-function Star(props: any) {
-    return <TrendingUp {...props} />
 }
