@@ -1,34 +1,29 @@
 "use client"
 
 import React, { useState } from 'react';
-import { ChevronDown, ChevronRight, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
+import { ChevronDown, ChevronRight, Search, FileText } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-export interface Column<T> {
+interface Column {
   header: string;
-  accessorKey: keyof T | ((row: T) => React.ReactNode);
-  className?: string;
+  accessorKey: string | ((row: any) => React.ReactNode);
   sortable?: boolean;
+  className?: string;
 }
 
-interface ExpandableTableProps<T> {
-  data: T[];
-  columns: Column<T>[];
-  expandableContent?: (row: T) => React.ReactNode;
-  rowId: (row: T) => string;
+interface ExpandableTableProps {
   title?: string;
+  data: any[];
+  columns: Column[];
+  rowId: (row: any) => string | number;
+  expandableContent?: (row: any) => React.ReactNode;
 }
 
-export function ExpandableTable<T>({
-  data,
-  columns,
-  expandableContent,
-  rowId,
-  title
-}: ExpandableTableProps<T>) {
-  const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
+export function ExpandableTable({ title, data, columns, rowId, expandableContent }: ExpandableTableProps) {
+  const [expandedRows, setExpandedRows] = useState<Set<string | number>>(new Set());
+  const [searchTerm, setSearchTerm] = useState('');
 
-  const toggleRow = (id: string) => {
+  const toggleRow = (id: string | number) => {
     const newExpanded = new Set(expandedRows);
     if (newExpanded.has(id)) {
       newExpanded.delete(id);
@@ -38,41 +33,46 @@ export function ExpandableTable<T>({
     setExpandedRows(newExpanded);
   };
 
+  const filteredData = data.filter(row => 
+    JSON.stringify(row).toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   return (
-    <div className="bg-white border border-slate-200 shadow-xl shadow-slate-200/50 overflow-hidden flex flex-col h-full rounded-[2.5rem] animate-in fade-in slide-in-from-bottom-4 duration-700">
-      {title && (
-        <div className="bg-white p-10 border-b border-slate-100 flex items-center justify-between">
-          <h3 className="text-sm font-black uppercase tracking-[0.4em] italic text-slate-400">{title}</h3>
-          <div className="flex gap-2">
-            <div className="w-2 h-2 rounded-full bg-blue-600 animate-pulse"></div>
-            <div className="w-2 h-2 rounded-full bg-slate-200"></div>
-          </div>
+    <div className="bg-white border border-slate-200 rounded shadow-sm overflow-hidden flex flex-col">
+      {/* HEADER SECTION */}
+      <div className="px-6 py-5 border-b border-slate-100 flex flex-col sm:flex-row justify-between items-center gap-4">
+        {title && (
+          <h3 className="text-[14px] font-extrabold text-[#1E3A8A] uppercase tracking-wider flex items-center gap-3">
+             <FileText className="w-4 h-4" />
+             {title}
+          </h3>
+        )}
+        <div className="relative w-full sm:w-64">
+           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+           <input 
+              type="text"
+              placeholder="Filter results..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full bg-slate-50 border border-slate-200 pl-10 pr-4 py-2 text-[12px] font-medium rounded focus:ring-1 focus:ring-blue-100 transition-all"
+           />
         </div>
-      )}
-      
-      <div className="overflow-x-auto flex-1">
+      </div>
+
+      <div className="overflow-x-auto">
         <table className="w-full text-left border-collapse">
           <thead>
-            <tr className="bg-slate-50/50 text-[11px] font-black text-slate-500 uppercase tracking-widest border-b border-slate-100">
-              {expandableContent && <th className="px-10 py-8 w-20 text-center italic text-blue-800">EXP</th>}
+            <tr className="bg-[#1E3A8A] border-b border-[#1E3A8A]">
+              <th className="px-6 py-3 w-10"></th>
               {columns.map((col, idx) => (
-                <th 
-                  key={idx} 
-                  className={cn(
-                    "px-10 py-8 font-black tracking-widest border-r border-slate-50 last:border-r-0", 
-                    col.className
-                  )}
-                >
-                  <div className="flex items-center gap-3">
-                    {col.header}
-                    {col.sortable && <ArrowUpDown className="w-3.5 h-3.5 opacity-30 group-hover:opacity-100 transition-opacity" />}
-                  </div>
+                <th key={idx} className="px-6 py-4 text-[12px] font-bold text-white uppercase tracking-widest">
+                  {col.header}
                 </th>
               ))}
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-50">
-            {data.map((row) => {
+          <tbody className="divide-y divide-slate-100">
+            {filteredData.map((row) => {
               const id = rowId(row);
               const isExpanded = expandedRows.has(id);
               
@@ -80,38 +80,33 @@ export function ExpandableTable<T>({
                 <React.Fragment key={id}>
                   <tr 
                     className={cn(
-                      "group transition-all duration-300 cursor-pointer",
-                      isExpanded ? "bg-blue-50/40" : "hover:bg-slate-50/80"
+                        "group transition-all hover:bg-blue-50/50 cursor-pointer",
+                        isExpanded ? "bg-blue-50/30" : "odd:bg-white even:bg-[#FAFBFC]"
                     )}
-                    onClick={() => expandableContent && toggleRow(id)}
+                    onClick={() => toggleRow(id)}
                   >
-                    {expandableContent && (
-                      <td className="px-10 py-8 border-r border-slate-50 text-center">
-                        <div className={cn(
-                            "w-10 h-10 rounded-2xl flex items-center justify-center transition-all duration-300 shadow-sm",
-                            isExpanded ? "bg-blue-600 text-white rotate-180 shadow-blue-200" : "bg-white text-slate-400 border border-slate-100 group-hover:border-blue-200 group-hover:text-blue-600"
-                        )}>
-                            {isExpanded ? <ChevronDown size={18} /> : <ChevronRight size={18} />}
-                        </div>
-                      </td>
-                    )}
+                    <td className="px-6 py-4">
+                        {expandableContent && (
+                            <div className="p-1 rounded bg-slate-100 group-hover:bg-[#1E3A8A] group-hover:text-white transition-colors">
+                                {isExpanded ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+                            </div>
+                        )}
+                    </td>
                     {columns.map((col, idx) => (
-                      <td key={idx} className={cn("px-10 py-8 border-r border-slate-50 last:border-r-0 font-bold text-slate-700 text-sm group-hover:text-slate-900 transition-colors", col.className)}>
+                      <td key={idx} className={cn("px-6 py-4 text-[13px] font-medium text-slate-700", col.className)}>
                         {typeof col.accessorKey === 'function' 
                           ? col.accessorKey(row) 
-                          : (row[col.accessorKey] as React.ReactNode)}
+                          : row[col.accessorKey as string]}
                       </td>
                     ))}
                   </tr>
                   
                   {isExpanded && expandableContent && (
-                    <tr className="bg-white">
-                      <td colSpan={columns.length + 1} className="p-0 border-b border-blue-50">
-                        <div className="overflow-hidden animate-in slide-in-from-top-6 duration-500 ease-out">
-                           <div className="p-10 bg-slate-50/30 rounded-b-[2rem]">
-                              {expandableContent(row)}
-                           </div>
-                        </div>
+                    <tr className="bg-slate-50/50">
+                      <td colSpan={columns.length + 1} className="px-8 py-8 border-b border-slate-200">
+                         <div className="bg-white border border-slate-200 rounded p-6 shadow-inner">
+                            {expandableContent(row)}
+                         </div>
                       </td>
                     </tr>
                   )}
@@ -120,6 +115,12 @@ export function ExpandableTable<T>({
             })}
           </tbody>
         </table>
+        
+        {filteredData.length === 0 && (
+            <div className="py-20 text-center text-slate-400 text-[12px] font-bold uppercase tracking-widest italic">
+                Zero Records Found
+            </div>
+        )}
       </div>
     </div>
   );

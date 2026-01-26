@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import CrtAttendanceEntryForm from '@/components/dashboard/CrtAttendanceEntryForm';
 import { BranchAttendance } from '@/services/CrtAttendanceService';
-import { LayoutGrid, ArrowLeft, ShieldCheck, Database, Zap, Calendar } from 'lucide-react';
+import { LayoutGrid, ArrowLeft, ShieldCheck, Database, Zap, Calendar, Save, FileText } from 'lucide-react';
 
 const DEFAULT_NSRIT_DATA: BranchAttendance[] = [
   { branch: "CSE-A", strength: 71, daily: [46, 49, 44, 50, 52, 48] },
@@ -27,7 +27,6 @@ export default function DataEntryPage() {
         const records = await res.json();
         
         if (records && records.length > 0) {
-          // Map DB records back to UI format
           const uiData = records.map((r: any) => ({
             branch: r.branch_code,
             strength: r.total_strength,
@@ -64,11 +63,11 @@ export default function DataEntryPage() {
       if (res.ok) {
         router.push('/crt/attendance');
       } else {
-        alert('Transmission Failure :: Secure Repository rejected the update.');
+        alert('Repository Reject :: Institutional stream interrupted.');
       }
     } catch (e) {
       console.error(e);
-      alert('Network Fault :: Repository unreachable.');
+      alert('Link Failure :: Unable to synchronize with repository.');
     } finally {
       setIsSaving(false);
     }
@@ -76,65 +75,56 @@ export default function DataEntryPage() {
 
   if (!isLoaded || isSaving) {
     return (
-      <div className="flex flex-col items-center justify-center p-24 space-y-8 animate-pulse text-center">
-        <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-        <div>
-            <p className="text-blue-800 font-black uppercase tracking-[0.5em] mb-4">
-                {isSaving ? 'Synchronizing Repository...' : 'Accessing Data Gateway...'}
-            </p>
-            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest italic">Secure institutional connection established</p>
-        </div>
+      <div className="min-h-[60vh] flex flex-col items-center justify-center space-y-4">
+        <div className="w-10 h-10 border-4 border-[#1E3A8A] border-t-transparent rounded-full animate-spin"></div>
+        <p className="text-[12px] font-bold uppercase tracking-widest text-[#1E3A8A] opacity-60">
+            {isSaving ? 'Synchronizing Repository...' : 'Authenticating Stream...'}
+        </p>
       </div>
     );
   }
 
   return (
-    <div className="space-y-16 animate-in fade-in slide-in-from-bottom-8 duration-1000">
-        <header className="flex flex-col md:flex-row justify-between items-end gap-12 border-b border-slate-100 pb-16">
-          <div className="space-y-8">
-            <div className="flex items-center gap-8">
+    <div className="space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-500">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-8 border-b border-slate-100 pb-10">
+          <div className="space-y-4">
+            <div className="flex items-center gap-4">
                 <button 
-                onClick={() => router.back()}
-                className="p-4 bg-white border border-slate-200 shadow-xl shadow-slate-100 hover:bg-slate-50 transition-all rounded-2xl group"
+                    onClick={() => router.back()}
+                    className="p-2 transition-colors hover:bg-white rounded border border-transparent hover:border-slate-200"
                 >
-                <ArrowLeft className="w-6 h-6 text-slate-400 group-hover:text-blue-600 transition-colors" />
+                    <ArrowLeft className="w-5 h-5 text-slate-400" />
                 </button>
-                <h1 className="text-7xl font-black text-slate-900 tracking-tighter uppercase italic leading-none">
-                Data <span className="text-blue-600">Entry</span>
+                <h1 className="text-2xl font-extrabold text-[#1E3A8A] tracking-tight uppercase">
+                    Data <span className="font-light opacity-60">Entry</span>
                 </h1>
             </div>
-            <p className="text-blue-600 font-black text-[12px] uppercase tracking-[0.5em] flex items-center gap-6 opacity-60">
-                <span className="w-16 h-1 bg-blue-600 rounded-full"></span>
-                Institutional Repository Management :: Secure Write-Access v4.5
+            <p className="text-[12px] font-bold text-slate-400 uppercase tracking-widest pl-11">
+                Institutional Data Management :: Secure Write-Access
             </p>
           </div>
           
-          <div className="flex flex-col gap-6 w-full md:w-auto">
-             <div className="flex items-center gap-4 bg-white p-2 rounded-3xl border border-slate-100 shadow-xl shadow-blue-100/10">
-                <div className="p-4 bg-blue-600 rounded-2xl text-white shadow-lg shadow-blue-500/20">
-                    <Calendar className="w-6 h-6" />
-                </div>
-                <div className="pr-10">
-                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1">Target Epoch</span>
-                    <select 
-                        value={weekNumber}
-                        onChange={(e) => setWeekNumber(parseInt(e.target.value))}
-                        className="bg-transparent border-none focus:ring-0 font-black text-blue-900 uppercase italic tracking-tighter text-2xl p-0 cursor-pointer"
-                    >
-                        {[1,2,3,4,5,6,7,8,9,10].map(w => (
-                            <option key={w} value={w}>Reporting Week {w}</option>
-                        ))}
-                    </select>
-                </div>
+          <div className="flex items-center gap-4 bg-white p-1.5 rounded border border-slate-200 shadow-sm">
+             <div className="pl-4 border-r border-slate-100 pr-6">
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-0.5">Epoch Selection</span>
+                <select 
+                    value={weekNumber}
+                    onChange={(e) => setWeekNumber(parseInt(e.target.value))}
+                    className="bg-transparent border-none focus:ring-0 font-extrabold text-[#1E3A8A] uppercase tracking-tighter text-lg p-0 cursor-pointer"
+                >
+                    {[1,2,3,4,5,6,7,8,9,10].map(w => (
+                        <option key={w} value={w}>Reporting Week {w}</option>
+                    ))}
+                </select>
              </div>
-             <div className="flex items-center gap-4 text-[10px] font-black text-slate-400 uppercase tracking-widest bg-white px-8 py-4 border border-slate-100 rounded-3xl italic shadow-sm self-end">
-                <ShieldCheck className="w-4 h-4 text-emerald-500" />
-                Auth Verification Active
+             <div className="px-6 py-2 flex items-center gap-3 text-[10px] font-bold text-emerald-600 uppercase tracking-widest">
+                <ShieldCheck className="w-4 h-4" />
+                Auth Active
              </div>
           </div>
-        </header>
+        </div>
 
-        <section className="bg-slate-50/50 p-2 rounded-[3.5rem] border border-slate-100 shadow-inner">
+        <section className="bg-white border border-slate-200 rounded">
             <CrtAttendanceEntryForm 
                 initialData={data} 
                 onSave={handleSave}
@@ -142,10 +132,10 @@ export default function DataEntryPage() {
             />
         </section>
 
-        <footer className="pt-16 flex justify-center">
-             <div className="flex items-center gap-6 text-[10px] font-black text-slate-300 uppercase tracking-[0.4em] italic leading-none">
-                 <Zap className="w-4 h-4" />
-                 Institutional Performance Framework 2026 :: All Vectors Synchronized
+        <footer className="pt-10 flex justify-center border-t border-slate-50">
+             <div className="flex items-center gap-4 text-[10px] font-bold text-slate-300 uppercase tracking-widest italic">
+                 <Database className="w-3 h-3" />
+                 Secure Management Portal v5.0 :: Institutional Analytics
              </div>
         </footer>
     </div>

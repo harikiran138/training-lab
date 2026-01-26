@@ -2,82 +2,69 @@
 
 import React from 'react';
 import { cn } from '@/lib/utils';
-import { Target, Info } from 'lucide-react';
+import { Layers } from 'lucide-react';
 
 interface HeatMapItem {
   id: string;
   label: string;
   value: number;
   secondaryValue?: number;
-  status?: 'success' | 'warning' | 'danger' | 'neutral';
 }
 
 interface HeatMapProps {
-  title?: string;
+  title: string;
   data: HeatMapItem[];
-  className?: string;
-  onItemClick?: (item: HeatMapItem) => void;
 }
 
-export function HeatMap({
-  title,
-  data,
-  className,
-  onItemClick
-}: HeatMapProps) {
-
-  // Monochromatic Blue Intelligence (Soft)
-  const getBackgroundColor = (value: number) => {
-    if (value >= 90) return 'bg-blue-800 text-white shadow-xl shadow-blue-200';
-    if (value >= 80) return 'bg-blue-700 text-white shadow-lg shadow-blue-100';
-    if (value >= 70) return 'bg-blue-600 text-white shadow-md shadow-blue-50';
-    if (value >= 60) return 'bg-blue-500 text-blue-50 shadow-sm';
-    if (value >= 50) return 'bg-blue-400 text-blue-50';
-    if (value >= 40) return 'bg-blue-300 text-blue-900 opacity-80';
-    return 'bg-blue-100 text-blue-800 opacity-60';
+export function HeatMap({ title, data }: HeatMapProps) {
+  const getBlueScale = (value: number) => {
+    if (value >= 90) return 'bg-[#1E3A8A] text-white';
+    if (value >= 80) return 'bg-[#3B82F6] text-white';
+    if (value >= 70) return 'bg-[#60A5FA] text-white';
+    if (value >= 50) return 'bg-[#93C5FD] text-[#1E3A8A]';
+    return 'bg-[#DBEAFE] text-[#1E3A8A]';
   };
 
   return (
-    <div className={cn("p-0 bg-transparent flex flex-col", className)}>
+    <div className="bg-white border border-slate-200 p-8 rounded shadow-sm h-full flex flex-col">
       {title && (
-        <div className="flex items-center justify-between mb-8 px-2">
-            <div className="flex items-center gap-4">
-                <div className="p-2.5 bg-blue-600 rounded-xl text-white shadow-lg shadow-blue-100">
-                    <Target className="w-5 h-5" />
-                </div>
-                <h3 className="text-[11px] font-black uppercase tracking-[0.4em] text-slate-400 italic">
-                    {title}
-                </h3>
-            </div>
-            <Info className="w-4 h-4 text-slate-300" />
-        </div>
+         <h3 className="text-[14px] font-extrabold text-[#1E3A8A] uppercase tracking-wider mb-10 border-l-4 border-[#1E3A8A] pl-4">
+            {title}
+         </h3>
       )}
       
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
+      <div className="flex-grow grid grid-cols-2 lg:grid-cols-4 gap-4">
         {data.map((item) => (
-          <button
+          <div 
             key={item.id}
-            onClick={() => onItemClick?.(item)}
             className={cn(
-              "flex flex-col items-center justify-center p-6 transition-all duration-500 hover:scale-105 active:scale-95 group rounded-[2rem] border border-transparent",
-              getBackgroundColor(item.value)
+                "p-4 rounded border border-slate-100 flex flex-col justify-between transition-all hover:scale-[1.02] cursor-default",
+                getBlueScale(item.value)
             )}
           >
-            <span className="text-[10px] font-black tracking-widest uppercase mb-3 opacity-70 italic">
-              {item.label}
-            </span>
-            <span className="text-3xl font-black italic tracking-tighter">
-              {item.value}%
-            </span>
+            <div>
+              <p className="text-[10px] font-extrabold uppercase tracking-widest opacity-80 mb-1">{item.id}</p>
+              <h4 className="text-xl font-black">{item.value}%</h4>
+            </div>
             {item.secondaryValue !== undefined && (
-              <div className="mt-4 pt-4 border-t border-current/20 w-full text-center">
-                  <span className="text-[9px] font-black uppercase tracking-widest opacity-60">
-                    PRECISION: {item.secondaryValue}%
-                  </span>
-              </div>
+              <p className="text-[10px] font-bold mt-4 opacity-60">STR: {item.secondaryValue}</p>
             )}
-          </button>
+          </div>
         ))}
+      </div>
+
+      <div className="mt-8 pt-6 border-t border-slate-50 flex justify-between items-center">
+            <div className="flex items-center gap-6">
+                <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 bg-[#1E3A8A] rounded-sm"></div>
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">90%+</span>
+                </div>
+                <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 bg-[#DBEAFE] rounded-sm"></div>
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">&lt;50%</span>
+                </div>
+            </div>
+            <Layers className="w-4 h-4 text-slate-200" />
       </div>
     </div>
   );

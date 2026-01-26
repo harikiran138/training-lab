@@ -7,7 +7,7 @@ import {
 } from 'recharts';
 import { 
   Users, Award, TrendingUp, BookOpen, Clock, 
-  BrainCircuit, Zap, Monitor, ArrowRight, ShieldCheck, Activity
+  BrainCircuit, Zap, Monitor, ArrowRight, ShieldCheck, Activity, FileText
 } from 'lucide-react';
 import { AIInsights } from './AIInsights';
 import { cn } from '@/lib/utils';
@@ -78,179 +78,173 @@ export default function AnalyticsDashboard({ reports, branches, weeks }: any) {
   }, [reports]);
 
   if (!stats) return (
-      <div className="p-16 border border-slate-100 bg-white text-slate-400 font-black uppercase tracking-[0.5em] text-center rounded-[3rem] shadow-2xl">
-          Repository Empty :: Awaiting Data Feed
+      <div className="p-16 border border-slate-200 bg-white text-[#1E3A8A] font-bold uppercase tracking-widest text-center rounded shadow-sm">
+          Institutional Repository Empty :: Awaiting Ingestion
       </div>
   );
 
   return (
-    <div className="space-y-24 animate-in fade-in slide-in-from-bottom-6 duration-1000">
+    <div className="space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-500">
       
-      {/* 4-COLUMN ELITE KPI GRID */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-12">
+      {/* 4-COLUMN KPI GRID */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         <KpiCard 
           title="Attendance Pulse" 
           value={`${stats.avgAttendance.toFixed(1)}%`} 
           icon={Users} 
-          label="LATEST WEEK"
+          label="LATEST BATCH"
           status="success"
+          description="Average student attendance across all clusters for the reporting week."
         />
         <KpiCard 
-          title="Analytical Pass" 
+          title="Analytical Accuracy" 
           value={`${stats.avgPass.toFixed(1)}%`} 
           icon={Award} 
-          label="ASSESSMENT"
+          label="ASSESSMENT MEAN"
+          description="Cumulative pass precision in technical evaluative sessions."
         />
         <KpiCard 
-          title="Motivation Index" 
+          title="Motivation Score" 
           value={`${stats.avgMotivation.toFixed(1)}/10`} 
           icon={Zap} 
-          label="ENGAGEMENT"
+          label="ENGAGEMENT INDEX"
+          status={stats.avgMotivation < 7 ? 'warning' : 'neutral'}
+          description="Subjective student interest mapping during CRT segments."
         />
         <KpiCard 
-          title="Total Training" 
+          title="Consolidated Hours" 
           value={`${stats.totalHours}`} 
           icon={Clock} 
-          label="HOURS"
+          label="TRAINING LOOM"
+          description="Total institutional instruction blocks delivered to date."
         />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-16">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
         {/* Branch Benchmark */}
-        <div className="bg-white p-12 lg:p-16 border border-slate-100 rounded-[3rem] shadow-2xl shadow-blue-100/10">
-          <h3 className="text-[11px] font-black text-slate-400 mb-16 flex items-center justify-between uppercase tracking-[0.4em] italic">
-            <span className="flex items-center gap-6">
-                <div className="p-3 bg-blue-600 rounded-2xl text-white shadow-xl shadow-blue-100">
-                  <TrendingUp className="w-6 h-6" />
-                </div>
-                Branch Analysis Matrix
-            </span>
-            <span className="bg-blue-600 text-white px-6 py-2 rounded-2xl italic tracking-widest text-[9px] shadow-lg shadow-blue-100">CUMULATIVE</span>
-          </h3>
-          <div className="h-[450px]">
+        <div className="bg-white p-8 border border-slate-200 rounded shadow-sm">
+          <div className="flex items-center justify-between mb-10 border-l-4 border-[#1E3A8A] pl-4">
+             <h3 className="text-[13px] font-extrabold text-[#1E3A8A] uppercase tracking-wider">
+               Departmental Benchmark Matrix
+             </h3>
+             <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Cumulative Data</span>
+          </div>
+          <div className="h-[400px]">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={branchData} margin={{ top: 10, right: 30, left: 0, bottom: 20 }}>
-                <CartesianGrid strokeDasharray="5 5" vertical={false} stroke="#f1f5f9" />
-                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 11, fontWeight: 900}} dy={20} />
-                <YAxis axisLine={false} tickLine={false} domain={[0, 100]} tick={{fill: '#94a3b8', fontSize: 11, fontWeight: 900}} dx={-20} />
+              <BarChart data={branchData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 11, fontWeight: 700}} dy={10} />
+                <YAxis axisLine={false} tickLine={false} domain={[0, 100]} tick={{fill: '#94a3b8', fontSize: 11, fontWeight: 700}} dx={-10} />
                 <Tooltip 
-                  contentStyle={{ border: 'none', borderRadius: '1.5rem', boxShadow: '0 25px 50px -12px rgb(0 0 0 / 0.15)', padding: '20px' }}
-                  labelStyle={{ fontWeight: 'black', textTransform: 'uppercase', letterSpacing: '0.2em' }}
+                  contentStyle={{ border: '1px solid #e2e8f0', borderRadius: '4px', padding: '12px' }}
+                  labelStyle={{ fontWeight: 800, color: '#1E3A8A', textTransform: 'uppercase', fontSize: '10px' }}
                 />
-                <Bar dataKey="attendance" name="Participation" fill="#2563eb" radius={[12, 12, 12, 12]} barSize={28} />
-                <Bar dataKey="pass" name="Success Rate" fill="#93c5fd" radius={[12, 12, 12, 12]} barSize={28} />
+                <Bar dataKey="attendance" name="Participation" fill="#1E3A8A" radius={[2, 2, 0, 0]} barSize={32} />
+                <Bar dataKey="pass" name="Precision" fill="#3B82F6" radius={[2, 2, 0, 0]} barSize={32} />
               </BarChart>
             </ResponsiveContainer>
           </div>
         </div>
 
         {/* Performance Trend */}
-        <div className="bg-white p-12 lg:p-16 border border-slate-100 rounded-[3rem] shadow-2xl shadow-blue-200/5">
-           <h3 className="text-[11px] font-black text-slate-400 mb-16 flex items-center gap-6 uppercase tracking-[0.4em] italic">
-            <div className="p-3 bg-blue-600 rounded-2xl text-white shadow-xl shadow-blue-100">
-              <Activity className="w-6 h-6" />
-            </div>
-            Temporal Evolution Matrix
-          </h3>
-          <div className="h-[450px]">
+        <div className="bg-white p-8 border border-slate-200 rounded shadow-sm">
+          <div className="flex items-center justify-between mb-10 border-l-4 border-[#1E3A8A] pl-4">
+            <h3 className="text-[13px] font-extrabold text-[#1E3A8A] uppercase tracking-wider">
+              Temporal Velocity Vector
+            </h3>
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">W1 – W{stats.latestWeek}</span>
+          </div>
+          <div className="h-[400px]">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={trendData} margin={{ top: 10, right: 30, left: 0, bottom: 20 }}>
+              <AreaChart data={trendData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
                 <defs>
-                  <linearGradient id="colorAtt_A" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#2563eb" stopOpacity={0.15}/>
-                    <stop offset="95%" stopColor="#2563eb" stopOpacity={0}/>
+                  <linearGradient id="colorAtt_Formal" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#1E3A8A" stopOpacity={0.1}/>
+                    <stop offset="95%" stopColor="#1E3A8A" stopOpacity={0}/>
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="5 5" vertical={false} stroke="#f1f5f9" />
-                <XAxis dataKey="week" axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 11, fontWeight: 900}} dy={20} />
-                <YAxis axisLine={false} tickLine={false} domain={[0, 100]} tick={{fill: '#94a3b8', fontSize: 11, fontWeight: 900}} dx={-20} />
-                <Tooltip containerStyle={{ border: 'none', borderRadius: '1.5rem', boxShadow: '0 25px 50px -12px rgb(0 0 0 / 0.15)' }} />
-                <Area type="monotone" dataKey="attendance" name="Avg Attendance" stroke="#2563eb" strokeWidth={6} fillOpacity={1} fill="url(#colorAtt_A)" />
-                <Area type="monotone" dataKey="pass" name="Avg Pass" stroke="#93c5fd" strokeWidth={3} fill="transparent" strokeDasharray="10 5" />
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                <XAxis dataKey="week" axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 11, fontWeight: 700}} dy={10} />
+                <YAxis axisLine={false} tickLine={false} domain={[0, 100]} tick={{fill: '#94a3b8', fontSize: 11, fontWeight: 700}} dx={-10} />
+                <Tooltip />
+                <Area type="monotone" dataKey="attendance" name="Avg Attendance" stroke="#1E3A8A" strokeWidth={3} fillOpacity={1} fill="url(#colorAtt_Formal)" />
+                <Area type="monotone" dataKey="pass" name="Avg Pass" stroke="#3B82F6" strokeWidth={2} fill="transparent" strokeDasharray="4 4" />
               </AreaChart>
             </ResponsiveContainer>
           </div>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-16">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
          {/* Personality Dev */}
-         <div className="col-span-1 bg-white p-16 border border-slate-100 rounded-[3rem] shadow-2xl shadow-slate-200/50 flex flex-col justify-between">
-            <div>
-               <h3 className="text-[11px] font-black text-slate-400 mb-16 flex items-center gap-6 uppercase tracking-[0.5em] italic">
-                   <div className="p-3 bg-blue-600 rounded-2xl text-white shadow-xl shadow-blue-100">
-                      <BrainCircuit className="w-6 h-6" />
-                   </div>
-                   Psychometrics
-               </h3>
-               <div className="space-y-12">
-                   <div>
-                       <div className="flex justify-between text-[11px] uppercase font-black tracking-widest mb-4">
-                           <span className="text-slate-500">Personality Quotient</span>
-                           <span className="text-blue-800 italic">8.4 / 10.0</span>
-                       </div>
-                       <div className="w-full bg-slate-50 h-5 rounded-full p-1 border border-slate-100">
-                           <div className="bg-gradient-to-r from-blue-400 to-blue-700 h-full rounded-full transition-all duration-1000 shadow-lg shadow-blue-100" style={{ width: '84%' }}></div>
-                       </div>
-                   </div>
-                   <div>
-                       <div className="flex justify-between text-[11px] uppercase font-black tracking-widest mb-4">
-                           <span className="text-slate-500">Cultural Alignment</span>
-                           <span className="text-blue-800 italic">7.2 / 10.0</span>
-                       </div>
-                       <div className="w-full bg-slate-50 h-5 rounded-full p-1 border border-slate-100">
-                           <div className="bg-gradient-to-r from-blue-300 to-blue-500 h-full rounded-full transition-all duration-1000 shadow-lg shadow-blue-50" style={{ width: '72%' }}></div>
-                       </div>
-                   </div>
-               </div>
+         <div className="col-span-1 bg-white p-8 border border-slate-200 rounded shadow-sm space-y-12">
+            <h3 className="text-[13px] font-extrabold text-[#1E3A8A] uppercase tracking-wider border-l-4 border-[#1E3A8A] pl-4">
+                Psychometric Alignment
+            </h3>
+            <div className="space-y-10">
+                <div>
+                    <div className="flex justify-between text-[10px] uppercase font-bold tracking-widest mb-3">
+                        <span className="text-slate-400">Persona Index</span>
+                        <span className="text-[#1E3A8A]">8.4 / 10.0</span>
+                    </div>
+                    <div className="w-full bg-slate-50 h-2 rounded-full overflow-hidden border border-slate-100">
+                        <div className="bg-[#1E3A8A] h-full transition-all duration-1000" style={{ width: '84%' }}></div>
+                    </div>
+                </div>
+                <div>
+                    <div className="flex justify-between text-[10px] uppercase font-bold tracking-widest mb-3">
+                        <span className="text-slate-400">Institutional Fit</span>
+                        <span className="text-[#1E3A8A]">7.2 / 10.0</span>
+                    </div>
+                    <div className="w-full bg-slate-50 h-2 rounded-full overflow-hidden border border-slate-100">
+                        <div className="bg-[#3B82F6] h-full transition-all duration-1000" style={{ width: '72%' }}></div>
+                    </div>
+                </div>
             </div>
-            <div className="mt-16 pt-12 border-t border-slate-50 italic">
-                <div className="flex items-center gap-8">
-                    <div className="p-4 bg-blue-50 rounded-2xl text-blue-600">
-                      <Monitor className="w-10 h-10" />
-                    </div>
-                    <div>
-                        <p className="text-4xl font-black text-slate-900 tracking-tighter leading-none">479</p>
-                        <p className="text-[10px] text-blue-500 font-black uppercase tracking-widest mt-2">Verified Digital Assets</p>
-                    </div>
+            <div className="pt-8 border-t border-slate-50 flex items-center gap-6">
+                <div className="bg-blue-50 p-3 rounded text-[#1E3A8A]">
+                   <Monitor className="w-6 h-6" />
+                </div>
+                <div>
+                    <p className="text-2xl font-black text-slate-800 leading-none">479</p>
+                    <p className="text-[9px] text-slate-400 font-bold uppercase tracking-widest mt-1">Verified Assets</p>
                 </div>
             </div>
          </div>
 
          {/* Detailed Rankings */}
-         <div className="md:col-span-2 bg-white border border-slate-100 rounded-[3rem] shadow-2xl shadow-slate-200/50 overflow-hidden">
-            <div className="p-10 border-b border-slate-100 flex justify-between items-center">
-                <h3 className="text-[12px] font-black uppercase tracking-[0.4em] flex items-center gap-6 text-slate-900 italic">
-                    <div className="w-3 h-10 bg-blue-600 rounded-full"></div>
-                    Institutional High-Performers
+         <div className="md:col-span-2 bg-white border border-slate-200 rounded shadow-sm overflow-hidden">
+            <div className="px-6 py-4 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center">
+                <h3 className="text-[13px] font-extrabold text-[#1E3A8A] uppercase tracking-wider flex items-center gap-3">
+                    <Activity className="w-4 h-4" />
+                    Branch Intelligence Registry
                 </h3>
-                <span className="text-[10px] font-black uppercase bg-blue-50 text-blue-700 px-6 py-2 rounded-full border border-blue-100">REAL-TIME RANKING</span>
             </div>
             <div className="overflow-x-auto">
                 <table className="w-full text-left">
                     <thead>
-                        <tr className="bg-slate-50/50 border-b border-slate-100">
-                            <th className="px-12 py-8 text-[11px] font-black text-slate-400 uppercase tracking-widest border-r border-slate-50">Metric Identifier</th>
-                            <th className="px-12 py-8 text-[11px] font-black text-slate-400 uppercase tracking-widest border-r border-slate-50">Participation</th>
-                            <th className="px-12 py-8 text-[11px] font-black text-slate-400 uppercase tracking-widest border-r border-slate-50">Precision</th>
-                            <th className="px-12 py-8 text-[11px] font-black text-slate-400 uppercase tracking-widest">Risk Index</th>
+                        <tr className="bg-[#1E3A8A] border-b border-[#1E3A8A]">
+                            <th className="px-6 py-4 text-[11px] font-bold text-white uppercase tracking-widest">Branch Name</th>
+                            <th className="px-6 py-4 text-[11px] font-bold text-white uppercase tracking-widest">Attendance %</th>
+                            <th className="px-6 py-4 text-[11px] font-bold text-white uppercase tracking-widest">Pass rate %</th>
+                            <th className="px-6 py-4 text-[11px] font-bold text-white uppercase tracking-widest text-center">Protocol</th>
                         </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-50 font-bold">
-                        {branchData.slice(0, 8).map((b: any, i: number) => (
-                            <tr key={i} className="hover:bg-blue-50/50 transition-all duration-300 group">
-                                <td className="px-12 py-8 font-black text-blue-900 italic border-r border-slate-50 uppercase text-lg">{b.name}</td>
-                                <td className="px-12 py-8 text-slate-600 border-r border-slate-50 text-base">{b.attendance}%</td>
-                                <td className="px-12 py-8 text-blue-600 font-black border-r border-slate-50 text-base">{b.pass}%</td>
-                                <td className="px-12 py-8">
-                                    <div className={cn(
-                                        "px-6 py-2 text-[10px] font-black uppercase tracking-widest rounded-2xl border text-center transition-all",
-                                        b.attendance > 90 ? "bg-emerald-50 text-emerald-600 border-emerald-200 shadow-lg shadow-emerald-50" : 
-                                        b.attendance > 80 ? "bg-blue-50 text-blue-700 border-blue-200" : 
-                                        "bg-rose-50 text-rose-600 border-rose-200 animate-pulse"
+                    <tbody className="divide-y divide-slate-100">
+                        {branchData.slice(0, 7).map((b: any, i: number) => (
+                            <tr key={i} className="hover:bg-blue-50/30 transition-colors odd:bg-white even:bg-slate-50/30">
+                                <td className="px-6 py-4 font-bold text-[#1E3A8A] text-[14px] uppercase">{b.name}</td>
+                                <td className="px-6 py-4 text-slate-600 font-medium text-[13px]">{b.attendance}%</td>
+                                <td className="px-6 py-4 text-[#3B82F6] font-bold text-[13px]">{b.pass}%</td>
+                                <td className="px-6 py-4 text-center">
+                                    <span className={cn(
+                                        "px-3 py-1 text-[9px] font-bold uppercase tracking-widest rounded border",
+                                        b.attendance > 90 ? "bg-emerald-50 text-emerald-700 border-emerald-100" : 
+                                        b.attendance > 80 ? "bg-blue-50 text-blue-700 border-blue-100" : 
+                                        "bg-rose-50 text-rose-700 border-rose-100"
                                     )}>
-                                        {b.attendance > 90 ? 'OPTIMAL' : b.attendance > 80 ? 'STANDARD' : 'INTERVENE'}
-                                    </div>
+                                        {b.attendance > 80 ? 'Optimized' : 'Review'}
+                                    </span>
                                 </td>
                             </tr>
                         ))}
@@ -260,22 +254,23 @@ export default function AnalyticsDashboard({ reports, branches, weeks }: any) {
          </div>
       </div>
 
-      {/* MISSION INTELLIGENCE PORTAL */}
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-16 mt-24 pt-24 border-t border-slate-100">
+      {/* AI INSIGHTS */}
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-10 mt-16 pt-12 border-t border-slate-100">
         <div className="lg:col-span-3">
            <AIInsights />
         </div>
-        <div className="bg-gradient-to-br from-slate-900 to-blue-900 p-16 text-white rounded-[3rem] shadow-2xl shadow-blue-200 relative overflow-hidden group">
-           <ShieldCheck className="absolute -bottom-16 -right-16 w-64 h-64 opacity-10 group-hover:scale-110 transition-transform duration-1000" />
-           <div className="relative z-10 flex flex-col h-full justify-between">
+        <div className="bg-[#1E3A8A] p-8 text-white rounded shadow-md relative overflow-hidden flex flex-col justify-between">
+           <ShieldCheck className="absolute -bottom-10 -right-10 w-40 h-40 opacity-5" />
+           <div className="relative z-10 flex flex-col h-full justify-between gap-10">
                 <div>
-                    <h3 className="text-[11px] font-black text-blue-400 mb-10 uppercase tracking-[0.4em] italic opacity-60">Architectural Forecast</h3>
-                    <p className="text-2xl font-black leading-tight italic uppercase tracking-tighter">
-                      "Metadata ingestion complete. Synthetic behavioral models initialized."
+                    <h3 className="text-[10px] font-bold text-blue-300 mb-6 uppercase tracking-widest opacity-60">System Security</h3>
+                    <p className="text-lg font-bold leading-tight opacity-90 italic">
+                      "Consolidated institution telemetry is verified and synchronized."
                     </p>
                 </div>
-                <div className="pt-10 border-t border-white/10 mt-16">
-                    <p className="text-[10px] font-black uppercase tracking-[0.3em] opacity-40">Authorization Code: DELTA-9</p>
+                <div className="flex items-center gap-3 text-emerald-400 font-bold text-[9px] uppercase tracking-[0.2em] bg-white/5 py-2 px-4 rounded self-start">
+                    <CheckCircle2 className="w-3 h-3" />
+                    V5.0 Active
                 </div>
            </div>
         </div>

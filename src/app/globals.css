@@ -1,55 +1,94 @@
-@import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 :root {
-  /* Scientific Dark Mode Palette */
-  --background: #0B1120; /* Deep Blue-Black */
-  --foreground: #E2E8F0; /* Slate 200 */
+  --primary-blue: #1e3a8a;
+  --secondary-blue: #3b82f6;
+  --light-blue: #eff6ff;
+  --gray-text: #374151;
+  --white: #ffffff;
   
-  --card-bg: #151F32; /* Rich Dark Blue */
-  --card-border: #334155; /* Slate 700 */
-  
-  /* Data Visualization Colors */
-  --color-success: #10B981; /* Emerald 500 */
-  --color-warning: #F59E0B; /* Amber 500 */
-  --color-danger: #EF4444; /* Red 500 */
-  --color-primary: #06B6D4; /* Cyan 500 - Main Data Color */
-  --color-secondary: #6366F1; /* Indigo 500 */
-  --color-neutral: #64748B; /* Slate 500 */
-  
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --background: 0 0% 100%;
+  --foreground: 222.2 84% 4.9%;
+  --card: 0 0% 100%;
+  --card-foreground: 222.2 84% 4.9%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 222.2 84% 4.9%;
+  --primary: 221.2 83.2% 33.3%;
+  --primary-foreground: 210 40% 98%;
+  --secondary: 210 40% 96.1%;
+  --secondary-foreground: 222.2 47.4% 11.2%;
+  --muted: 210 40% 96.1%;
+  --muted-foreground: 215.4 16.3% 46.9%;
+  --accent: 210 40% 96.1%;
+  --accent-foreground: 222.2 47.4% 11.2%;
+  --destructive: 0 84.2% 60.2%;
+  --destructive-foreground: 210 40% 98%;
+  --border: 214.3 31.8% 91.4%;
+  --input: 214.3 31.8% 91.4%;
+  --ring: 221.2 83.2% 33.3%;
+  --radius: 0.5rem;
 }
 
-/* Force Dark Mode aesthetic always */
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background-color: var(--light-blue);
+  color: var(--gray-text);
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-@layer components {
-  /* Scientific Card - The building block */
-  .scientific-card {
-    background-color: var(--card-bg);
-    border: 1px solid var(--card-border);
-    border-radius: 0.5rem;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.15);
-  }
+/* Formal Utility Classes */
+.executive-card {
+  background: white;
+  border-top: 3px solid var(--primary-blue);
+  box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+  border-radius: 4px;
+}
 
-  /* Glass Panel for high-tech overlays */
-  .glass-panel {
-    background: rgba(15, 23, 42, 0.7);
-    backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-  }
+.clean-table {
+  width: 100%;
+  border-collapse: collapse;
+}
 
-  /* Data Grid for dense information */
-  .data-grid-header {
-    @apply text-xs font-mono text-slate-400 uppercase tracking-wider bg-slate-800/50 p-2;
-  }
-  
-  .data-grid-cell {
-    @apply text-sm font-mono p-2 border-b border-slate-800 text-slate-300;
-  }
+.clean-table th {
+  background-color: var(--primary-blue);
+  color: white;
+  padding: 12px 16px;
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  text-align: left;
+}
+
+.clean-table td {
+  padding: 12px 16px;
+  border-bottom: 1px solid #e5e7eb;
+  font-size: 13px;
+}
+
+.clean-table tr:nth-child(even) {
+  background-color: #f9fafb;
+}
+
+.clean-table tr:hover {
+  background-color: #f3f4f6;
+}
+
+.page-title {
+  font-size: 24px;
+  font-weight: 800;
+  color: var(--primary-blue);
+  letter-spacing: -0.025em;
+}
+
+.kpi-number {
+  font-size: 32px;
+  font-weight: 800;
+  color: var(--primary-blue);
+  letter-spacing: -0.05em;
 }

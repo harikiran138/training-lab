@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useState, useMemo } from 'react';
-import { Plus, Trash2, Save, X, Info, Database, Layers, ArrowUpRight, ArrowDownRight, AlertTriangle, CheckCircle2 } from 'lucide-react';
+import { Plus, Trash2, Save, X, Info, Database, Layers, ArrowUpRight, ArrowDownRight, AlertTriangle, CheckCircle2, ChevronRight, FileEdit } from 'lucide-react';
 import { CrtAttendanceService, BranchAttendance, CalculatedRecord } from '@/services/CrtAttendanceService';
 import { cn } from '@/lib/utils';
 
@@ -47,7 +47,6 @@ export default function CrtAttendanceEntryForm({ initialData, onSave, onClose }:
       if (isNaN(num)) {
         daily[dayIndex] = 0;
       } else {
-        // Data Validation Rule: 0 <= count <= Total Strength
         daily[dayIndex] = Math.max(0, Math.min(num, strength));
       }
     }
@@ -56,166 +55,120 @@ export default function CrtAttendanceEntryForm({ initialData, onSave, onClose }:
     setData(newData);
   };
 
-  // Color Coding Logic (Part 4 of Master Prompt)
   const getPercentColor = (percent: number | "No CRT") => {
     if (percent === "No CRT") return "text-slate-300";
-    if (percent < 50) return "text-rose-600 font-black";
-    if (percent < 75) return "text-amber-500 font-black";
-    return "text-emerald-600 font-black";
-  };
-
-  const getRiskColor = (risk: string) => {
-      return risk === '⚠ Critical' ? 'bg-rose-500 text-white shadow-lg shadow-rose-200' : 'bg-emerald-500 text-white shadow-lg shadow-emerald-200';
+    if (percent < 50) return "text-rose-600 font-bold";
+    if (percent < 75) return "text-amber-600 font-bold";
+    return "text-emerald-700 font-bold";
   };
 
   return (
-    <div className="bg-white rounded-[2.5rem] border border-slate-200 shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-500">
-      {/* HEADER */}
-      <div className="bg-slate-900 p-10 text-white flex justify-between items-center relative overflow-hidden">
-        <div className="flex items-center gap-8 relative z-10">
-          <div className="bg-blue-600 p-4 rounded-2xl shadow-xl shadow-blue-500/20">
-            <Database className="w-8 h-8" />
+    <div className="bg-white rounded overflow-hidden">
+      {/* FORM HEADER */}
+      <div className="bg-[#1E3A8A] px-8 py-6 text-white flex justify-between items-center">
+        <div className="flex items-center gap-4">
+          <div className="bg-white/10 p-2 rounded">
+            <FileEdit className="w-5 h-5" />
           </div>
           <div>
-            <h3 className="text-3xl font-black uppercase tracking-tighter leading-none italic">
-              Attendance Intelligence <span className="text-blue-400">Master</span>
+            <h3 className="text-[14px] font-bold uppercase tracking-widest leading-none">
+              Attendance Registry Matrix
             </h3>
-            <p className="text-[11px] font-bold text-slate-400 uppercase tracking-[0.4em] mt-3 flex items-center gap-3">
-              <Layers className="w-4 h-4 text-blue-500" />
-              Operational Registry :: Excel-Synchronized Workflow
+            <p className="text-[10px] text-blue-200 mt-1.5 font-bold uppercase tracking-widest opacity-60">
+                Official Operational Stream :: Write-Access Mode
             </p>
           </div>
         </div>
         <button 
           onClick={onClose} 
-          className="p-3 bg-white/10 hover:bg-white/20 text-white rounded-2xl transition-all relative z-10"
+          className="p-1.5 bg-white/10 hover:bg-white/20 text-white rounded transition-colors"
         >
-          <X className="w-6 h-6" />
+          <X className="w-4 h-4" />
         </button>
-        <div className="absolute top-0 right-0 w-96 h-96 bg-blue-600/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
       </div>
 
-      <div className="p-12 space-y-12">
-        {/* INFO BOX */}
-        <div className="bg-blue-50/50 p-8 rounded-3xl border border-blue-100 flex gap-6 items-center">
-          <Info className="w-8 h-8 text-blue-600 shrink-0" />
-          <div>
-            <p className="text-[11px] font-black text-blue-800 uppercase tracking-widest mb-1">DATA VALIDATION PROTOCOL</p>
-            <p className="text-sm font-bold text-slate-600 leading-relaxed">
-              Numeric entry for student counts (0 to Capacity). Use <span className="bg-blue-600 text-white px-3 py-1 rounded-lg italic">N</span> for session cancellation. 
-              <span className="hidden xl:inline ml-2 text-blue-400">Calculated metrics (Avg, Trend, Risk) update in real-time.</span>
-            </p>
-          </div>
+      <div className="p-8 space-y-10">
+        {/* VALIDATION BOX */}
+        <div className="bg-blue-50 border-l-4 border-[#1E3A8A] p-5 flex gap-4 items-center">
+          <Info className="w-5 h-5 text-[#1E3A8A] shrink-0" />
+          <p className="text-[12px] font-bold text-slate-700 leading-none">
+            Enter physical attendance counts (0 to capacity). Use <span className="text-[#1E3A8A] font-black underline underline-offset-4">N</span> for session closure. Intelligence fields are read-only.
+          </p>
         </div>
 
-        {/* MASTER TABLE */}
-        <div className="overflow-x-auto rounded-[2rem] border border-slate-100 shadow-sm">
+        {/* DATA GRID */}
+        <div className="border border-slate-200 rounded overflow-hidden">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="text-[11px] font-black text-slate-500 uppercase tracking-widest bg-slate-50/50 border-b border-slate-100 italic">
-                <th className="px-8 py-8 w-16 text-center">S.No</th>
-                <th className="px-8 py-8 min-w-[200px]">Branch Identifier</th>
-                <th className="px-8 py-8 text-center min-w-[120px]">Capacity</th>
+              <tr className="bg-slate-50 border-b border-slate-200">
+                <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-center w-12">#</th>
+                <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest min-w-[180px]">Branch</th>
+                <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-center w-24">Cap.</th>
                 {[1, 2, 3, 4, 5, 6].map(d => (
-                  <th key={d} className="px-4 py-8 text-center border-l border-slate-50 text-blue-800 bg-blue-50/20">Day {d}</th>
+                  <th key={d} className="px-3 py-4 text-[10px] font-bold text-[#1E3A8A] uppercase tracking-widest text-center bg-blue-50/30 border-l border-slate-100 italic">Day {d}</th>
                 ))}
-                <th className="px-8 py-8 text-center bg-slate-900 text-white rounded-t-3xl mx-2">Intelligence Matrix</th>
-                <th className="px-8 py-8 text-right w-20"></th>
+                <th className="px-6 py-4 text-[10px] font-bold text-[#1E3A8A] uppercase tracking-widest text-center border-l-2 border-[#1E3A8A]/20 bg-[#1E3A8A]/5 w-40">Analytics</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-50">
+            <tbody className="divide-y divide-slate-100">
               {calculatedRecords.map((rec, i) => (
-                <tr key={i} className="group hover:bg-slate-50/50 transition-all duration-300">
-                  <td className="px-8 py-8 text-center font-black text-slate-300">0{i + 1}</td>
-                  <td className="px-8 py-8">
+                <tr key={i} className="hover:bg-slate-50/50 transition-colors">
+                  <td className="px-6 py-5 text-center text-[11px] font-bold text-slate-300">0{i + 1}</td>
+                  <td className="px-6 py-5">
                     <input 
                       type="text" 
                       value={rec.branch_code}
                       onChange={(e) => handleUpdateBranch(i, 'branch', e.target.value.toUpperCase())}
-                      placeholder="e.g. CSE-A"
-                      className="w-full bg-white border border-slate-200 px-5 py-4 text-base font-black text-blue-900 focus:border-blue-600 focus:ring-4 focus:ring-blue-50 transition-all rounded-2xl shadow-sm"
+                      placeholder="BRANCH CODE"
+                      className="w-full bg-white border border-slate-200 px-3 py-2 text-[13px] font-bold text-[#1E3A8A] focus:border-[#1E3A8A] rounded transition-all shadow-sm uppercase placeholder:opacity-20"
                     />
                   </td>
-                  <td className="px-8 py-8">
+                  <td className="px-6 py-5">
                     <input 
                       type="number" 
                       value={rec.total_strength || ""}
                       onChange={(e) => handleUpdateBranch(i, 'strength', parseInt(e.target.value) || 0)}
                       placeholder="0"
-                      className="w-full bg-white border border-slate-200 px-5 py-4 text-base font-black text-blue-900 focus:border-blue-600 focus:ring-4 focus:ring-blue-50 transition-all text-center rounded-2xl shadow-sm"
+                      className="w-full bg-white border border-slate-200 px-3 py-2 text-[13px] font-bold text-[#1E3A8A] text-center focus:border-[#1E3A8A] rounded transition-all shadow-sm"
                     />
                   </td>
                   
-                  {/* Daily Input Cells */}
                   {rec.days.attended.map((att, dIdx) => (
-                    <td key={dIdx} className="px-2 py-8 border-l border-slate-50">
-                      <div className="flex flex-col items-center gap-3">
+                    <td key={dIdx} className="px-2 py-5 border-l border-slate-50">
+                      <div className="flex flex-col items-center gap-1.5">
                         <input 
                             type="text" 
                             value={att === "No CRT" ? "N" : att}
                             onChange={(e) => handleUpdateDaily(i, dIdx, e.target.value)}
                             className={cn(
-                            "w-12 h-12 border-2 text-sm font-black text-center transition-all bg-white rounded-xl shadow-sm",
+                            "w-10 h-10 border border-slate-200 text-[12px] font-bold text-center transition-all rounded shadow-sm",
                             att === "No CRT" 
-                                ? "border-slate-100 bg-slate-50 text-slate-300 italic" 
-                                : "border-slate-100 text-slate-900 focus:border-blue-600 focus:ring-4 focus:ring-blue-50"
+                                ? "bg-slate-50 text-slate-300" 
+                                : "bg-white text-slate-900 focus:border-[#1E3A8A]"
                             )}
                         />
-                        <span className={cn("text-[10px] uppercase font-black", getPercentColor(rec.days.percent[dIdx]))}>
+                        <span className={cn("text-[9px] font-bold", getPercentColor(rec.days.percent[dIdx]))}>
                             {rec.days.percent[dIdx] === "No CRT" ? "–" : `${rec.days.percent[dIdx]}%`}
                         </span>
                       </div>
                     </td>
                   ))}
 
-                  {/* Intelligence Column (Part 1.S, T, U) */}
-                  <td className="px-8 py-8 bg-slate-900/5 border-x-2 border-slate-900/10">
-                    <div className="flex flex-col gap-4">
-                        <div className="flex justify-between items-center gap-10">
-                            <div className="space-y-1">
-                                <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block">Weekly Avg</span>
-                                <span className={cn("text-2xl font-black italic", getPercentColor(rec.weekly_average_percent))}>
-                                    {rec.weekly_average_percent}%
-                                </span>
-                            </div>
-                            <div className="text-right">
-                                <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-2">Trend</span>
-                                <div className={cn(
-                                    "flex items-center gap-2 px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest border shadow-sm bg-white",
-                                    rec.trend.includes('Improving') ? "text-emerald-500 border-emerald-100" : (rec.trend.includes('Dropping') ? "text-rose-500 border-rose-100" : "text-slate-400 border-slate-100")
-                                )}>
-                                    {rec.trend.includes('Improving') ? <ArrowUpRight className="w-3.5 h-3.5" /> : (rec.trend.includes('Dropping') ? <ArrowDownRight className="w-3.5 h-3.5" /> : null)}
-                                    {rec.trend.split(' ')[0]}
-                                </div>
-                            </div>
+                  <td className="px-6 py-5 bg-[#1E3A8A]/5 border-l-2 border-[#1E3A8A]/20">
+                    <div className="space-y-3">
+                        <div className="flex justify-between items-center">
+                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">Weekly Avg</span>
+                            <span className={cn("text-lg font-black italic", getPercentColor(rec.weekly_average_percent))}>
+                                {rec.weekly_average_percent}%
+                            </span>
                         </div>
-                        
-                        <div className="flex gap-4">
-                            <div className={cn(
-                                "flex-1 px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-[0.2em] flex items-center justify-center gap-2",
-                                getRiskColor(rec.risk_flag)
-                            )}>
-                                {rec.risk_flag === '⚠ Critical' ? <AlertTriangle className="w-3 h-3" /> : <CheckCircle2 className="w-3 h-3" />}
-                                {rec.risk_flag}
-                            </div>
-                            <div className="flex-1 bg-white border border-slate-100 px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-[0.2em] text-center text-slate-500 italic shadow-sm">
-                                {rec.performance_level}
-                            </div>
+                        <div className={cn(
+                            "px-3 py-1 rounded text-[9px] font-bold uppercase tracking-widest text-center border",
+                            rec.risk_flag === 'OK' ? "bg-emerald-50 text-emerald-700 border-emerald-100" : "bg-rose-50 text-rose-700 border-rose-100"
+                        )}>
+                            {rec.risk_flag}
                         </div>
-                        
-                        <p className="text-[10px] font-bold italic text-slate-400 border-t border-slate-200/50 pt-3 leading-tight">
-                            {rec.remarks}
-                        </p>
                     </div>
-                  </td>
-
-                  <td className="px-8 py-8 text-right">
-                    <button 
-                      onClick={() => handleRemoveBranch(i)}
-                      className="p-4 text-slate-200 hover:text-rose-600 bg-slate-50 rounded-2xl transition-all border border-transparent hover:border-rose-100 active:scale-90"
-                    >
-                      <Trash2 className="w-5 h-5" />
-                    </button>
                   </td>
                 </tr>
               ))}
@@ -224,28 +177,28 @@ export default function CrtAttendanceEntryForm({ initialData, onSave, onClose }:
         </div>
 
         {/* FOOTER ACTIONS */}
-        <div className="flex flex-col md:flex-row justify-between items-center gap-10 pt-10 border-t border-slate-100">
+        <div className="flex flex-col sm:flex-row justify-between items-center gap-6 pt-8 border-t border-slate-100">
           <button 
             onClick={handleAddBranch}
-            className="group flex items-center gap-4 text-blue-700 font-bold text-xs uppercase tracking-[0.2em] px-10 py-5 bg-white border border-blue-200 rounded-2xl hover:bg-blue-600 hover:text-white transition-all shadow-xl shadow-blue-50"
+            className="flex items-center gap-3 text-[#1E3A8A] font-bold text-[11px] uppercase tracking-widest px-6 py-3 bg-white border border-[#1E3A8A]/20 rounded hover:bg-slate-50 transition-all shadow-sm"
           >
-            <Plus className="w-6 h-6 group-hover:rotate-90 transition-transform" />
-            Append Branch Record
+            <Plus className="w-4 h-4" />
+            Append Branch Ledger
           </button>
           
-          <div className="flex gap-6 w-full md:w-auto">
+          <div className="flex gap-4 w-full sm:w-auto">
             <button 
               onClick={onClose}
-              className="px-10 py-5 text-xs font-black uppercase tracking-widest text-slate-400 hover:text-slate-900 transition-colors"
+              className="px-6 py-3 text-[11px] font-bold uppercase tracking-widest text-slate-400 hover:text-slate-900 transition-colors"
             >
-              Discard Changes
+              Cancel
             </button>
             <button 
               onClick={() => onSave(data)}
-              className="flex-1 md:flex-none flex items-center justify-center gap-4 bg-blue-600 text-white px-16 py-5 text-sm font-black uppercase tracking-[0.2em] rounded-2xl shadow-2xl shadow-blue-500/30 hover:bg-blue-700 hover:scale-105 active:scale-95 transition-all"
+              className="flex-1 sm:flex-none flex items-center justify-center gap-3 bg-[#1E3A8A] text-white px-10 py-3 text-[11px] font-bold uppercase tracking-widest rounded shadow-lg shadow-blue-100 hover:bg-blue-900 transition-all"
             >
-              <Save className="w-6 h-6" />
-              Commit Intelligence
+              <Save className="w-4 h-4" />
+              Commit To Repository
             </button>
           </div>
         </div>
