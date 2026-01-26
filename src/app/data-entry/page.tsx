@@ -1,299 +1,91 @@
 "use client"
 
 import React, { useState, useEffect } from 'react';
-import { Save, AlertCircle, CheckCircle2, Table as TableIcon, LayoutPanelLeft, ChevronRight } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { useRouter } from 'next/navigation';
+import CrtAttendanceEntryForm from '@/components/dashboard/CrtAttendanceEntryForm';
+import { BranchAttendance } from '@/services/CrtAttendanceService';
+import { LayoutGrid, ArrowLeft } from 'lucide-react';
+
+const DEFAULT_NSRIT_DATA: BranchAttendance[] = [
+  { branch: "CE", strength: 34, daily: ["No CRT", 19, "No CRT", 26, 17, 25] },
+  { branch: "EEE", strength: 71, daily: ["No CRT", "No CRT", 60, 67, 62, "No CRT"] },
+  { branch: "ME-A", strength: 52, daily: [32, 36, 33, 32, 21, "No CRT"] },
+  { branch: "ME-B", strength: 53, daily: [25, 30, 27, 25, 31, "No CRT"] },
+  { branch: "ECE-A", strength: 69, daily: [34, 35, "No CRT", 53, 54, 50] },
+  { branch: "ECE-B", strength: 70, daily: [47, 40, "No CRT", 56, 57, 44] },
+  { branch: "ECE-C", strength: 69, daily: [35, 40, "No CRT", 52, 58, 43] },
+  { branch: "EVT", strength: 66, daily: [23, "No CRT", "No CRT", "No CRT", 45, 18] },
+  { branch: "CSE-A", strength: 71, daily: [46, 49, 44, "No CRT", "No CRT", "No CRT"] },
+  { branch: "CSE-B", strength: 70, daily: [26, "No CRT", "No CRT", 48, 53, "No CRT"] },
+  { branch: "CSE-C", strength: 66, daily: ["No CRT", 17, 34, 36, 32, "No CRT"] },
+  { branch: "CSM", strength: 72, daily: [27, 39, 43, 38, "No CRT", "No CRT"] },
+  { branch: "CSD", strength: 68, daily: [33, 39, "No CRT", 45, 52, "No CRT"] }
+];
 
 export default function DataEntryPage() {
-  const [branches, setBranches] = useState([]);
-  const [weeks, setWeeks] = useState([]);
-  const [selectedWeek, setSelectedWeek] = useState('');
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const [message, setMessage] = useState({ text: '', type: '' });
-  
-  // Matrix of data [branch_code]: { metrics }
-  const [gridData, setGridData] = useState<any>({});
+  const router = useRouter();
+  const [data, setData] = useState<BranchAttendance[]>([]);
+  const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
-    async function fetchData() {
+    const saved = localStorage.getItem('crt_attendance_data');
+    if (saved) {
       try {
-        const [bRes, wRes] = await Promise.all([
-          fetch('/api/branches'),
-          fetch('/api/weeks')
-        ]);
-        const bData = await bRes.json();
-        const wData = await wRes.json();
-        setBranches(bData);
-        setWeeks(wData.slice(0, 15));
-        
-        // Initialize grid data with default values
-        const initialGrid: any = {};
-        bData.forEach((b: any) => {
-          initialGrid[b.branch_code] = {
-            sessions: 5,
-            strength: 0,
-            total_training_hours: 0,
-            attendance: { avg_attendance_percent: 0 },
-            tests: { avg_test_attendance_percent: 0, avg_test_pass_percent: 0 },
-            syllabus: { covered: 0, total: 100 },
-            personality_development: { avg_score: 0, sessions_conducted: 1 },
-            motivation: { avg_score: 0 },
-            reading_time: { total_minutes: 0, avg_minutes_per_student: 0 },
-            laptop_holders: { count: 0, percent: 0 }
-          };
-        });
-        setGridData(initialGrid);
-        setLoading(false);
-      } catch (err) {
-        console.error(err);
+        setData(JSON.parse(saved));
+      } catch (e) {
+        setData(DEFAULT_NSRIT_DATA);
       }
+    } else {
+      setData(DEFAULT_NSRIT_DATA);
     }
-    fetchData();
+    setIsLoaded(true);
   }, []);
 
-  // When week changes, fetch existing data for that week
-  useEffect(() => {
-    if (!selectedWeek) return;
-    
-    async function fetchWeekData() {
-        try {
-            const res = await fetch(`/api/reports?week_no=${selectedWeek}`);
-            const existingReports = await res.json();
-            
-            setGridData((prev: any) => {
-                const next = { ...prev };
-                existingReports.forEach((r: any) => {
-                    if (next[r.branch_code]) {
-                        next[r.branch_code] = { 
-                            ...prev[r.branch_code], 
-                            ...r,
-                            attendance: r.attendance || { avg_attendance_percent: 0 },
-                            tests: r.tests || { avg_test_attendance_percent: 0, avg_test_pass_percent: 0 },
-                            syllabus: r.syllabus || { covered: 0, total: 100 },
-                            personality_development: r.personality_development || { avg_score: 0, sessions_conducted: 1 },
-                            motivation: r.motivation || { avg_score: 0 },
-                            reading_time: r.reading_time || { total_minutes: 0, avg_minutes_per_student: 0 },
-                            laptop_holders: r.laptop_holders || { count: 0, percent: 0 }
-                        };
-                    }
-                });
-                return next;
-            });
-        } catch (err) {
-            console.error("Failed to fetch week data", err);
-        }
-    }
-    fetchWeekData();
-  }, [selectedWeek]);
-
-  const updateCell = (branchCode: string, section: string, field: string | null, value: any) => {
-    setGridData((prev: any) => {
-      const branchRef = { ...prev[branchCode] };
-      if (!branchRef) return prev;
-      
-      if (field) {
-        branchRef[section] = { ...branchRef[section], [field]: (isNaN(value) ? 0 : value) };
-      } else {
-        branchRef[section] = (isNaN(value) ? 0 : value);
-      }
-      return { ...prev, [branchCode]: branchRef };
-    });
+  const handleSave = (newData: BranchAttendance[]) => {
+    localStorage.setItem('crt_attendance_data', JSON.stringify(newData));
+    router.push('/crt/attendance');
   };
 
-  const handleBulkSave = async () => {
-    if (!selectedWeek) {
-        setMessage({ text: 'Please select a week first', type: 'error' });
-        return;
-    }
-    setSaving(true);
-    setMessage({ text: '', type: '' });
-
-    try {
-      const payload = Object.entries(gridData).map(([code, data]: [string, any]) => ({
-        branch_code: code,
-        week_no: parseInt(selectedWeek),
-        ...data
-      }));
-
-      const res = await fetch('/api/reports/bulk', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-
-      if (res.ok) {
-        setMessage({ text: `Successfully saved ${payload.length} reports!`, type: 'success' });
-        fetch('/api/summary?refresh=true');
-      } else {
-        const err = await res.json();
-        throw new Error(err.error);
-      }
-    } catch (err: any) {
-      setMessage({ text: `Error: ${err.message}`, type: 'error' });
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  if (loading) return <div className="p-8">Loading configuration...</div>;
+  if (!isLoaded) {
+    return (
+      <div className="flex flex-col items-center justify-center p-12 text-blue-800 font-black uppercase tracking-[0.5em] animate-pulse">
+        Accessing Data Gateway...
+      </div>
+    );
+  }
 
   return (
-    <div className="max-w-[1600px] mx-auto space-y-8 pb-20 px-4">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div className="space-y-1">
-            <h2 className="text-3xl font-bold text-slate-900 tracking-tight flex items-center gap-3">
-                <TableIcon className="w-8 h-8 text-indigo-600" />
-                Bulk Data Entry
-            </h2>
-            <p className="text-slate-500 font-medium">Matrix-style input for all branches simultaneously</p>
-        </div>
-
-        <div className="flex items-center gap-4 bg-white p-2 rounded-2xl border border-slate-200 shadow-sm">
-            <div className="px-3 text-[10px] font-black text-slate-400 uppercase tracking-widest">Select Audit Week</div>
-            <select 
-                className="p-2.5 bg-slate-50 border-none font-black text-blue-700 rounded-xl outline-none cursor-pointer hover:bg-blue-50 transition-colors"
-                value={selectedWeek}
-                onChange={(e) => setSelectedWeek(e.target.value)}
-            >
-                <option value="">-- Choose Week --</option>
-                {weeks.map((w: any) => (
-                    <option key={w.week_no} value={w.week_no}>{w.label}</option>
-                ))}
-            </select>
-            <button 
-                onClick={handleBulkSave}
-                disabled={saving || !selectedWeek}
-                className="px-6 py-2.5 bg-blue-700 text-white font-black rounded-xl hover:bg-slate-900 transition-all flex items-center gap-2 disabled:opacity-30 shadow-lg shadow-blue-100"
-            >
-                <Save className="w-4 h-4" />
-                {saving ? 'Saving...' : 'Secure Sync'}
-            </button>
-        </div>
-      </div>
-
-      {message.text && (
-        <div className={cn(
-          "p-4 rounded-xl border flex items-center gap-3 animate-in fade-in slide-in-from-top-2",
-          message.type === 'success' ? "bg-emerald-50 border-emerald-100 text-emerald-700" : "bg-rose-50 border-rose-100 text-rose-700"
-        )}>
-          {message.type === 'success' ? <CheckCircle2 className="w-5 h-5" /> : <AlertCircle className="w-5 h-5" />}
-          <span className="text-sm font-bold">{message.text}</span>
-        </div>
-      )}
-
-      {!selectedWeek ? (
-          <div className="h-96 flex flex-col items-center justify-center bg-slate-50/50 border-2 border-dashed border-slate-200 rounded-3xl space-y-4">
-            <LayoutPanelLeft className="w-16 h-16 text-slate-300" />
-            <p className="text-slate-400 font-bold text-lg">Select a week from the dropdown to start entering data</p>
-          </div>
-      ) : (
-        <div className="bg-white rounded-[32px] border border-slate-200 shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-500">
-            <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse">
-                    <thead>
-                        <tr className="bg-slate-900 text-white">
-                            <th className="px-6 py-6 text-[10px] font-black uppercase tracking-widest sticky left-0 z-10 bg-slate-900">Branch</th>
-                            <th className="px-4 py-6 text-center text-[10px] font-black uppercase tracking-widest border-l border-slate-800">Attendance %</th>
-                            <th className="px-4 py-6 text-center text-[10px] font-black uppercase tracking-widest border-l border-slate-800">Pass %</th>
-                            <th className="px-4 py-6 text-center text-[10px] font-black uppercase tracking-widest border-l border-slate-800">Motivation</th>
-                            <th className="px-4 py-6 text-center text-[10px] font-black uppercase tracking-widest border-l border-slate-800">Personality</th>
-                            <th className="px-4 py-6 text-center text-[10px] font-black uppercase tracking-widest border-l border-slate-800">Laptops</th>
-                            <th className="px-4 py-6 text-center text-[10px] font-black uppercase tracking-widest border-l border-slate-800">Reading (M)</th>
-                            <th className="px-4 py-6 text-center text-[10px] font-black uppercase tracking-widest border-l border-slate-800">Syllabus Ph</th>
-                        </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100">
-                        {branches.map((b: any) => (
-                            <tr key={b.branch_code} className="hover:bg-blue-50/50 transition-colors group">
-                                <td className="px-6 py-4 sticky left-0 z-10 bg-white group-hover:bg-slate-50 transition-colors border-r border-slate-100">
-                                    <div>
-                                        <span className="text-base font-black text-slate-900 tracking-tighter">{b.branch_code}</span>
-                                        <p className="text-[9px] font-black text-slate-400 block uppercase truncate w-24 tracking-widest">{b.branch_name}</p>
-                                    </div>
-                                </td>
-                                <GridInput 
-                                    value={gridData[b.branch_code]?.attendance?.avg_attendance_percent} 
-                                    onChange={(v: number) => updateCell(b.branch_code, 'attendance', 'avg_attendance_percent', v)}
-                                    color="text-blue-700"
-                                />
-                                <GridInput 
-                                    value={gridData[b.branch_code]?.tests?.avg_test_pass_percent} 
-                                    onChange={(v: number) => updateCell(b.branch_code, 'tests', 'avg_test_pass_percent', v)}
-                                    color="text-blue-600"
-                                />
-                                <GridInput 
-                                    value={gridData[b.branch_code]?.motivation?.avg_score} 
-                                    onChange={(v: number) => updateCell(b.branch_code, 'motivation', 'avg_score', v)}
-                                    color="text-slate-700"
-                                    max={10}
-                                />
-                                <GridInput 
-                                    value={gridData[b.branch_code]?.personality_development?.avg_score} 
-                                    onChange={(v: number) => updateCell(b.branch_code, 'personality_development', 'avg_score', v)}
-                                    color="text-slate-700"
-                                    max={10}
-                                />
-                                <GridInput 
-                                    value={gridData[b.branch_code]?.laptop_holders?.count} 
-                                    onChange={(v: number) => updateCell(b.branch_code, 'laptop_holders', 'count', v)}
-                                    color="text-slate-600"
-                                    max={2000}
-                                />
-                                <GridInput 
-                                    value={gridData[b.branch_code]?.reading_time?.avg_minutes_per_student} 
-                                    onChange={(v: number) => updateCell(b.branch_code, 'reading_time', 'avg_minutes_per_student', v)}
-                                    color="text-slate-600"
-                                    max={300}
-                                />
-                                <td className="px-4 py-4 text-center border-l border-slate-50">
-                                   <div className="flex items-center justify-center gap-1">
-                                        <input 
-                                            type="number" 
-                                            className="w-14 p-2 bg-slate-50 border border-slate-100 font-bold text-slate-700 text-center rounded-lg outline-none focus:ring-1 focus:ring-blue-500"
-                                            value={gridData[b.branch_code]?.syllabus?.covered || 0}
-                                            onChange={(e) => updateCell(b.branch_code, 'syllabus', 'covered', parseFloat(e.target.value))}
-                                        />
-                                        <span className="text-slate-300 font-light text-xs">/</span>
-                                        <span className="text-[10px] font-black text-slate-400">100</span>
-                                   </div>
-                                </td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
-            </div>
-            <div className="p-6 bg-slate-50/50 border-t border-slate-100 flex justify-end">
+    <div className="space-y-12 animate-in fade-in slide-in-from-bottom-6 duration-700">
+        <header className="flex flex-col md:flex-row justify-between items-end gap-6 border-b-4 border-slate-900 pb-10">
+          <div className="space-y-4">
+            <div className="flex items-center gap-4">
                 <button 
-                    onClick={handleBulkSave}
-                    disabled={saving}
-                    className="px-12 py-5 bg-blue-700 text-white font-black text-xl rounded-2xl hover:bg-slate-900 shadow-2xl shadow-blue-200 hover:shadow-none translate-y-0 active:translate-y-1 transition-all flex items-center gap-4"
+                onClick={() => router.back()}
+                className="p-3 bg-white border-2 border-slate-900 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:bg-slate-50 transition-all active:translate-x-0.5 active:translate-y-0.5 active:shadow-none"
                 >
-                    <Save className="w-6 h-6" />
-                    {saving ? 'Saving Data...' : 'Finalize & Sync Records'}
+                <ArrowLeft className="w-5 h-5 text-slate-700" />
                 </button>
+                <h1 className="text-5xl font-black text-slate-900 tracking-tighter uppercase italic leading-none">
+                Data <span className="text-blue-600">Entry</span>
+                </h1>
             </div>
-        </div>
-      )}
+            <p className="text-blue-600 font-black text-[11px] uppercase tracking-[0.5em] flex items-center gap-4">
+                <span className="w-12 h-1 bg-blue-800"></span>
+                Institutional Administrative Protocol :: Secure Write-Access
+            </p>
+          </div>
+          
+          <div className="hidden lg:flex items-center gap-3 text-[10px] font-black text-slate-400 uppercase tracking-widest bg-white px-6 py-4 border-2 border-slate-900 italic shadow-[6px_6px_0px_0px_rgba(0,0,0,0.05)]">
+            <LayoutGrid className="w-4 h-4 text-blue-600" />
+            Institutional Performance Framework v3.0
+          </div>
+        </header>
+
+        <CrtAttendanceEntryForm 
+          initialData={data} 
+          onSave={handleSave}
+          onClose={() => router.push('/crt/attendance')}
+        />
     </div>
   );
-}
-
-function GridInput({ value, onChange, color, max = 100 }: any) {
-    return (
-        <td className="px-2 py-4 text-center border-l border-slate-50">
-            <input 
-                type="number" 
-                step="0.1"
-                min="0"
-                max={max}
-                className={cn(
-                    "w-20 p-2.5 bg-white border border-slate-200 font-black rounded-xl text-center outline-none ring-2 ring-transparent focus:ring-blue-500/20 focus:border-blue-600 transition-all text-xs",
-                    color
-                )}
-                value={value || 0}
-                onChange={(e) => onChange(parseFloat(e.target.value))}
-            />
-        </td>
-    );
 }

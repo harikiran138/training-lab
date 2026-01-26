@@ -11,6 +11,12 @@ export interface ICRTWeeklyReport extends Document {
   attendance: {
     avg_attendance_percent: number;
     low_attendance_count?: number; // Count of students with < X% attendance
+    daily?: Array<{
+      day_no: number;
+      attendance_count: number | "No CRT";
+      attendance_percent?: number;
+      is_no_crt: boolean;
+    }>;
   };
   
   tests: {
@@ -71,7 +77,13 @@ const CRTWeeklyReportSchema: Schema = new Schema({
 
   attendance: {
     avg_attendance_percent: { type: Number, required: true, default: 0 },
-    low_attendance_count: { type: Number, default: 0 }
+    low_attendance_count: { type: Number, default: 0 },
+    daily: [{
+      day_no: Number,
+      attendance_count: Schema.Types.Mixed, // number or "No CRT"
+      attendance_percent: Number,
+      is_no_crt: Boolean
+    }]
   },
   
   tests: {

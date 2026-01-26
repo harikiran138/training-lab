@@ -10,7 +10,10 @@ import {
   TrendingUp,
   AlertCircle,
   LayoutDashboard,
-  BarChart3
+  BarChart3,
+  ArrowRight,
+  Zap,
+  Activity
 } from 'lucide-react';
 import { KpiCard } from '@/components/dashboard/KpiCard';
 import { TrendChart } from '@/components/dashboard/TrendChart';
@@ -46,7 +49,6 @@ export default function OverviewPage() {
         const avgPass = summaries.reduce((sum: number, s: any) => sum + s.avg_test_pass, 0) / (summaries.length || 1);
         const avgSyllabus = summaries.reduce((sum: number, s: any) => sum + s.syllabus_completion_percent, 0) / (summaries.length || 1);
 
-        // Group reports by week for trend chart
         const weeklyTrendMap = new Map();
         reports.forEach((r: any) => {
           if (!weeklyTrendMap.has(r.week_no)) {
@@ -92,45 +94,45 @@ export default function OverviewPage() {
     fetchData();
   }, []);
 
-  if (loading) return <div className="p-12 text-center text-slate-500 font-bold">Loading analytical data...</div>;
-  if (!data) return <div className="p-12 text-center text-rose-500 font-bold">Failed to load dashboard. Please try again.</div>;
+  if (loading) return (
+      <div className="min-h-[60vh] flex flex-col items-center justify-center space-y-4">
+          <div className="w-12 h-12 border-4 border-blue-800 border-t-transparent animate-spin"></div>
+          <p className="text-xs font-black uppercase tracking-[0.4em] text-slate-400">Synchronizing Operational Data...</p>
+      </div>
+  );
+
+  if (!data) return (
+      <div className="p-12 border-4 border-rose-900 bg-rose-50 text-rose-900 font-bold uppercase tracking-widest text-center shadow-[12px_12px_0px_0px_rgba(225,29,72,1)]">
+          System Fault: Data Acquisition Failure
+      </div>
+  );
 
   const tableColumns = [
-    { header: 'Branch', accessorKey: 'branch_code', sortable: true, className: 'font-bold text-slate-700' },
-    { header: 'Avg Attendance', accessorKey: (row: any) => `${row.avg_attendance.toFixed(1)}%`, sortable: true },
-    { header: 'Test Pass', accessorKey: (row: any) => `${row.avg_test_pass.toFixed(1)}%`, sortable: true, className: 'text-indigo-600 font-semibold' },
-    { header: 'Weekly Reports', accessorKey: 'total_weeks', sortable: true },
-    { header: 'Grade', accessorKey: (row: any) => (
+    { header: 'Branch Code', accessorKey: 'branch_code', sortable: true, className: 'font-black italic text-blue-900 uppercase' },
+    { header: 'Attendance', accessorKey: (row: any) => `${row.avg_attendance.toFixed(1)}%`, sortable: true, className: 'font-bold' },
+    { header: 'Test Precision', accessorKey: (row: any) => `${row.avg_test_pass.toFixed(1)}%`, sortable: true, className: 'text-blue-700 font-black italic' },
+    { header: 'Active Weeks', accessorKey: 'total_weeks', sortable: true, className: 'text-center' },
+    { header: 'Performance Tier', accessorKey: (row: any) => (
       <span className={cn(
-        "px-2.5 py-1 rounded-full text-xs font-bold border",
+        "px-4 py-1 flex items-center justify-center text-[9px] font-black uppercase tracking-widest border-2",
         row.performance_grade?.startsWith('A') ? "bg-emerald-50 text-emerald-700 border-emerald-200" :
-        row.performance_grade?.startsWith('B') ? "bg-indigo-50 text-indigo-700 border-indigo-200" :
+        row.performance_grade?.startsWith('B') ? "bg-blue-50 text-blue-700 border-blue-200" :
         "bg-amber-50 text-amber-700 border-amber-200"
       )}>
         {row.performance_grade}
       </span>
     ) },
-    { header: 'Status', accessorKey: (row: any) => (
-      <div className="flex flex-col gap-1">
+    { header: 'Operational Status', accessorKey: (row: any) => (
+      <div className="flex flex-col gap-1.5 items-center">
         {row.avg_test_pass < 50 ? (
-          <div className="flex items-center gap-1.5 text-rose-600 font-medium text-xs bg-rose-50 px-2 py-1 rounded-md border border-rose-100 w-fit">
-            <AlertCircle className="w-3.5 h-3.5" />
-            Critical
+          <div className="flex items-center gap-2 text-rose-600 font-black text-[9px] bg-rose-50 px-3 py-1 border-2 border-rose-200 uppercase tracking-tighter w-full justify-center">
+            <AlertCircle className="w-3 h-3" />
+            Critical Intervene
           </div>
         ) : (
-          <div className="flex items-center gap-1.5 text-emerald-600 font-medium text-xs bg-emerald-50 px-2 py-1 rounded-md border border-emerald-100 w-fit">
-            <CheckCircle2 className="w-3.5 h-3.5" />
-            Stable
-          </div>
-        )}
-        {row.ai_risk_level && (
-          <div className={cn(
-            "text-[9px] font-black uppercase px-2 py-0.5 rounded border w-fit",
-            row.ai_risk_level === 'High' ? "bg-rose-900/10 text-rose-600 border-rose-200" :
-            row.ai_risk_level === 'Medium' ? "bg-amber-900/10 text-amber-600 border-amber-200" :
-            "bg-emerald-900/10 text-emerald-600 border-emerald-200"
-          )}>
-            AI: {row.ai_risk_level}
+          <div className="flex items-center gap-2 text-blue-700 font-black text-[9px] bg-blue-50 px-3 py-1 border-2 border-blue-200 uppercase tracking-tighter w-full justify-center text-center">
+            <CheckCircle2 className="w-3 h-3" />
+            System Nominal
           </div>
         )}
       </div>
@@ -138,143 +140,185 @@ export default function OverviewPage() {
   ];
 
   return (
-    <div className="space-y-8 pb-12">
-      {/* 1. Header with Toggle */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 py-8">
-        <div className="space-y-1">
-          <h2 className="text-4xl font-black text-slate-900 tracking-tighter uppercase italic">Institutional Intelligence</h2>
-          <div className="flex items-center gap-4">
-            <p className="text-blue-600 font-black text-[10px] uppercase tracking-[0.3em] flex items-center gap-2">
-              <span className="w-8 h-[2px] bg-blue-600"></span>
-              Performance Auditor v2.0
-            </p>
-            {data.summaries[0]?.ai_risk_level && (
-                <div className={cn(
-                    "px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border animate-pulse",
-                    data.summaries[0].ai_risk_level === 'High' ? "bg-rose-50 text-rose-600 border-rose-200" :
-                    "bg-emerald-50 text-emerald-600 border-emerald-200"
-                )}>
-                    System Risk: {data.summaries[0].ai_risk_level}
-                </div>
-            )}
+    <div className="space-y-16">
+      {/* 1. Header with View Toggle */}
+      <section className="flex flex-col md:flex-row md:items-end justify-between gap-8 border-b-4 border-slate-900 pb-12">
+        <div className="space-y-4">
+          <div className="flex items-center gap-3">
+             <Zap className="w-6 h-6 text-blue-800 fill-blue-800" />
+             <h2 className="text-6xl font-black text-slate-900 tracking-[calc(0.0125em*-1)] uppercase italic leading-none">
+               Mission Control
+             </h2>
           </div>
+          <p className="text-blue-600 font-black text-[11px] uppercase tracking-[0.5em] flex items-center gap-4">
+            <span className="w-12 h-1 bg-blue-800"></span>
+            Global Performance Intelligence :: Institutional Hub v3.5
+          </p>
         </div>
 
-        <div className="flex bg-slate-100/50 p-1.5 rounded-[20px] border border-slate-200">
+        <div className="flex bg-white p-2 border-4 border-slate-900 shadow-[8px_8px_0px_0px_rgba(30,64,175,1)]">
            <button 
              onClick={() => setView('standard')}
              className={cn(
-               "flex items-center gap-2 px-6 py-2.5 rounded-[14px] text-xs font-black uppercase tracking-widest transition-all",
-               view === 'standard' ? "bg-white text-slate-900 shadow-md border border-slate-100" : "text-slate-400 hover:text-slate-600"
+               "flex items-center gap-3 px-8 py-3 text-[10px] font-black uppercase tracking-widest transition-all",
+               view === 'standard' ? "bg-blue-800 text-white italic" : "text-slate-400 hover:text-slate-900"
              )}
            >
              <LayoutDashboard className="w-4 h-4" />
-             Core Metrics
+             Core Ops
            </button>
            <button 
              onClick={() => setView('analytics')}
              className={cn(
-               "flex items-center gap-2 px-6 py-2.5 rounded-[14px] text-xs font-black uppercase tracking-widest transition-all",
-               view === 'analytics' ? "bg-blue-700 text-white shadow-xl shadow-blue-100" : "text-slate-400 hover:text-slate-600"
+               "flex items-center gap-3 px-8 py-3 text-[10px] font-black uppercase tracking-widest transition-all border-l-2 border-slate-100",
+               view === 'analytics' ? "bg-blue-800 text-white italic" : "text-slate-400 hover:text-slate-900"
              )}
            >
              <BarChart3 className="w-4 h-4" />
-             Insight Analytics
+             Deep Analytics
            </button>
         </div>
-      </div>
+      </section>
 
       {view === 'analytics' ? (
         <AnalyticsDashboard reports={data.reports} branches={data.branches} weeks={data.weeks} />
       ) : (
-        <div className="space-y-8 animate-in fade-in duration-500">
-           {/* Top Section - KPI Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+        <div className="space-y-16 animate-in fade-in slide-in-from-bottom-6 duration-700">
+           
+           {/* KPI GRID */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8">
             <KpiCard 
-              title="Avg Attendance" 
+              title="Institution Attendance" 
               value={`${data.stats.avgAttendance.toFixed(1)}%`} 
               icon={Users} 
               trend="+2.1%"
               trendDirection="up"
               status="success"
-              description="Average attendance across all branches this week"
+              description="Global average attendance across all registered branches"
+              label="WEEKLY AVG"
             />
             <KpiCard 
-              title="Test Pass Rate" 
+              title="Test Accuracy" 
               value={`${data.stats.avgPass.toFixed(1)}%`} 
               icon={GraduationCap} 
               trend="-0.5%"
               trendDirection="down"
-              status={data.stats.avgPass < 60 ? 'warning' : 'neutral'}
-              description="Average test pass percentage"
+              status={data.stats.avgPass < 60 ? 'danger' : 'neutral'}
+              description="Average test pass percentage tracking intellectual growth"
+              label="INSTITUTIONAL"
             />
             <KpiCard 
-              title="Syllabus Completion" 
+              title="Phase Completion" 
               value={`${data.stats.avgSyllabus.toFixed(1)}%`} 
               icon={CheckCircle2} 
               trend="+5%"
               trendDirection="up"
               status="neutral"
-              description="Overall syllabus completion status"
+              description="Syllabus progression mapping institutional targets"
+              label="TOTAL RADIUS"
             />
              <KpiCard 
-              title="Laptop Coverage" 
+              title="Digital Readiness" 
               value={`${data.stats.laptopPercent.toFixed(1)}%`} 
               icon={Laptop} 
               status="neutral"
-              description="Percentage of students with laptops"
+              description="Infrastructural percentage of student laptop coverage"
+              label="COMPLIANCE"
             />
             <KpiCard 
-              title="Total Students" 
+              title="Total Enrolled" 
               value={data.stats.totalStudents} 
-              icon={Users} 
+              icon={Activity} 
               status="neutral"
-              description="Total active students"
+              description="Total active student population currently in training"
+              label="STUDENTS"
             />
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-[400px]">
-            <div className="lg:col-span-2 h-full">
-              <TrendChart 
-                title="Performance Trends (Weekly)"
-                data={data.weeklyTrendData} 
-                categories={['overall_score', 'attendance']}
-                index="week_no"
-                colors={['#3b82f6', '#10b981']}
-              />
+          {/* VISUAL ANALYTICS */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
+            <div className="lg:col-span-8 bg-white p-12 border-2 border-slate-900 shadow-[12px_12px_0px_0px_rgba(0,0,0,0.05)]">
+               <div className="flex items-center gap-4 mb-12">
+                   <div className="p-3 bg-blue-800 text-white shadow-[4px_4px_0px_0px_rgba(15,23,42,1)]">
+                       <TrendingUp className="w-6 h-6" />
+                   </div>
+                   <h3 className="text-[11px] font-black uppercase tracking-[0.4em] text-slate-400">
+                       Success Metrics Over Time :: Comparative Trend Analysis
+                   </h3>
+               </div>
+               <div className="h-[400px]">
+                  <TrendChart 
+                    title=""
+                    data={data.weeklyTrendData} 
+                    categories={['overall_score', 'attendance']}
+                    index="week_no"
+                    colors={['#1e40af', '#3b82f6']}
+                  />
+               </div>
             </div>
-            <div className="h-full">
-             <HeatMap 
-                title="Branch Performance Heatmap (Pass %)"
-                data={data.heatMapData}
-              />
+            
+            <div className="lg:col-span-4 bg-slate-900 p-12 text-white shadow-[20px_20px_0px_0px_rgba(30,64,175,1)] flex flex-col justify-between">
+               <div>
+                  <h3 className="text-[10px] font-black uppercase tracking-[0.5em] text-blue-400 mb-8 italic">
+                      Regional Hotspots
+                  </h3>
+                  <div className="h-[300px]">
+                    <HeatMap 
+                        title=""
+                        data={data.heatMapData}
+                      />
+                  </div>
+               </div>
+               <div className="pt-8 border-t border-white/10 space-y-4">
+                   <p className="text-[10px] font-black uppercase tracking-widest text-slate-500">Intelligence Brief</p>
+                   <p className="text-sm font-bold leading-relaxed italic opacity-80">
+                       The Heatmap highlights the correlation between technical engagement and test precision across all 13 branches. 
+                       Blue clusters indicate high performing centers.
+                   </p>
+               </div>
             </div>
           </div>
 
-          <div className="mt-8">
+          {/* DATA REPOSITORY */}
+          <section className="space-y-8">
+            <div className="flex items-center justify-between border-b-2 border-slate-100 pb-4">
+                <h3 className="text-[12px] font-black uppercase tracking-[0.4em] flex items-center gap-4">
+                    <ArrowRight className="w-5 h-5 text-blue-800" />
+                    Branch Performance Registry
+                </h3>
+                <div className="bg-blue-50 text-blue-800 px-4 py-1 text-[9px] font-black uppercase tracking-widest border border-blue-100 italic">
+                    Live Data :: {new Date().toLocaleDateString()}
+                </div>
+            </div>
+            
             <ExpandableTable 
-              title="Detailed Branch Performance"
+              title=""
               data={data.summaries}
               columns={tableColumns}
               rowId={(row) => row.branch_code}
               expandableContent={(row) => (
-                 <div className="p-4 grid grid-cols-3 gap-4 bg-slate-50/50">
-                   <div>
-                      <span className="text-xs text-slate-500 uppercase font-semibold">Total Students</span>
-                      <div className="text-sm font-medium">{row.total_students}</div>
+                 <div className="p-10 grid grid-cols-1 md:grid-cols-4 gap-12 bg-blue-50 animate-in slide-in-from-top-4 duration-300">
+                   <div className="space-y-2">
+                      <span className="text-[9px] text-blue-800 uppercase font-black tracking-widest block opacity-60">Base Strength</span>
+                      <div className="text-2xl font-black italic">{row.total_students}</div>
                    </div>
-                   <div>
-                      <span className="text-xs text-slate-500 uppercase font-semibold">Laptop Holders</span>
-                      <div className="text-sm font-medium">{row.laptop_holders}</div>
+                   <div className="space-y-2">
+                      <span className="text-[9px] text-blue-800 uppercase font-black tracking-widest block opacity-60">Tech Equity</span>
+                      <div className="text-2xl font-black italic">{row.laptop_holders} Laptops</div>
                    </div>
-                    <div>
-                      <span className="text-xs text-slate-500 uppercase font-semibold">Syllabus</span>
-                      <div className="text-sm font-medium">{row.syllabus_completion_percent}%</div>
+                    <div className="space-y-2">
+                      <span className="text-[9px] text-blue-800 uppercase font-black tracking-widest block opacity-60">Phase Integrity</span>
+                      <div className="text-2xl font-black italic">{row.syllabus_completion_percent}% Completed</div>
+                   </div>
+                   <div className="flex items-center">
+                       <button className="bg-slate-900 text-white px-6 py-3 text-[9px] font-black uppercase tracking-widest shadow-[6px_6px_0px_0px_rgba(30,64,175,1)] hover:bg-black transition-all">
+                           Detailed Audit
+                       </button>
                    </div>
                  </div>
               )}
             />
-          </div>
+          </section>
         </div>
       )}
     </div>

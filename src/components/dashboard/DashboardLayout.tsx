@@ -15,17 +15,17 @@ import {
   Server,
   ShieldCheck,
   Menu,
-  X
+  X,
+  Layers,
+  Zap
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { ScientificCard } from '@/components/ui/ScientificCard';
 
 const navigation = [
   { name: 'Mission Control', href: '/', icon: LayoutDashboard },
-  { name: 'Branch Performance', href: '/branches', icon: BarChart3 },
-  { name: 'Trend Analysis', href: '/trends', icon: TrendingUp },
-  { name: 'Risk Assessment', href: '/risk', icon: AlertTriangle },
-  { name: 'Data Ingestion', href: '/data-entry', icon: Database },
+  { name: 'CRT Performance', href: '/crt/attendance', icon: BarChart3 },
+  { name: 'Data Management', href: '/data-entry', icon: Database },
+  { name: 'System Logs', href: '/logs', icon: Activity },
 ];
 
 export function DashboardLayout({ children }: { children: React.ReactNode }) {
@@ -34,53 +34,53 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-200 font-sans flex flex-col">
-      {/* System Status Header */}
-      <header className="h-10 bg-slate-900 border-b border-slate-800 flex items-center justify-between px-4 z-40 sticky top-0">
-        <div className="flex items-center gap-4 text-xs font-mono text-slate-400">
-          <span className="flex items-center gap-1.5">
-            <Activity className="w-3 h-3 text-cyan-500" />
-            SYSTEM: <span className="text-cyan-400">ONLINE</span>
-          </span>
-          <span className="hidden md:flex items-center gap-1.5 border-l border-slate-800 pl-4">
-            <Server className="w-3 h-3 text-emerald-500" />
-            DB_CONNECTION: <span className="text-emerald-400">STABLE</span>
-          </span>
-          <span className="hidden md:flex items-center gap-1.5 border-l border-slate-800 pl-4">
-            <ShieldCheck className="w-3 h-3 text-indigo-500" />
-            SECURITY: <span className="text-indigo-400">ENFORCED</span>
-          </span>
+    <div className="min-h-screen bg-slate-50 text-slate-900 font-sans flex flex-col selection:bg-blue-100 selection:text-blue-900">
+      
+      {/* PROFESSIONAL SYSTEM TICKER */}
+      <header className="h-12 bg-white border-b-2 border-slate-900 flex items-center justify-between px-6 z-50 sticky top-0 shadow-sm">
+        <div className="flex items-center gap-6">
+          <div className="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-widest">
+            <Activity className="w-3.5 h-3.5 text-blue-600" />
+            Node: <span className="text-blue-800">Operational</span>
+          </div>
+          <div className="hidden md:flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-widest border-l-2 border-slate-100 pl-6">
+            <ShieldCheck className="w-3.5 h-3.5 text-blue-600" />
+            Security: <span className="text-blue-800">Level 4 Verified</span>
+          </div>
         </div>
-        <div className="text-xs font-mono text-slate-500">
-          V2.4.0-DETERMINISTIC
+        <div className="flex items-center gap-4">
+             <div className="text-[10px] font-black text-slate-800 uppercase tracking-[0.2em] bg-blue-50 px-3 py-1 border border-blue-100 italic">
+                Institutional Intel v3.5
+             </div>
         </div>
       </header>
 
       <div className="flex flex-1 relative">
-        {/* Desktop Sidebar */}
+        {/* SHARP INSTITUTIONAL SIDEBAR */}
         <aside 
           className={cn(
-            "hidden lg:flex flex-col bg-slate-950 border-r border-slate-800 transition-all duration-300 sticky top-10 h-[calc(100vh-2.5rem)]",
-            isSidebarCollapsed ? "w-16" : "w-64"
+            "hidden lg:flex flex-col bg-blue-800 border-r-4 border-slate-900 transition-all duration-300 sticky top-12 h-[calc(100vh-3rem)] z-40 shadow-[10px_0px_30px_rgba(0,0,0,0.05)]",
+            isSidebarCollapsed ? "w-20" : "w-72"
           )}
         >
-          {/* Brand */}
-          <div className="h-16 flex items-center px-4 border-b border-slate-900/50">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded bg-gradient-to-br from-cyan-600 to-blue-700 flex items-center justify-center text-white font-bold shadow-lg shadow-cyan-900/20">
-                CA
-              </div>
-              {!isSidebarCollapsed && (
-                <div>
-                  <h1 className="text-sm font-bold text-slate-100 tracking-wider">CRT ANALYTICS</h1>
-                  <p className="text-[10px] text-cyan-500 font-mono tracking-widest">NOISE: 0% | MATH: 100%</p>
-                </div>
-              )}
+          {/* Brand Identity */}
+          <div className="p-8 border-b-2 border-blue-900/50 flex flex-col items-center">
+            <div className={cn(
+                "bg-white text-blue-800 font-black shadow-[4px_4px_0px_0px_rgba(15,23,42,1)] flex items-center justify-center transition-all",
+                isSidebarCollapsed ? "w-10 h-10 text-xl" : "w-16 h-16 text-3xl mb-4"
+            )}>
+              CA
             </div>
+            {!isSidebarCollapsed && (
+              <div className="text-center">
+                <h1 className="text-sm font-black text-white tracking-[0.3em] uppercase italic">Institutional</h1>
+                <p className="text-[9px] text-blue-200 font-black tracking-widest mt-1 opacity-60 uppercase">Advanced Performance Hub</p>
+              </div>
+            )}
           </div>
 
-          {/* Navigation */}
-          <nav className="flex-1 py-6 px-2 space-y-1">
+          {/* Navigation Links */}
+          <nav className="flex-1 py-10 px-4 space-y-4">
             {navigation.map((item) => {
               const isActive = pathname === item.href;
               return (
@@ -88,56 +88,78 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
                   key={item.href}
                   href={item.href}
                   className={cn(
-                    "flex items-center gap-3 px-3 py-2.5 rounded hover:bg-slate-800/50 transition-all group relative",
-                    isActive ? "bg-slate-800 text-cyan-400" : "text-slate-400 hover:text-slate-200",
+                    "flex items-center gap-4 px-5 py-4 transition-all group relative",
+                    isActive 
+                      ? "bg-white text-blue-900 shadow-[6px_6px_0px_0px_rgba(15,23,42,1)]" 
+                      : "text-blue-100 hover:text-white hover:bg-blue-700/50",
                     isSidebarCollapsed ? "justify-center" : ""
                   )}
                   title={isSidebarCollapsed ? item.name : undefined}
                 >
-                  <item.icon className={cn("w-5 h-5", isActive ? "text-cyan-400" : "group-hover:text-cyan-200")} />
-                  {!isSidebarCollapsed && <span className="text-sm font-medium">{item.name}</span>}
+                  <item.icon className={cn("w-5 h-5", isActive ? "text-blue-800" : "group-hover:scale-110 transition-transform")} />
+                  {!isSidebarCollapsed && (
+                    <span className="text-xs font-black uppercase tracking-widest">{item.name}</span>
+                  )}
                   {isActive && !isSidebarCollapsed && (
-                    <div className="absolute right-0 top-0 bottom-0 w-0.5 bg-cyan-500 shadow-[0_0_8px_rgba(6,182,212,0.5)]" />
+                    <Zap className="absolute -left-2 top-1/2 -translate-y-1/2 w-4 h-4 text-white fill-white animate-pulse" />
                   )}
                 </Link>
               );
             })}
           </nav>
 
-          {/* Collapse Toggle */}
+          {/* User / Footer Context */}
+          {!isSidebarCollapsed && (
+              <div className="p-8 border-t border-blue-900/50">
+                  <div className="bg-blue-900/40 p-5 rounded-none border border-blue-700 flex items-center gap-4">
+                      <div className="w-10 h-10 bg-blue-800 border-2 border-white/20 flex items-center justify-center font-black text-white text-xs shadow-lg">ADM</div>
+                      <div className="flex-1 overflow-hidden">
+                          <p className="text-[10px] font-black text-white uppercase tracking-widest truncate">Administrator</p>
+                          <p className="text-[9px] font-medium text-blue-300 uppercase tracking-tighter opacity-70">Privileged Access</p>
+                      </div>
+                  </div>
+              </div>
+          )}
+
+          {/* Collapse Controller */}
           <button
             onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
-            className="p-4 border-t border-slate-900 flex justify-center hover:bg-slate-900 text-slate-500 hover:text-cyan-400 transition-colors"
+            className="p-6 border-t border-blue-900/50 flex justify-center hover:bg-blue-700 text-blue-200 transition-colors"
           >
-            {isSidebarCollapsed ? <ChevronRight size={16} /> : <div className="flex gap-2 items-center text-xs uppercase tracking-widest"><ChevronLeft size={16} /> Collapse Menu</div>}
+            {isSidebarCollapsed ? <ChevronRight size={20} /> : <div className="flex gap-3 items-center text-[10px] font-black uppercase tracking-[0.4em] opacity-50"><ChevronLeft size={16} /> Hide Interface</div>}
           </button>
         </aside>
 
-        {/* Mobile Header & Menu */}
-        <div className="lg:hidden fixed top-10 left-0 right-0 h-14 bg-slate-950 border-b border-slate-800 flex items-center justify-between px-4 z-30">
-           <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded bg-cyan-600 flex items-center justify-center text-white font-bold">CA</div>
-              <span className="font-bold text-slate-100">CRT Analytics</span>
+        {/* MOBILE ARCHITECTURE */}
+        <div className="lg:hidden fixed top-12 left-0 right-0 h-16 bg-white border-b-2 border-slate-900 flex items-center justify-between px-6 z-40">
+           <div className="flex items-center gap-4">
+              <div className="w-10 h-10 bg-blue-800 text-white font-black flex items-center justify-center shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">CA</div>
+              <span className="font-black text-slate-900 uppercase tracking-widest text-sm italic">Institutional Hub</span>
            </div>
-           <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="text-slate-300">
-             {isMobileMenuOpen ? <X /> : <Menu />}
+           <button 
+                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} 
+                className="p-3 bg-slate-100 text-slate-800 border-2 border-slate-900 active:translate-x-0.5 active:translate-y-0.5"
+            >
+             {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
            </button>
         </div>
 
         {isMobileMenuOpen && (
-          <div className="fixed inset-0 top-24 z-50 bg-slate-950 p-4 lg:hidden animate-in slide-in-from-top-10">
-            <nav className="space-y-2">
+          <div className="fixed inset-0 top-28 z-[60] bg-blue-800 p-8 lg:hidden animate-in slide-in-from-top-12">
+            <nav className="space-y-4">
               {navigation.map((item) => (
                 <Link
                   key={item.href}
                   href={item.href}
                   onClick={() => setIsMobileMenuOpen(false)}
                   className={cn(
-                    "flex items-center gap-4 px-4 py-4 rounded-lg bg-slate-900 text-slate-300",
-                    pathname === item.href && "border border-cyan-500/30 text-cyan-400 bg-slate-800"
+                    "flex items-center gap-6 px-8 py-6 text-sm font-black uppercase tracking-widest",
+                    pathname === item.href 
+                        ? "bg-white text-blue-900 shadow-[8px_8px_0px_0px_rgba(15,23,42,1)]" 
+                        : "text-blue-100 border-b border-blue-700"
                   )}
                 >
-                  <item.icon size={20} />
+                  <item.icon size={24} />
                   {item.name}
                 </Link>
               ))}
@@ -145,10 +167,15 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
           </div>
         )}
 
-        {/* Main Content Area */}
-        <main className="flex-1 p-4 lg:p-8 pt-20 lg:pt-8 bg-slate-950 overflow-x-hidden">
-          <div className="max-w-7xl mx-auto space-y-6">
+        {/* MAIN APPLICATION CORE */}
+        <main className="flex-1 min-w-0 bg-slate-50 relative">
+          <div className="p-6 md:p-12 lg:p-16 pt-32 lg:pt-16 max-w-[1600px] mx-auto animate-in fade-in slide-in-from-bottom-4 duration-700 ease-out">
              {children}
+          </div>
+          
+          {/* BACKGROUND DECORATIVE ELEMENTS */}
+          <div className="fixed bottom-0 right-0 p-10 pointer-events-none opacity-[0.03] select-none">
+              <Layers className="w-96 h-96 text-slate-900" />
           </div>
         </main>
       </div>
