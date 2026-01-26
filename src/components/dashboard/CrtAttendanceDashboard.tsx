@@ -1,341 +1,284 @@
 "use client"
 
-import React, { useMemo, useState } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { 
   Users, 
-  TrendingUp, 
-  TrendingDown, 
-  AlertTriangle, 
-  CheckCircle2, 
-  BarChart3, 
-  Presentation,
+  Download, 
+  Filter, 
   Calendar,
-  ChevronRight,
-  Target,
-  Trophy,
-  Activity,
-  Maximize2,
-  Minimize2,
-  Settings,
   Database,
-  ArrowRight,
   ShieldCheck,
   Zap,
-  Layers
+  Layers,
+  ArrowUpRight,
+  ArrowDownRight,
+  Activity,
+  AlertTriangle,
+  CheckCircle2
 } from 'lucide-react';
-import { 
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
-  LineChart, Line, Cell
-} from 'recharts';
-import { CrtAttendanceService, BranchAttendance } from '@/services/CrtAttendanceService';
 import { cn } from '@/lib/utils';
-import Link from 'next/link';
+import { KpiCard } from './KpiCard';
+import { ExpandableTable } from './ExpandableTable';
+import { TrendChart } from './TrendChart';
+import { HeatMap } from './HeatMap';
 
-interface Props {
-  institutionName?: string;
-  weekNumber: number;
-  dateRange: string;
-  subTitle?: string;
-  rawData: BranchAttendance[];
-  onDataUpdate?: (data: BranchAttendance[]) => void;
-}
+export default function CrtAttendanceDashboard() {
+  const [records, setRecords] = useState<any[]>([]);
+  const [weekNumber, setWeekNumber] = useState(1);
+  const [loading, setLoading] = useState(true);
+  const [exporting, setExporting] = useState(false);
 
-const BLUE_PALETTE = {
-  primary: '#1e40af', // blue-800
-  secondary: '#2563eb', // blue-600
-  accent: '#3b82f6', // blue-500
-  dark: '#0f172a', // slate-900
-  light: '#eff6ff', // blue-50
-  white: '#ffffff'
-};
+  useEffect(() => {
+    async function fetchData() {
+      setLoading(true);
+      try {
+        const res = await fetch(`/api/crt/records?week_number=${weekNumber}`);
+        const data = await res.json();
+        setRecords(data || []);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchData();
+  }, [weekNumber]);
 
-export default function CrtAttendanceDashboard({ 
-  institutionName = "NSRIT Autonomous", 
-  weekNumber, 
-  dateRange,
-  subTitle = "CRT PERFORMANCE ANALYTICS",
-  rawData,
-  onDataUpdate
-}: Props) {
-  const [isPresenting, setIsPresenting] = useState(false);
+  const handleExport = async () => {
+    setExporting(true);
+    try {
+        window.location.href = `/api/crt/export?week_number=${weekNumber}`;
+        setTimeout(() => setExporting(false), 2000);
+    } catch (err) {
+        console.error(err);
+        setExporting(false);
+    }
+  };
 
-  const { calculatedBranches, metrics, insights, alerts } = useMemo(() => {
-    return CrtAttendanceService.processData(rawData);
-  }, [rawData]);
+  const metrics = useMemo(() => {
+    if (records.length === 0) return null;
+    
+    const avgAttendance = Math.round(records.reduce((acc, r) => acc + r.weekly_average_percent, 0) / records.length);
+    const sorted = [...records].sort((a, b) => b.weekly_average_percent - a.weekly_average_percent);
+    
+    return {
+      avgAttendance,
+      highestBranch: { name: sorted[0]?.branch_code, percent: sorted[0]?.weekly_average_percent },
+      totalSessions: records.reduce((acc, r) => acc + (6 - r.no_crt_days), 0),
+      missedSessions: records.reduce((acc, r) => acc + r.no_crt_days, 0)
+    };
+  }, [records]);
 
-  const lineChartData = useMemo(() => {
-    const days = [1, 2, 3, 4, 5, 6];
-    return days.map(d => {
-      let sum = 0;
-      let strength = 0;
-      calculatedBranches.forEach(b => {
-        const val = b.attendancePercents[d-1];
-        if (typeof val === 'number') {
-          sum += (val * b.strength) / 100;
-          strength += b.strength;
-        }
-      });
-      return {
-        day: `DAY ${d}`,
-        avg: strength > 0 ? Math.round((sum / strength) * 100) : 0
-      };
-    });
-  }, [calculatedBranches]);
+  const heatMapData = useMemo(() => {
+    return records.map(r => ({
+      id: r.branch_code,
+      label: r.branch_code,
+      value: r.weekly_average_percent,
+      secondaryValue: r.total_strength
+    })).sort((a, b) => b.value - a.value);
+  }, [records]);
 
-  return (
-    <div className={cn(
-      "transition-all duration-300 font-sans selection:bg-blue-100 selection:text-blue-900",
-      isPresenting ? "fixed inset-0 z-[100] bg-white p-12 overflow-y-auto" : "space-y-12"
-    )}>
-      
-      {/* COMPACT ANALYTICAL DASHBOARD HEADER */}
-      <div className="flex flex-col md:flex-row justify-between items-end gap-6 border-b-4 border-slate-900 pb-10">
-        <div className="space-y-4">
-            <h2 className="text-5xl font-black text-slate-900 tracking-tighter uppercase italic leading-none">
-                {subTitle}
-            </h2>
-            <div className="flex items-center gap-6 text-[11px] font-black text-slate-400 uppercase tracking-[0.4em]">
-                <div className="flex items-center gap-2">
-                    <Calendar className="w-3.5 h-3.5 text-blue-600" />
-                    WEEK {weekNumber} :: PHASE 4 :: {dateRange}
-                </div>
-                <div className={cn(
-                    "px-4 py-1 border-2 border-slate-900 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] text-[9px] font-black uppercase tracking-widest",
-                    metrics.statusBadge === 'Excellent' ? "text-emerald-600 bg-white" :
-                    metrics.statusBadge === 'Good' ? "text-blue-600 bg-white" : "text-rose-600 bg-white"
-                )}>
-                    {metrics.statusBadge}
-                </div>
-            </div>
-        </div>
-        
-        <div className="flex gap-4">
-            <Link 
-                href="/data-entry"
-                className="group flex items-center gap-3 bg-white border-2 border-slate-900 text-slate-900 px-8 py-4 text-xs font-black uppercase tracking-widest hover:bg-blue-50 transition-all shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] active:shadow-none active:translate-x-1 active:translate-y-1"
-            >
-                <Database className="w-4 h-4 text-blue-600 group-hover:scale-125 transition-transform" />
-                Input Data
-            </Link>
-
-            <button 
-                onClick={() => setIsPresenting(!isPresenting)}
-                className="flex items-center gap-3 bg-blue-800 text-white px-8 py-4 text-xs font-black uppercase tracking-widest shadow-[6px_6px_0px_0px_rgba(15,23,42,1)] hover:bg-blue-900 transition-all hover:scale-105 active:scale-95"
-            >
-                {isPresenting ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
-                {isPresenting ? "Exit View" : "Presentation"}
-            </button>
-        </div>
+  if (loading) return (
+    <div className="min-h-[60vh] flex flex-col items-center justify-center space-y-8 animate-pulse text-center">
+      <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin shadow-xl shadow-blue-100"></div>
+      <div>
+        <p className="text-[12px] font-black uppercase tracking-[0.5em] text-slate-400">Synchronizing Intelligence Flow...</p>
+        <p className="text-[10px] font-bold text-blue-600 uppercase tracking-widest italic mt-2">Connecting to Secure Repository v5.0</p>
       </div>
-
-      {!isPresenting && (
-        <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-          <SharpKpi title="Core Enrollment" value={metrics.totalStudents.toString()} label="Students" icon={Users} trend="+2.4%" />
-          <SharpKpi title="Global Participation" value={`${metrics.avgAttendance}%`} label="Attendance" icon={Activity} trend="Optimal" isHighlighted />
-          <SharpKpi title="Peak Performance" value={`${metrics.highestBranch.percent}%`} label={metrics.highestBranch.name} icon={Trophy} />
-          <SharpKpi title="Alert Index" value={metrics.missedSessions.toString()} label="Missed Sessions" icon={AlertTriangle} isAlert={metrics.missedSessions > 0} />
-        </section>
-      )}
-
-      {/* ANALYTICS GRID */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
-        
-        {/* MAIN DATA TABLE */}
-        <section className="lg:col-span-8 space-y-8">
-            <div className="bg-white border-2 border-slate-900 shadow-[12px_12px_0px_0px_rgba(0,0,0,0.05)] overflow-hidden">
-                <div className="bg-slate-900 p-6 text-white flex justify-between items-center">
-                    <h3 className="text-[11px] font-black uppercase tracking-[0.3em] flex items-center gap-4">
-                        <ArrowRight className="w-4 h-4 text-blue-400" />
-                        Branch Effectiveness Matrix :: Phase Compliance
-                    </h3>
-                    <div className="flex gap-8 text-[9px] font-black uppercase tracking-[0.2em] opacity-60">
-                        <span className="flex items-center gap-2">H: &gt;75%</span>
-                        <span className="flex items-center gap-2">M: 50-75%</span>
-                        <span className="flex items-center gap-2">L: &lt;50%</span>
-                    </div>
-                </div>
-                
-                <div className="overflow-x-auto">
-                    <table className="w-full border-collapse">
-                        <thead>
-                            <tr className="bg-slate-50 text-[10px] font-black text-slate-400 uppercase tracking-widest border-b-2 border-slate-100">
-                                <th className="px-6 py-6 border-r-2 border-slate-100">S.ID</th>
-                                <th className="px-8 py-6 border-r-2 border-slate-100">Department</th>
-                                <th className="px-6 py-6 border-r-2 border-slate-100 text-center">Base</th>
-                                {[1, 2, 3, 4, 5, 6].map(d => (
-                                    <th key={d} className="px-4 py-6 border-r border-slate-100 text-center">D{d}</th>
-                                ))}
-                                <th className="px-8 py-6 text-center bg-blue-800 text-white italic">WEEK %</th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-slate-100">
-                            {calculatedBranches.map((b, i) => (
-                                <tr key={i} className="hover:bg-blue-50/50 transition-all group">
-                                    <td className="px-6 py-5 text-center text-slate-300 font-black border-r-2 border-slate-50">{String(i + 1).padStart(2, '0')}</td>
-                                    <td className="px-8 py-5 font-black text-slate-900 border-r-2 border-slate-50 group-hover:text-blue-700 transition-colors uppercase italic">{b.branch}</td>
-                                    <td className="px-6 py-5 text-center text-slate-500 font-bold border-r-2 border-slate-50 bg-slate-50/30">{b.strength}</td>
-                                    
-                                    {b.attendancePercents.map((p, idx) => (
-                                        <td key={idx} className={cn(
-                                            "px-4 py-5 text-center font-black border-r border-slate-50 text-xs",
-                                            typeof p === 'string' ? "text-slate-200" :
-                                            p >= 75 ? "text-blue-800 bg-blue-50/40" :
-                                            p >= 50 ? "text-slate-600 bg-slate-50/40" : "text-rose-600 bg-rose-50/40"
-                                        )}>
-                                            {typeof p === 'number' ? `${p}%` : '-'}
-                                        </td>
-                                    ))}
-
-                                    <td className={cn(
-                                        "px-8 py-5 text-center font-black text-white italic transition-all group-hover:scale-105",
-                                        b.weeklyAvg >= 75 ? "bg-blue-800" :
-                                        b.weeklyAvg >= 50 ? "bg-slate-700" : "bg-rose-700"
-                                    )}>
-                                        {b.weeklyAvg}%
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
-                <div className="bg-white p-10 border-2 border-slate-900 shadow-[10px_10px_0px_0px_rgba(0,0,0,0.05)]">
-                    <h3 className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-400 mb-10 flex items-center gap-4">
-                        <BarChart3 className="w-5 h-5 text-blue-700" />
-                        Cross-Branch Efficiency
-                    </h3>
-                    <div className="h-72">
-                        <ResponsiveContainer width="100%" height="100%">
-                            <BarChart data={calculatedBranches}>
-                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                                <XAxis dataKey="branch" axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 10, fontWeight: 900}} />
-                                <YAxis axisLine={false} tickLine={false} domain={[0, 100]} tick={{fill: '#94a3b8', fontSize: 10, fontWeight: 900}} />
-                                <Bar dataKey="weeklyAvg" radius={0} barSize={40}>
-                                    {calculatedBranches.map((entry, index) => (
-                                        <Cell key={index} fill={entry.weeklyAvg >= 75 ? BLUE_PALETTE.primary : BLUE_PALETTE.secondary} />
-                                    ))}
-                                </Bar>
-                            </BarChart>
-                        </ResponsiveContainer>
-                    </div>
-                </div>
-
-                <div className="bg-white p-10 border-2 border-slate-900 shadow-[10px_10px_0px_0px_rgba(0,0,0,0.05)]">
-                    <h3 className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-400 mb-10 flex items-center gap-4">
-                        <Activity className="w-5 h-5 text-blue-700" />
-                        Institutional Pulse Trend
-                    </h3>
-                    <div className="h-72">
-                        <ResponsiveContainer width="100%" height="100%">
-                            <LineChart data={lineChartData}>
-                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                                <XAxis dataKey="day" axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 10, fontWeight: 900}} />
-                                <YAxis axisLine={false} tickLine={false} domain={[0, 100]} tick={{fill: '#94a3b8', fontSize: 10, fontWeight: 900}} />
-                                <Line type="stepAfter" dataKey="avg" stroke={BLUE_PALETTE.primary} strokeWidth={6} dot={{ r: 0 }} activeDot={{ r: 8 }} />
-                            </LineChart>
-                        </ResponsiveContainer>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        {/* SIDEBAR ANALYTICS */}
-        <aside className="lg:col-span-4 space-y-12">
-            
-            <div className="bg-blue-800 p-10 text-white shadow-[20px_20px_0px_0px_rgba(15,23,42,1)] space-y-8 relative overflow-hidden group">
-                <div className="absolute top-0 right-0 p-10 opacity-5 group-hover:scale-110 transition-transform">
-                    <ShieldCheck className="w-56 h-56" />
-                </div>
-                <div className="relative z-10 space-y-8">
-                    <h4 className="text-[10px] font-black uppercase tracking-[0.5em] text-blue-300">Administrative Summary</h4>
-                    <div className="space-y-6">
-                        {insights.map((insight, i) => (
-                            <div key={i} className="flex gap-6 items-start pb-6 border-b border-blue-700/50 last:border-0 hover:translate-x-2 transition-transform cursor-default">
-                                <Zap className="w-5 h-5 text-blue-300 shrink-0 mt-1" />
-                                <p className="text-sm font-bold leading-relaxed">{insight}</p>
-                            </div>
-                        ))}
-                    </div>
-                    <button className="w-full bg-white text-blue-900 p-5 font-black text-xs uppercase tracking-[0.3em] flex items-center justify-center gap-4 hover:bg-blue-50 transition-all active:scale-95">
-                        Download PDF Report
-                        <ArrowRight className="w-4 h-4" />
-                    </button>
-                </div>
-            </div>
-
-            <div className="p-10 border-2 border-slate-900 bg-slate-50 space-y-8 shadow-[12px_12px_0px_0px_rgba(0,0,0,0.05)]">
-                <h4 className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-400 flex items-center gap-4">
-                    <AlertTriangle className="w-5 h-5 text-rose-600" />
-                    Risk Assessment & Flags
-                </h4>
-                <div className="space-y-4">
-                    {alerts.length > 0 ? alerts.map((alert, i) => (
-                        <div key={i} className="bg-white p-6 border-l-4 border-rose-600 shadow-sm flex gap-4 animate-in slide-in-from-right duration-300" style={{ animationDelay: `${i * 100}ms` }}>
-                            <div className="w-2 h-2 rounded-full bg-rose-600 mt-2 shrink-0" />
-                            <p className="text-sm font-black text-slate-800 uppercase italic tracking-tight leading-tight">{alert}</p>
-                        </div>
-                    )) : (
-                        <div className="bg-white p-6 border-l-4 border-emerald-600 flex gap-4 items-center">
-                            <CheckCircle2 className="w-6 h-6 text-emerald-600" />
-                            <p className="text-sm font-black text-slate-800 uppercase">System Nominal :: No Risks Detected</p>
-                        </div>
-                    )}
-                </div>
-            </div>
-
-            <div className="p-10 bg-slate-900 text-white space-y-6">
-                <h4 className="text-[10px] font-black uppercase tracking-[0.5em] text-blue-400 italic">Strategic Compliance</h4>
-                <p className="text-2xl font-black tracking-tighter leading-none uppercase">
-                    "Consistent metrics reflect institutional excellence and readiness."
-                </p>
-                <div className="flex items-center gap-3 pt-6 border-t border-white/10 opacity-40">
-                    <Layers className="w-4 h-4" />
-                    <span className="text-[9px] font-black uppercase tracking-widest">Quality Assurance Division</span>
-                </div>
-            </div>
-        </aside>
-      </div>
-
     </div>
   );
-}
 
-function SharpKpi({ title, value, label, icon: Icon, trend, isHighlighted, isAlert }: { title: string, value: string, label: string, icon: any, trend?: string, isHighlighted?: boolean, isAlert?: boolean }) {
+  const columns = [
+    { header: 'Branch Identifier', accessorKey: 'branch_code', sortable: true, className: "font-black italic text-blue-900 uppercase text-lg" },
+    { header: 'Capacity', accessorKey: 'total_strength', sortable: true, className: "font-bold text-slate-400" },
+    { 
+        header: 'Weekly Avg', 
+        accessorKey: (row: any) => (
+            <div className="flex items-center gap-4">
+                <span className={cn(
+                    "font-black text-2xl italic",
+                    row.weekly_average_percent < 50 ? "text-rose-600" : (row.weekly_average_percent >= 75 ? "text-emerald-600" : "text-amber-500")
+                )}>{row.weekly_average_percent}%</span>
+                <span className={cn(
+                    "text-[10px] font-black uppercase flex items-center gap-1",
+                    row.trend.includes('Improving') ? "text-emerald-500" : (row.trend.includes('Dropping') ? "text-rose-500" : "text-slate-400")
+                )}>
+                    {row.trend.includes('Improving') ? <ArrowUpRight className="w-3.5 h-3.5" /> : (row.trend.includes('Dropping') ? <ArrowDownRight className="w-3.5 h-3.5" /> : null)}
+                    {row.trend.split(' ')[0]}
+                </span>
+            </div>
+        ), 
+        sortable: true 
+    },
+    { 
+        header: 'Risk Profile', 
+        accessorKey: (row: any) => (
+            <div className={cn(
+                "px-6 py-2 rounded-2xl text-[10px] font-black uppercase tracking-widest border text-center shadow-sm",
+                row.risk_flag === 'OK' ? "bg-emerald-50 text-emerald-700 border-emerald-100" : "bg-rose-50 text-rose-700 border-rose-100 animate-pulse font-black"
+            )}>
+                {row.risk_flag}
+            </div>
+        )
+    }
+  ];
+
   return (
-    <div className={cn(
-      "p-10 border-2 transition-all group relative overflow-hidden",
-      isHighlighted ? "bg-blue-800 text-white border-slate-900 shadow-[10px_10px_0px_0px_rgba(15,23,42,1)]" : 
-      isAlert ? "bg-rose-50 text-rose-900 border-rose-600 shadow-[10px_10px_0px_0px_rgba(225,29,72,0.1)]" :
-      "bg-white text-slate-900 border-slate-100 hover:border-blue-600 shadow-[10px_10px_0px_0px_rgba(30,64,175,0.03)] hover:shadow-[10px_10px_0px_0px_rgba(30,64,175,1)]"
-    )}>
-      <div className="relative z-10 flex flex-col items-center text-center">
-        <div className={cn(
-          "mb-8 p-4 border-2 transition-all group-hover:rotate-12",
-          isHighlighted ? "bg-white text-blue-900 border-transparent shadow-[4px_4px_0px_0px_rgba(0,0,0,0.2)]" : 
-          isAlert ? "bg-rose-600 text-white border-transparent" :
-          "bg-blue-50 text-blue-700 border-blue-100 group-hover:bg-blue-800 group-hover:text-white group-hover:border-slate-900"
-        )}>
-          <Icon className="w-8 h-8" />
+    <div className="space-y-24 animate-in fade-in slide-in-from-bottom-6 duration-1000">
+      <section className="flex flex-col xl:flex-row xl:items-end justify-between gap-12 border-b border-slate-100 pb-16">
+        <div className="space-y-6">
+          <div className="flex items-center gap-8">
+             <div className="bg-blue-600 p-5 rounded-[1.8rem] shadow-2xl shadow-blue-500/20">
+                <Layers className="w-10 h-10 text-white" />
+             </div>
+             <div>
+                <h2 className="text-7xl font-black text-slate-900 tracking-tighter uppercase italic leading-none animate-in slide-in-from-left-8 duration-700">
+                Performance <span className="text-blue-600">Hub</span>
+                </h2>
+                <div className="flex items-center gap-4 mt-6">
+                    <div className="w-12 h-1 bg-blue-600 rounded-full"></div>
+                    <p className="text-blue-500 font-black text-[11px] uppercase tracking-[0.4em] opacity-60">
+                        Institutional Intelligence Matrix :: Secure Stream
+                    </p>
+                </div>
+             </div>
+          </div>
         </div>
-        <p className={cn(
-          "text-[9px] font-black uppercase tracking-[0.4em] mb-4",
-          isHighlighted ? "text-blue-200" : isAlert ? "text-rose-600" : "text-slate-400"
-        )}>{title}</p>
-        <p className="text-5xl font-black tracking-tighter leading-none uppercase italic">{value}</p>
-        <p className={cn(
-          "text-[10px] font-black uppercase tracking-[0.2em] mt-4 opacity-60 rounded-full px-4 py-1 inline-block border",
-          isHighlighted ? "border-white/20" : "border-slate-100"
-        )}>{label}</p>
-      </div>
-      {trend && (
-         <div className={cn(
-           "absolute top-6 right-6 text-[9px] font-black uppercase tracking-widest",
-           isHighlighted ? "text-emerald-400" : "text-blue-600"
-         )}>
-           {trend}
-         </div>
+
+        <div className="flex flex-col md:flex-row gap-6 items-center">
+             <div className="flex items-center gap-4 bg-white p-2 rounded-3xl border border-slate-100 shadow-2xl shadow-blue-100/10">
+                <div className="p-4 bg-blue-600 rounded-2xl text-white shadow-lg shadow-blue-500/20">
+                    <Calendar className="w-6 h-6" />
+                </div>
+                <div className="pr-10">
+                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1">Temporal Scope</span>
+                    <select 
+                        value={weekNumber}
+                        onChange={(e) => setWeekNumber(parseInt(e.target.value))}
+                        className="bg-transparent border-none focus:ring-0 font-black text-blue-900 uppercase italic tracking-tighter text-2xl p-0 cursor-pointer"
+                    >
+                        {[1,2,3,4,5,6,7,8,9,10].map(w => (
+                            <option key={w} value={w}>Reporting Week {w}</option>
+                        ))}
+                    </select>
+                </div>
+             </div>
+             
+             <div className="flex gap-4">
+                <button 
+                    onClick={handleExport}
+                    disabled={exporting || records.length === 0}
+                    className={cn(
+                        "flex items-center gap-3 px-10 py-5 bg-white border border-slate-100 text-slate-400 rounded-2xl text-[11px] font-black uppercase tracking-widest transition-all shadow-xl shadow-slate-100/50",
+                        exporting ? "opacity-50 cursor-not-allowed" : "hover:bg-slate-50 hover:text-blue-600"
+                    )}
+                >
+                    <Download className={cn("w-5 h-5", exporting ? "animate-bounce" : "")} /> 
+                    {exporting ? 'GENERATING...' : 'EXPORT EXCEL'}
+                </button>
+             </div>
+        </div>
+      </section>
+
+      {records.length === 0 ? (
+          <div className="p-24 bg-white border border-slate-100 rounded-[3.5rem] shadow-2xl shadow-slate-200/50 text-center space-y-8 flex flex-col items-center">
+              <Database className="w-20 h-20 text-slate-100" />
+              <div>
+                  <h3 className="text-3xl font-black uppercase italic tracking-tighter text-slate-300">Repository Offline for Week {weekNumber}</h3>
+                  <p className="text-sm font-bold uppercase tracking-widest text-slate-400 mt-4 max-w-lg mx-auto">Access the Data Entry gateway to initialize institutional performance vectors for this temporal scope.</p>
+              </div>
+          </div>
+      ) : (
+        <>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12">
+                <KpiCard title="Consolidated Average" value={`${metrics?.avgAttendance}%`} icon={Users} status="success" label="INSTITUTIONAL" description="Global attendance average across all branches for the selected week." />
+                <KpiCard title="Elite Cluster" value={`${metrics?.highestBranch.percent}%`} icon={ShieldCheck} label={metrics?.highestBranch.name} description="The highest performing node based on participation precision." />
+                <KpiCard title="Attrition Vectors" value={metrics?.missedSessions || 0} icon={AlertTriangle} status={metrics?.missedSessions && metrics.missedSessions > 0 ? "danger" : "neutral"} label="MISSED SESSIONS" description="Total number of 'No CRT' blocks detected in the stream." />
+                <KpiCard title="Stream Integrity" value={metrics?.totalSessions || 0} icon={Zap} label="REAL-TIME FEED" description="Total verified training session blocks synchronized for this week." />
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-16">
+                <div className="lg:col-span-8">
+                    <ExpandableTable 
+                        title="Node Performance Registry"
+                        data={records}
+                        columns={columns}
+                        rowId={(row) => row.branch_code}
+                        expandableContent={(row) => (
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center p-4">
+                                <div className="space-y-8 bg-white p-10 rounded-[2.5rem] border border-blue-50 shadow-inner">
+                                    <h4 className="text-[10px] font-black text-blue-400 uppercase tracking-[0.5em] italic">Session Timeline :: Vectors D1–D6</h4>
+                                    <div className="grid grid-cols-6 gap-3">
+                                        {[1,2,3,4,5,6].map((dayNo) => {
+                                            const attended = row[`day${dayNo}_attended`];
+                                            const percent = row[`day${dayNo}_percent`];
+                                            return (
+                                                <div key={dayNo} className="flex flex-col items-center gap-4">
+                                                    <div className={cn(
+                                                        "w-full h-24 rounded-2xl flex items-end p-1.5 border border-slate-50 transition-all group/bar shadow-sm",
+                                                        attended === 'No CRT' ? "bg-slate-50/50" : "bg-blue-50/30"
+                                                    )}>
+                                                        {typeof percent === 'number' && (
+                                                            <div className={cn("w-full rounded-xl shadow-lg transition-all duration-700", percent < 50 ? "bg-rose-500 shadow-rose-200" : (percent >= 75 ? "bg-emerald-500 shadow-emerald-200" : "bg-blue-600 shadow-blue-200"))} style={{ height: `${percent}%` }}></div>
+                                                        )}
+                                                        {attended === 'No CRT' && (
+                                                            <div className="w-full h-full flex items-center justify-center opacity-10 rotate-90 scale-75">
+                                                                <Zap className="w-6 h-6 text-slate-400" />
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                    <span className="text-[9px] font-black text-slate-300 uppercase tracking-tighter">D{dayNo}</span>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                                <div className="space-y-8">
+                                    <div className="bg-slate-900 p-12 rounded-[3.5rem] text-white shadow-2xl shadow-blue-500/10 relative overflow-hidden group">
+                                        <div className="relative z-10">
+                                            <h4 className="text-[10px] font-black text-blue-400 uppercase tracking-widest mb-8 opacity-60">Intelligence Remarks</h4>
+                                            <p className="text-xl font-bold italic tracking-tight leading-relaxed text-blue-50 italic opacity-90 mb-10 border-l border-blue-600 pl-8 capitalize">
+                                                "{row.remarks}"
+                                            </p>
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></div>
+                                                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">Node ID: {row.branch_code}</p>
+                                            </div>
+                                        </div>
+                                        <Activity className="absolute -bottom-12 -right-12 w-48 h-48 opacity-5 text-white group-hover:scale-110 transition-transform duration-1000" />
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                    />
+                </div>
+
+                <div className="lg:col-span-4 space-y-12">
+                     <div className="bg-white p-12 lg:p-14 rounded-[3.5rem] border border-slate-100 shadow-2xl shadow-blue-100/10">
+                        <div className="flex items-center gap-6 mb-16">
+                            <div className="p-3 bg-blue-600 rounded-2xl text-white shadow-lg shadow-blue-200/50">
+                                <Activity className="w-6 h-6" />
+                            </div>
+                            <h3 className="text-[11px] font-black uppercase tracking-[0.4em] text-slate-900 italic">Regional Analytics</h3>
+                        </div>
+                        <div className="h-[400px]">
+                            <HeatMap title="" data={heatMapData} />
+                        </div>
+                     </div>
+
+                     <div className="bg-slate-900 p-12 lg:p-14 rounded-[3.5rem] text-white shadow-2xl shadow-blue-500/10 relative overflow-hidden">
+                        <div className="relative z-10 text-center py-10">
+                            <ShieldCheck className="w-16 h-16 text-blue-400 mx-auto mb-8 opacity-40" />
+                            <h3 className="text-[11px] font-black uppercase tracking-[0.5em] text-blue-400 mb-6 italic opacity-60">System Observations</h3>
+                            <p className="text-sm font-bold text-blue-200 italic opacity-80 leading-relaxed px-8">
+                                Weekly participation targets matched at {metrics?.avgAttendance}%. No significant attrition risks detected in the active feed.
+                            </p>
+                        </div>
+                        <div className="absolute -bottom-20 -right-20 w-80 h-80 bg-blue-600/5 rounded-full blur-3xl"></div>
+                     </div>
+                </div>
+            </div>
+        </>
       )}
     </div>
   );

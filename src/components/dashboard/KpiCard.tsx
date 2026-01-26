@@ -33,57 +33,59 @@ export function KpiCard({
 
   return (
     <div className={cn(
-      "p-8 border-2 transition-all group relative overflow-hidden rounded-none",
-      isHighlighted ? "bg-blue-800 text-white border-slate-900 shadow-[10px_10px_0px_0px_rgba(15,23,42,1)]" : 
-      isAlert ? "bg-rose-50 text-rose-900 border-rose-600 shadow-[10px_10px_0px_0px_rgba(225,29,72,0.1)]" :
-      "bg-white text-slate-900 border-slate-100 hover:border-blue-600 shadow-[10px_10px_0px_0px_rgba(30,64,175,0.03)] hover:shadow-[10px_10px_0px_0px_rgba(30,64,175,1)]",
+      "p-10 transition-all duration-500 group relative overflow-hidden rounded-[2.5rem] border border-slate-100",
+      isHighlighted ? "bg-blue-600 text-white shadow-2xl shadow-blue-200 translate-y-[-4px]" : 
+      isAlert ? "bg-white text-rose-900 border-rose-100 shadow-xl shadow-rose-50" :
+      "bg-white text-slate-900 hover:shadow-2xl hover:shadow-blue-100 hover:translate-y-[-4px] shadow-xl shadow-slate-200/50",
       className
     )}>
       <div className="relative z-10 flex flex-col items-center text-center">
         <div className={cn(
-          "mb-6 p-3 border-2 transition-all group-hover:rotate-12",
-          isHighlighted ? "bg-white text-blue-900 border-transparent shadow-[4px_4px_0px_0px_rgba(0,0,0,0.2)]" : 
-          isAlert ? "bg-rose-600 text-white border-transparent" :
-          "bg-blue-50 text-blue-700 border-blue-100 group-hover:bg-blue-800 group-hover:text-white group-hover:border-slate-900"
+          "mb-8 p-5 rounded-3xl transition-all duration-500 group-hover:scale-110",
+          isHighlighted ? "bg-white/20 text-white backdrop-blur-md shadow-inner" : 
+          isAlert ? "bg-rose-500 text-white shadow-lg shadow-rose-100" :
+          "bg-blue-50 text-blue-600 group-hover:bg-blue-600 group-hover:text-white group-hover:shadow-xl shadow-blue-200/50"
         )}>
-          <Icon className="w-6 h-6" />
+          <Icon className="w-8 h-8" />
         </div>
         
-        <div className="flex items-center gap-2 mb-2">
+        <div className="flex items-center gap-3 mb-4">
             <h3 className={cn(
-                "text-[9px] font-black uppercase tracking-[0.4em]",
-                isHighlighted ? "text-blue-200" : isAlert ? "text-rose-600" : "text-slate-400"
+                "text-[11px] font-black uppercase tracking-[0.3em]",
+                isHighlighted ? "text-blue-100" : isAlert ? "text-rose-600" : "text-slate-400"
             )}>
                 {title}
             </h3>
             {description && (
                 <div className="relative group/tooltip">
-                <HelpCircle className="w-3 h-3 text-slate-400 cursor-help" />
-                <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 hidden group-hover/tooltip:block w-48 p-3 bg-slate-900 text-white text-[10px] font-bold uppercase tracking-widest shadow-xl z-20">
+                <HelpCircle className="w-3.5 h-3.5 text-slate-300 cursor-help" />
+                <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-4 hidden group-hover/tooltip:block w-56 p-4 bg-slate-900/90 backdrop-blur-md text-white text-[11px] font-bold uppercase tracking-widest rounded-2xl shadow-2xl z-20">
                     {description}
                 </div>
                 </div>
             )}
         </div>
 
-        <p className="text-4xl font-black tracking-tighter leading-none uppercase italic">{value}</p>
+        <p className="text-5xl font-black tracking-tight leading-none tabular-nums animate-in fade-in slide-in-from-bottom-2 duration-700">
+            {value}
+        </p>
         
         {(label || trend) && (
-            <div className="flex items-center gap-3 mt-4">
+            <div className="flex items-center gap-4 mt-8">
                 {label && (
                     <p className={cn(
-                        "text-[9px] font-black uppercase tracking-[0.2em] opacity-60 rounded-none px-3 py-0.5 border",
-                        isHighlighted ? "border-white/20" : "border-slate-100"
+                        "text-[10px] font-black uppercase tracking-widest rounded-full px-4 py-1.5 border",
+                        isHighlighted ? "bg-white/10 border-white/20" : "bg-slate-50 border-slate-100"
                     )}>{label}</p>
                 )}
                 {trend && (
                     <span className={cn(
-                        "text-[9px] font-black uppercase tracking-widest flex items-center gap-1",
-                        isHighlighted ? "text-emerald-400" : 
-                        trendDirection === 'up' ? 'text-emerald-600' : 'text-rose-600'
+                        "text-[11px] font-black uppercase tracking-widest flex items-center gap-1.5",
+                        isHighlighted ? "text-blue-200" : 
+                        trendDirection === 'up' ? 'text-emerald-500' : 'text-rose-500'
                     )}>
-                        {trendDirection === 'up' ? <ArrowUpRight className="w-3 h-3" /> : 
-                         trendDirection === 'down' ? <ArrowDownRight className="w-3 h-3" /> : null}
+                        {trendDirection === 'up' ? <ArrowUpRight className="w-4 h-4" /> : 
+                         trendDirection === 'down' ? <ArrowDownRight className="w-4 h-4" /> : null}
                         {trend}
                     </span>
                 )}
@@ -91,9 +93,12 @@ export function KpiCard({
         )}
       </div>
 
-      {/* Background decoration */}
-      <div className="absolute -bottom-4 -right-4 opacity-[0.03] group-hover:scale-110 transition-transform pointer-events-none">
-          <Icon className="w-24 h-24" />
+      {/* Modern Background Accents */}
+      <div className={cn(
+          "absolute -bottom-10 -right-10 opacity-[0.05] group-hover:scale-125 group-hover:rotate-12 transition-all duration-700 pointer-events-none",
+          isHighlighted ? "text-white" : "text-blue-900"
+      )}>
+          <Icon className="w-48 h-48" />
       </div>
     </div>
   );

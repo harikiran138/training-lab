@@ -1,6 +1,6 @@
 /**
  * CRT Attendance Calculation Service
- * Refined for granular daily reporting and institutional presentation
+ * Consolidated for Excel-style intelligence and Database Persistence
  */
 
 export interface BranchAttendance {
@@ -9,164 +9,115 @@ export interface BranchAttendance {
   daily: (number | "No CRT")[]; // Day 1 to Day 6
 }
 
-export interface CalculatedBranch {
-  branch: string;
-  strength: number;
-  attendanceCounts: (number | "No CRT")[];
-  attendancePercents: (number | "No CRT")[];
-  weeklyAvg: number;
-  trend: "up" | "down" | "stable";
-}
-
-export interface DashboardMetrics {
-  totalStudents: number;
-  avgAttendance: number;
-  highestBranch: { name: string; percent: number };
-  lowestBranch: { name: string; percent: number };
-  totalSessions: number;
-  missedSessions: number;
-  statusBadge: "Excellent" | "Good" | "Needs Attention";
+export interface CalculatedRecord {
+  branch_code: string;
+  total_strength: number;
+  // Raw and Percent
+  days: {
+    attended: (number | "No CRT")[];
+    percent: (number | "No CRT")[];
+  };
+  // Summary
+  weekly_average_percent: number;
+  no_crt_days: number;
+  trend: string;
+  performance_level: 'High' | 'Medium' | 'Low';
+  risk_flag: '⚠ Critical' | 'OK';
+  remarks: string;
 }
 
 export class CrtAttendanceService {
   /**
-   * Main processor for raw branch data
+   * Main processor strictly following the Master Prompt Logic
    */
-  static processData(data: BranchAttendance[]): {
-    calculatedBranches: CalculatedBranch[];
-    metrics: DashboardMetrics;
-    insights: string[];
-    alerts: string[];
-  } {
-    let totalStrength = 0;
-    let grandTotalAttendance = 0;
-    let totalPossibleAttendanceCount = 0;
-    let totalSessions = 0;
-    let missedSessions = 0;
-
-    const calculatedBranches: CalculatedBranch[] = data.map((b) => {
-      totalStrength += b.strength;
+  static processData(data: BranchAttendance[]): CalculatedRecord[] {
+    return data.map((b) => {
+      const strength = Math.max(b.strength, 1);
       
-      let branchAttendanceSum = 0;
-      let branchSessionsCount = 0;
-
-      const percents = b.daily.map((count) => {
-        if (count === "No CRT") {
-          missedSessions++;
-          return "No CRT";
-        }
-        
-        totalSessions++;
-        branchSessionsCount++;
-        branchAttendanceSum += count;
-        
-        // Use institutional rounding (whole numbers)
-        const percent = Math.round((count / b.strength) * 100);
-        return percent;
+      // 1. Day-wise Attendance % (Auto)
+      // Formula: =IF(D2="","No CRT",ROUND(D2/C2*100,0))
+      const percents = b.daily.map((attended) => {
+        if (attended === "No CRT") return "No CRT";
+        return Math.round((attended / strength) * 100);
       });
 
-      const weeklyAvg = branchSessionsCount > 0 
-        ? Math.round((branchAttendanceSum / (branchSessionsCount * b.strength)) * 100) 
+      // 2. Weekly Average %
+      // Formula: =ROUND(AVERAGEIF(E2:O2,"<>No CRT"),0)
+      const activePercents = percents.filter(p => typeof p === 'number') as number[];
+      const weekly_average_percent = activePercents.length > 0 
+        ? Math.round(activePercents.reduce((acc, curr) => acc + curr, 0) / activePercents.length)
         : 0;
 
-      grandTotalAttendance += branchAttendanceSum;
-      totalPossibleAttendanceCount += (branchSessionsCount * b.strength);
+      // 3. No CRT Days
+      // Formula: =COUNTIF(E2:O2,"No CRT")
+      const no_crt_days = b.daily.filter(d => d === "No CRT").length;
 
-      // Trend logic: compare last 2 active days
-      const activeDays = percents.filter(p => typeof p === 'number') as number[];
-      let trend: "up" | "down" | "stable" = "stable";
-      if (activeDays.length >= 2) {
-        const last = activeDays[activeDays.length - 1];
-        const prev = activeDays[activeDays.length - 2];
-        if (last > prev + 1) trend = "up";
-        else if (last < prev - 1) trend = "down";
-      }
-
-      return {
-        branch: b.branch,
-        strength: b.strength,
-        attendanceCounts: b.daily,
-        attendancePercents: percents,
-        weeklyAvg,
-        trend
-      };
-    });
-
-    const avgAttendance = totalPossibleAttendanceCount > 0 
-      ? Math.round((grandTotalAttendance / totalPossibleAttendanceCount) * 100) 
-      : 0;
-
-    const sortedByAtt = [...calculatedBranches].sort((a, b) => b.weeklyAvg - a.weeklyAvg);
-    
-    const metrics: DashboardMetrics = {
-      totalStudents: totalStrength,
-      avgAttendance,
-      highestBranch: { 
-        name: sortedByAtt[0]?.branch || "N/A", 
-        percent: sortedByAtt[0]?.weeklyAvg || 0 
-      },
-      lowestBranch: { 
-        name: sortedByAtt[sortedByAtt.length - 1]?.branch || "N/A", 
-        percent: sortedByAtt[sortedByAtt.length - 1]?.weeklyAvg || 0 
-      },
-      totalSessions,
-      missedSessions,
-      statusBadge: avgAttendance >= 85 ? "Excellent" : avgAttendance >= 70 ? "Good" : "Needs Attention"
-    };
-
-    const insights = this.generateInsights(calculatedBranches, metrics);
-    const alerts = this.generateAlerts(calculatedBranches);
-
-    return { calculatedBranches, metrics, insights, alerts };
-  }
-
-  private static generateInsights(branches: CalculatedBranch[], metrics: DashboardMetrics): string[] {
-    const insights: string[] = [];
-    
-    insights.push(`Overall institutional attendance for this week stands at ${metrics.avgAttendance}%, reflecting ${metrics.statusBadge} program compliance.`);
-    
-    if (metrics.highestBranch.percent > 90) {
-      insights.push(`Branch ${metrics.highestBranch.name} is leading with a stellar ${metrics.highestBranch.percent}% attendance.`);
-    }
-
-    const improvingBranches = branches.filter(b => b.trend === 'up');
-    if (improvingBranches.length > 0) {
-      insights.push(`${improvingBranches.length} branches show a positive attendance trajectory compared to previous sessions.`);
-    }
-
-    if (metrics.missedSessions > 0) {
-      insights.push(`Recorded ${metrics.missedSessions} 'No CRT' blocks; syllabus completion targets must be adjusted accordingly.`);
-    }
-
-    return insights;
-  }
-
-  private static generateAlerts(branches: CalculatedBranch[]): string[] {
-    const alerts: string[] = [];
-    
-    branches.forEach(b => {
-      // Alert 1: Sustainably Low (<50% for 2+ days)
-      const lowDays = b.attendancePercents.filter(p => typeof p === 'number' && p < 50).length;
-      if (lowDays >= 2) {
-        alerts.push(`CRITICAL: ${b.branch} exhibits persistent low attendance (<50%) for ${lowDays} days.`);
-      }
-
-      // Alert 2: Volatility Check (Sudden drop > 15%)
-      const activePercents = b.attendancePercents.filter(p => typeof p === 'number') as number[];
+      // 4. Trend Indicator
+      // Formula: Comparison between last two active days
+      let trend = "–";
       if (activePercents.length >= 2) {
         const last = activePercents[activePercents.length - 1];
         const prev = activePercents[activePercents.length - 2];
-        if (prev - last > 15) {
-          alerts.push(`VOLATILITY: Sudden ${prev - last}% drop in ${b.branch} attendance detected between sessions.`);
-        }
+        if (last > prev) trend = "↑ Improving";
+        else if (last < prev) trend = "↓ Dropping";
+        else trend = "→ Stable";
       }
 
-      // Alert 3: Critical Weekly Average
-      if (b.weeklyAvg < 50) {
-        alerts.push(`INTERVENTION REQUIRED: ${b.branch} weekly average is critically low (${b.weeklyAvg}%).`);
-      }
+      // 5. Performance Level
+      // Formula: =IF(P2>=75,"High",IF(P2>=50,"Medium","Low"))
+      const performance_level = weekly_average_percent >= 75 ? 'High' : (weekly_average_percent >= 50 ? 'Medium' : 'Low');
+
+      // 6. Risk Flag
+      // Formula: =IF(P2<50,"⚠ Critical","OK")
+      const risk_flag = weekly_average_percent < 50 ? '⚠ Critical' : 'OK';
+
+      // 7. Auto Remarks
+      // Formula: =IF(T2="⚠ Critical","Immediate intervention required","Stable")
+      const remarks = risk_flag === '⚠ Critical' ? "Immediate intervention required" : "Stable";
+
+      return {
+        branch_code: b.branch,
+        total_strength: b.strength,
+        days: {
+          attended: b.daily,
+          percent: percents
+        },
+        weekly_average_percent,
+        no_crt_days,
+        trend,
+        performance_level,
+        risk_flag,
+        remarks
+      };
     });
+  }
 
-    return alerts;
+  /**
+   * Transforms a calculated record into a flat object for Database ingestion
+   */
+  static flattenForDB(record: CalculatedRecord, week_number: number) {
+    return {
+      branch_code: record.branch_code,
+      total_strength: record.total_strength,
+      day1_attended: record.days.attended[0],
+      day1_percent: record.days.percent[0],
+      day2_attended: record.days.attended[1],
+      day2_percent: record.days.percent[1],
+      day3_attended: record.days.attended[2],
+      day3_percent: record.days.percent[2],
+      day4_attended: record.days.attended[3],
+      day4_percent: record.days.percent[3],
+      day5_attended: record.days.attended[4],
+      day5_percent: record.days.percent[4],
+      day6_attended: record.days.attended[5],
+      day6_percent: record.days.percent[5],
+      weekly_average_percent: record.weekly_average_percent,
+      no_crt_days: record.no_crt_days,
+      trend: record.trend,
+      performance_level: record.performance_level,
+      risk_flag: record.risk_flag,
+      remarks: record.remarks,
+      week_number
+    };
   }
 }
