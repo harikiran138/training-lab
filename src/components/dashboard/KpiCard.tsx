@@ -1,92 +1,64 @@
+"use client"
+
 import React from 'react';
-import { ArrowUpRight, ArrowDownRight, HelpCircle } from 'lucide-react';
+import { LucideIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface KpiCardProps {
   title: string;
   value: string | number;
-  trend?: string;
-  trendValue?: string;
-  trendDirection?: 'up' | 'down' | 'neutral';
-  status?: 'success' | 'warning' | 'danger' | 'neutral';
-  icon?: React.ElementType;
-  className?: string;
+  icon: LucideIcon;
   description?: string;
+  status?: 'success' | 'warning' | 'danger' | 'neutral';
+  label?: string;
 }
 
-export function KpiCard({
-  title,
-  value,
-  trend,
-  trendValue,
-  trendDirection = 'neutral',
-  status = 'neutral',
-  icon: Icon,
-  className,
-  description
-}: KpiCardProps) {
-  
-  const statusColors = {
-    success: 'text-success bg-success/10 border-success/20',
-    warning: 'text-warning bg-warning/10 border-warning/20',
-    danger: 'text-danger bg-danger/10 border-danger/20',
-    neutral: 'text-neutral bg-neutral/10 border-neutral/20',
+export function KpiCard({ title, value, icon: Icon, description, status = 'neutral', label }: KpiCardProps) {
+  const getStatusColor = () => {
+    switch (status) {
+      case 'success': return 'text-emerald-600';
+      case 'warning': return 'text-amber-500';
+      case 'danger': return 'text-rose-600';
+      default: return 'text-[#1E3A8A]';
+    }
   };
 
-  const trendColors = {
-    up: 'text-success',
-    down: 'text-danger',
-    neutral: 'text-neutral',
+  const getBorderColor = () => {
+    switch (status) {
+      case 'success': return 'border-t-emerald-500';
+      case 'warning': return 'border-t-amber-500';
+      case 'danger': return 'border-t-rose-500';
+      default: return 'border-t-[#1E3A8A]';
+    }
   };
 
-  // Adjust trend color based on context (e.g. absent rate going down is good)
-  // For now, we'll keep it simple logic but this is where advanced logic would go
-  
   return (
     <div className={cn(
-      "dashboard-card p-5 flex flex-col justify-between h-full relative group",
-      className
+      "bg-white border border-slate-200 border-t-[4px] px-6 py-6 shadow-sm flex flex-col justify-between h-full relative overflow-hidden",
+      getBorderColor()
     )}>
-      <div className="flex justify-between items-start mb-2">
-        <h3 className="text-sm font-medium text-slate-500 flex items-center gap-2">
-          {title}
-          {description && (
-            <div className="relative group/tooltip">
-              <HelpCircle className="w-3 h-3 text-slate-400 cursor-help" />
-              <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 hidden group-hover/tooltip:block w-48 p-2 bg-slate-800 text-white text-xs rounded shadow-lg z-10">
-                {description}
-              </div>
-            </div>
-          )}
-        </h3>
-        {Icon && (
-          <div className={cn("p-2 rounded-lg", statusColors[status])}>
-            <Icon className="w-4 h-4" />
+      <div>
+        <div className="flex justify-between items-start mb-4">
+          <p className="text-[11px] font-extrabold text-slate-400 uppercase tracking-widest">{title}</p>
+          <div className="p-2 bg-slate-50 rounded">
+             <Icon className="w-4 h-4 text-[#1E3A8A] opacity-60" />
           </div>
-        )}
-      </div>
-
-      <div className="flex items-end gap-3 mt-1">
-        <span className="text-3xl font-bold tracking-tight text-slate-800 dark:text-slate-100">
-          {value}
-        </span>
-      </div>
-
-      {(trend || trendValue) && (
-        <div className="flex items-center gap-2 mt-3 text-xs font-medium">
-          <span className={cn(
-            "flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800",
-            trendDirection === 'up' ? 'text-success' : 
-            trendDirection === 'down' ? 'text-danger' : 'text-slate-500'
-          )}>
-            {trendDirection === 'up' ? <ArrowUpRight className="w-3 h-3" /> : 
-             trendDirection === 'down' ? <ArrowDownRight className="w-3 h-3" /> : null}
-            {trendValue}
-          </span>
-          <span className="text-slate-400">
-            {trend}
-          </span>
         </div>
+
+        <div className="space-y-1">
+          <h4 className={cn("text-3xl font-extrabold tracking-tighter leading-none", getStatusColor())}>
+            {value}
+          </h4>
+          {label && (
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{label}</p>
+          )}
+        </div>
+      </div>
+
+      {description && (
+        <p className="text-[12px] text-slate-500 mt-6 leading-snug font-medium pt-4 border-t border-slate-50">
+          {description}
+        </p>
       )}
     </div>
   );

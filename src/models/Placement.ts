@@ -1,14 +1,11 @@
-import mongoose from 'mongoose';
+import mongoose, { Schema } from 'mongoose';
 
-const PlacementSchema = new mongoose.Schema({
-  student_id: { type: mongoose.Schema.Types.String, ref: 'Student', required: true },
-  company_name: { type: String, required: true },
-  job_role: { type: String },
-  job_type: { type: String, enum: ['Full-time', 'Internship', 'Contract'], default: 'Full-time' },
-  location: { type: String },
-  ctc_package: { type: Number }, // In LPA
+const PlacementSchema = new Schema({
+  student_id: { type: Schema.Types.ObjectId, ref: 'Student', required: true, index: true },
+  drive_id: { type: Schema.Types.ObjectId, ref: 'PlacementDrive', required: true, index: true },
   
-  source: { type: String, default: 'Campus' }, // Campus, Off-campus, Referral
+  // Snapshot data (historical record even if drive changes)
+  job_role_applied: { type: String },
   
   current_status: {
     type: String,
@@ -16,25 +13,24 @@ const PlacementSchema = new mongoose.Schema({
     default: 'Applied'
   },
   
+  // Detailed Round Tracking
   interview_rounds: [{
-    round_type: String, // OA, Group Discussion, Technical, HR
+    round_type: { type: String }, // OA, GD, Tech, HR
     status: { type: String, enum: ['Pending', 'Cleared', 'Failed'] },
-    date: Date,
-    feedback: String
+    date: { type: Date },
+    feedback: { type: String }
   }],
   
-  application_date: { type: Date, default: Date.now },
-  last_updated: { type: Date, default: Date.now },
+  offer_letter_url: { type: String },
+  ctc_offered: { type: Number }, // Actual CTC if offered
   
-  // Professional tracking
-  email_communication_logs: [{
-    subject: String,
-    snippet: String,
-    timestamp: Date,
-    sentiment: String // Positive, Neutral, Negative
-  }]
+  application_date: { type: Date, default: Date.now },
+  last_updated: { type: Date, default: Date.now }
 }, {
   timestamps: true
 });
+
+// Unique application per student per drive
+PlacementSchema.index({ student_id: 1, drive_id: 1 }, { unique: true });
 
 export default mongoose.models.Placement || mongoose.model('Placement', PlacementSchema);

@@ -3,15 +3,17 @@ import mongoose, { Schema, Document } from 'mongoose';
 export interface IBranch extends Document {
   branch_code: string;
   branch_name: string;
-  total_students: number;
-  laptop_holders: number;
+  department: string;
+  current_strength: number;
 }
 
 const BranchSchema: Schema = new Schema({
-  branch_code: { type: String, required: true, unique: true },
+  branch_code: { type: String, required: true, unique: true }, // "CSE-A"
   branch_name: { type: String, required: true },
-  total_students: { type: Number, required: true },
-  laptop_holders: { type: Number, required: true },
+  department: { type: String, required: true }, // "CSE"
+  current_strength: { type: Number, default: 0 },
+  laptop_available: { type: Number, default: 0 },
+  laptop_not_available: { type: Number, default: 0 },
   deleted_at: { type: Date, default: null },
 }, { timestamps: true });
 

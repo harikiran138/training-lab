@@ -1,10 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
 import dbConnect from '@/lib/mongodb';
 import CRTWeeklyReport from '@/models/CRTWeeklyReport';
+<<<<<<< HEAD
 import {
   calculateSyllabusCompletion,
   calculateTestEffectiveness,
   calculateOverallScore
+=======
+import Branch from '@/models/Branch';
+import { 
+  calculateSyllabusCompletion, 
+  calculateTestEffectiveness, 
+  calculateOverallScore 
+>>>>>>> cc220ba30bbfaba848e3beb1472701385f162974
 } from '@/services/metrics';
 import { getSession } from '@/lib/auth';
 import { logAction } from '@/services/audit';
@@ -25,6 +33,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Reports must be an array' }, { status: 400 });
     }
 
+<<<<<<< HEAD
     const results = {
       success: 0,
       failed: 0,
@@ -51,6 +60,12 @@ export async function POST(request: NextRequest) {
       }
 
       try {
+=======
+        // V2: Resolve Branch ID
+        const branch = await Branch.findOne({ branch_code });
+        const branch_id = branch ? branch._id : undefined;
+
+>>>>>>> cc220ba30bbfaba848e3beb1472701385f162974
         // Calculate computed fields
         const syllabus_completion = calculateSyllabusCompletion(syllabus.covered, syllabus.total);
         const test_effectiveness = calculateTestEffectiveness(tests.avg_test_attendance_percent, tests.avg_test_pass_percent);
@@ -65,6 +80,7 @@ export async function POST(request: NextRequest) {
           )
         };
 
+<<<<<<< HEAD
         const reportData = {
           ...data,
           computed,
@@ -113,6 +129,15 @@ export async function POST(request: NextRequest) {
       summary: results,
       count: results.success
     });
+=======
+        return CRTWeeklyReport.findOneAndUpdate(
+          { branch_code, week_no },
+          { ...data, branch_id, computed },
+          { upsert: true, new: true }
+        );
+      })
+    );
+>>>>>>> cc220ba30bbfaba848e3beb1472701385f162974
 
   } catch (error: any) {
     console.error('Bulk upload error:', error);

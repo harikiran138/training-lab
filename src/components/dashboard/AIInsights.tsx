@@ -1,8 +1,9 @@
-'use client';
+"use client"
 
 import { useState, useEffect } from 'react';
 import { useChat } from '@ai-sdk/react';
-import { Sparkles, Send, Bot, Zap } from 'lucide-react';
+import { Sparkles, Send, Bot, Zap, ShieldCheck, Activity, Bell } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 export function AIInsights() {
   const [input, setInput] = useState('');
@@ -16,7 +17,7 @@ export function AIInsights() {
       {
         id: '1',
         role: 'system',
-        content: 'You are the Academic Performance Analyst. I can help you with student placement readiness, branch risk analysis, and faculty effectiveness.'
+        content: 'You are the Institutional Performance Analyst. I provide official insights on placement readiness, branch risk indices, and academic efficiency.'
       }
     ]
   } as any);
@@ -54,7 +55,6 @@ export function AIInsights() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!input.trim()) return;
-    
     const userMessage = input;
     setInput('');
     // @ts-ignore
@@ -62,108 +62,114 @@ export function AIInsights() {
   };
 
   return (
-    <div className="bg-slate-900 rounded-2xl p-6 text-white border border-slate-700 shadow-xl overflow-hidden flex flex-col h-[600px]">
-      <div className="flex items-center justify-between mb-6 pb-4 border-b border-slate-800">
-        <div className="flex items-center gap-3">
-          <div className="p-2 bg-indigo-500/20 rounded-lg">
-            <Sparkles className="w-5 h-5 text-indigo-400" />
+    <div className="bg-white border border-slate-200 rounded shadow-sm overflow-hidden flex flex-col h-[600px]">
+      {/* HEADER */}
+      <div className="px-6 py-4 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center">
+        <div className="flex items-center gap-4">
+          <div className="p-2 bg-blue-50 rounded text-[#1E3A8A]">
+            <Sparkles className="w-4 h-4" />
           </div>
           <div>
-            <h3 className="text-lg font-bold uppercase tracking-tight">Intelligence Engine</h3>
-            <p className="text-[10px] text-slate-400 uppercase font-black">Powered by Gemini & Real-Time DB</p>
+            <h3 className="text-[13px] font-extrabold text-[#1E3A8A] uppercase tracking-wider leading-none">Intelligence Engine</h3>
+            <p className="text-[9px] text-slate-400 uppercase font-bold mt-1 tracking-widest">Institutional AI v5.0</p>
           </div>
         </div>
         <button 
           onClick={runIntelligenceAudit}
           disabled={isAuditing}
-          className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 rounded-xl text-xs font-bold transition-all shadow-lg shadow-indigo-900/40 disabled:opacity-50"
+          className="flex items-center gap-2 px-4 py-2 bg-[#1E3A8A] hover:bg-blue-900 text-white rounded text-[10px] font-bold uppercase tracking-widest transition-all disabled:opacity-50"
         >
-          {isAuditing ? 'Generating...' : <><Zap className="w-3 h-3" /> AI Audit</>}
+          {isAuditing ? 'Auditing...' : <><Zap className="w-3 h-3" /> Execute Audit</>}
         </button>
       </div>
 
-      <div className="flex-1 overflow-y-auto space-y-4 pr-2 custom-scrollbar">
+      <div className="flex-1 overflow-y-auto p-6 space-y-6">
         {/* Intelligence Report Card */}
         {intelligence && (
-          <div className="bg-indigo-950/40 border border-indigo-500/30 rounded-2xl p-5 mb-6 animate-in fade-in zoom-in duration-500">
-            <div className="flex justify-between items-start mb-4">
-              <div className="bg-indigo-500 text-[10px] px-2 py-0.5 rounded font-black uppercase tracking-widest text-white">
-                Live Analysis
+          <div className="bg-blue-50/30 border border-blue-100 rounded p-6 space-y-4 animate-in fade-in slide-in-from-top-2 duration-500">
+            <div className="flex justify-between items-start">
+              <div className="flex items-center gap-2">
+                 <ShieldCheck className="w-4 h-4 text-[#1E3A8A]" />
+                 <span className="text-[10px] font-extrabold text-[#1E3A8A] uppercase tracking-widest">Automated System Remark</span>
               </div>
-              <div className={`text-[10px] px-2 py-0.5 rounded font-black uppercase ${
-                intelligence.risk_level === 'High' ? 'bg-red-500/20 text-red-400 border border-red-500/30' : 
-                intelligence.risk_level === 'Medium' ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30' : 
-                'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
-              }`}>
+              <span className={cn(
+                "px-2 py-0.5 rounded text-[9px] font-bold uppercase border",
+                intelligence.risk_level === 'High' ? 'bg-rose-50 text-rose-700 border-rose-100' : 
+                intelligence.risk_level === 'Medium' ? 'bg-amber-50 text-amber-700 border-amber-100' : 
+                'bg-emerald-50 text-emerald-700 border-emerald-100'
+              )}>
                 Risk: {intelligence.risk_level}
-              </div>
+              </span>
             </div>
-            <p className="text-sm text-indigo-100 leading-relaxed mb-4">
-              {intelligence.insight_text}
+            
+            <p className="text-[13px] font-medium leading-relaxed text-slate-700 italic border-l-2 border-[#1E3A8A] pl-4">
+              "{intelligence.insight_text}"
             </p>
+
             <div className="space-y-2">
-              <h4 className="text-[10px] font-black text-indigo-400 uppercase tracking-widest">Recommended Actions:</h4>
-              {(intelligence.action_plan || []).map((rec: any, idx: number) => (
-                <div key={idx} className="flex gap-3 items-center bg-slate-900/50 p-2 rounded-lg border border-slate-700/50">
-                   <div className={`w-1.5 h-1.5 rounded-full ${
-                     rec.priority === 'High' ? 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]' : 
-                     rec.priority === 'Medium' ? 'bg-amber-500' : 'bg-indigo-500'
-                   }`} />
-                   <p className="text-xs text-slate-300 font-medium">{rec.task}</p>
-                </div>
-              ))}
+              <h4 className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest">Procedural Recommendations:</h4>
+              <div className="grid grid-cols-1 gap-2">
+                {(intelligence.action_plan || []).map((rec: any, idx: number) => (
+                  <div key={idx} className="flex gap-3 items-center bg-white p-2.5 rounded border border-slate-100">
+                     <div className={cn(
+                       "w-1.5 h-1.5 rounded-full shrink-0",
+                       rec.priority === 'High' ? 'bg-rose-500' : 'bg-blue-400'
+                     )} />
+                     <p className="text-[11px] text-slate-600 font-bold">{rec.task}</p>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         )}
 
-        {messages.filter(m => m.role !== 'system').map((m: any) => (
-          <div key={m.id} className={`flex gap-3 ${m.role === 'user' ? 'flex-row-reverse' : ''}`}>
-            <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
-              m.role === 'user' ? 'bg-slate-700' : 'bg-indigo-600'
-            }`}>
-              {m.role === 'user' ? <div className="text-xs">You</div> : <Bot className="w-4 h-4" />}
+        <div className="space-y-4">
+            {messages.filter(m => m.role !== 'system').map((m: any) => (
+            <div key={m.id} className={cn("flex gap-3", m.role === 'user' ? 'flex-row-reverse' : '')}>
+                <div className={cn(
+                    "w-8 h-8 rounded shrink-0 flex items-center justify-center border",
+                    m.role === 'user' ? 'bg-slate-50 border-slate-200' : 'bg-blue-50 border-blue-100'
+                )}>
+                    {m.role === 'user' ? <div className="text-[10px] font-bold text-slate-400">YOU</div> : <Bot className="w-4 h-4 text-[#1E3A8A]" />}
+                </div>
+                <div className={cn(
+                    "p-3 rounded text-[13px] max-w-[85%] border shadow-sm",
+                    m.role === 'user' 
+                        ? 'bg-[#1E3A8A] text-white border-[#1E3A8A] rounded-tr-none font-medium' 
+                        : 'bg-white text-slate-700 border-slate-100 rounded-tl-none font-medium leading-relaxed'
+                )}>
+                    {m.content}
+                </div>
             </div>
-            <div className={`p-3 rounded-2xl max-w-[80%] text-sm ${
-              m.role === 'user' 
-                ? 'bg-slate-800 text-slate-200 rounded-tr-none' 
-                : 'bg-indigo-900/30 text-indigo-100 border border-indigo-500/30 rounded-tl-none'
-            }`}>
-              {m.content}
+            ))}
+            {isLoading && (
+            <div className="flex gap-3 animate-pulse">
+                <div className="w-8 h-8 rounded bg-blue-50 border border-blue-100 flex items-center justify-center shrink-0">
+                    <Bot className="w-4 h-4 text-[#1E3A8A]" />
+                </div>
+                <div className="w-12 h-8 bg-slate-50 border border-slate-100 rounded rounded-tl-none"></div>
             </div>
-          </div>
-        ))}
-        {isLoading && (
-          <div className="flex gap-3">
-             <div className="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center flex-shrink-0 animate-pulse">
-                <Bot className="w-4 h-4" />
-             </div>
-             <div className="p-3 rounded-2xl bg-indigo-900/30 border border-indigo-500/30 rounded-tl-none">
-               <span className="flex gap-1">
-                 <span className="w-1.5 h-1.5 bg-indigo-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}/>
-                 <span className="w-1.5 h-1.5 bg-indigo-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}/>
-                 <span className="w-1.5 h-1.5 bg-indigo-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}/>
-               </span>
-             </div>
-          </div>
-        )}
+            )}
+        </div>
       </div>
 
-      <form onSubmit={handleSubmit} className="mt-4 relative">
-        <input
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          placeholder="Type specifically to student or class..."
-          className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 pr-12 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 placeholder:text-slate-500"
-        />
-        <button 
-          type="submit"
-          disabled={isLoading || !input.trim()}
-          className="absolute right-2 top-1/2 -translate-y-1/2 p-2 bg-indigo-600 rounded-lg hover:bg-indigo-500 disabled:opacity-50 transition-colors"
-        >
-          <Send className="w-4 h-4" />
-        </button>
+      <form onSubmit={handleSubmit} className="p-4 bg-slate-50 border-t border-slate-100">
+        <div className="relative">
+            <input
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                placeholder="Inquire institutional query..."
+                className="w-full bg-white border border-slate-200 rounded px-4 py-3 pr-10 text-[12px] font-medium focus:ring-1 focus:ring-blue-100 transition-all outline-none"
+            />
+            <button 
+                type="submit"
+                disabled={isLoading || !input.trim()}
+                className="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-[#1E3A8A] hover:bg-blue-50 rounded transition-colors disabled:opacity-30"
+            >
+                <Send className="w-4 h-4" />
+            </button>
+        </div>
       </form>
     </div>
   );
 }
-

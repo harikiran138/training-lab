@@ -21,15 +21,40 @@ import {
   Pie,
   Cell
 } from 'recharts';
+import { ScientificCard } from '@/components/ui/ScientificCard';
+import { PieChart as PieIcon, Activity, BarChart as BarIcon } from 'lucide-react';
 
 interface ChartProps {
-  data: any[];
+  data: Record<string, any>[];
 }
 
-const COLORS = ['#10b981', '#f59e0b', '#f43f5e']; // Green, Amber, Rose
+const COLORS = ['#10b981', '#f59e0b', '#ef4444', '#06b6d4']; // Emerald, Amber, Red, Cyan
+
+interface CustomTooltipProps {
+  active?: boolean;
+  payload?: any[];
+  label?: string;
+}
+
+const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
+  if (active && payload && payload.length) {
+    return (
+      <div className="bg-slate-900 border border-slate-700 p-3 rounded shadow-xl">
+        <p className="text-slate-300 text-xs font-mono mb-1">{label}</p>
+        {payload.map((entry: any, index: number) => (
+          <p key={index} className="text-sm font-bold" style={{ color: entry.color }}>
+            {entry.name}: {entry.value}
+          </p>
+        ))}
+      </div>
+    );
+  }
+  return null;
+};
 
 export function RiskPieChart({ data }: ChartProps) {
   return (
+<<<<<<< HEAD
     <div className="h-[300px] w-full bg-white p-4 rounded-xl border border-slate-100 shadow-sm">
       <h4 className="text-sm font-semibold text-slate-700 mb-4">Risk Distribution</h4>
       <ResponsiveContainer width="100%" height="100%">
@@ -54,11 +79,38 @@ export function RiskPieChart({ data }: ChartProps) {
         </PieChart>
       </ResponsiveContainer>
     </div>
+=======
+    <ScientificCard title="Risk Distribution Profile" icon={PieIcon} className="h-full">
+      <div className="h-[250px] w-full">
+        <ResponsiveContainer width="100%" height="100%">
+          <PieChart>
+            <Pie
+              data={data}
+              cx="50%"
+              cy="50%"
+              innerRadius={60}
+              outerRadius={80}
+              paddingAngle={5}
+              dataKey="count"
+              stroke="none"
+            >
+              {data.map((entry, index) => (
+                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+              ))}
+            </Pie>
+            <Tooltip content={<CustomTooltip />} />
+            <Legend verticalAlign="bottom" height={36} iconType="circle" />
+          </PieChart>
+        </ResponsiveContainer>
+      </div>
+    </ScientificCard>
+>>>>>>> cc220ba30bbfaba848e3beb1472701385f162974
   );
 }
 
 export function TrendLineChart({ data }: ChartProps) {
   return (
+<<<<<<< HEAD
     <div className="h-[300px] w-full bg-white p-4 rounded-xl border border-slate-100 shadow-sm">
       <h4 className="text-sm font-semibold text-slate-700 mb-4">Weekly Performance Trend</h4>
       <ResponsiveContainer width="100%" height="100%">
@@ -101,11 +153,56 @@ export function TrendLineChart({ data }: ChartProps) {
         </LineChart>
       </ResponsiveContainer>
     </div>
+=======
+    <ScientificCard title="Longitudinal Performance Velocity" icon={Activity} className="h-full">
+      <div className="h-[250px] w-full">
+        <ResponsiveContainer width="100%" height="100%">
+          <LineChart data={data}>
+            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#1e293b" />
+            <XAxis 
+              dataKey="week_no" 
+              axisLine={false} 
+              tickLine={false} 
+              tick={{ fill: '#64748b', fontSize: 10, fontFamily: 'monospace' }}
+              dy={10}
+            />
+            <YAxis 
+              axisLine={false} 
+              tickLine={false} 
+              tick={{ fill: '#64748b', fontSize: 10, fontFamily: 'monospace' }}
+              domain={[0, 100]}
+              width={30}
+            />
+            <Tooltip content={<CustomTooltip />} />
+            <Line 
+              type="monotone" 
+              dataKey="overall_score" 
+              stroke="#06b6d4" 
+              strokeWidth={2} 
+              dot={{ r: 3, fill: '#06b6d4', strokeWidth: 0 }}
+              activeDot={{ r: 5, fill: '#fff' }}
+              name="Overall Score"
+            />
+            <Line 
+              type="monotone" 
+              dataKey="attendance" 
+              stroke="#6366f1" 
+              strokeWidth={2} 
+              strokeDasharray="4 4"
+              dot={false}
+              name="Attendance %"
+            />
+          </LineChart>
+        </ResponsiveContainer>
+      </div>
+    </ScientificCard>
+>>>>>>> cc220ba30bbfaba848e3beb1472701385f162974
   );
 }
 
 export function BranchBarChart({ data }: ChartProps) {
   return (
+<<<<<<< HEAD
     <div className="h-[300px] w-full bg-white p-4 rounded-xl border border-slate-100 shadow-sm">
       <h4 className="text-sm font-semibold text-slate-700 mb-4">Branch Comparison</h4>
       <ResponsiveContainer width="100%" height="100%">
@@ -131,6 +228,34 @@ export function BranchBarChart({ data }: ChartProps) {
         </BarChart>
       </ResponsiveContainer>
     </div>
+=======
+    <ScientificCard title="Departmental Efficiency Metrics" icon={BarIcon} className="h-full">
+      <div className="h-[250px] w-full">
+        <ResponsiveContainer width="100%" height="100%">
+          <BarChart data={data} barGap={8}>
+            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#1e293b" />
+            <XAxis 
+              dataKey="branch_code" 
+              axisLine={false} 
+              tickLine={false} 
+              tick={{ fill: '#64748b', fontSize: 10, fontFamily: 'monospace' }}
+              dy={10}
+            />
+            <YAxis 
+              axisLine={false} 
+              tickLine={false} 
+              tick={{ fill: '#64748b', fontSize: 10, fontFamily: 'monospace' }}
+              width={30}
+            />
+            <Tooltip content={<CustomTooltip />} cursor={{fill: '#1e293b'}} />
+            <Legend iconType="rect" wrapperStyle={{ paddingTop: '20px', fontSize: '12px', fontFamily: 'monospace' }} />
+            <Bar dataKey="avg_attendance" fill="#06b6d4" radius={[2, 2, 0, 0]} name="Attendance Mean" />
+            <Bar dataKey="avg_test_pass" fill="#10b981" radius={[2, 2, 0, 0]} name="Pass Rate" />
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
+    </ScientificCard>
+>>>>>>> cc220ba30bbfaba848e3beb1472701385f162974
   );
 }
 

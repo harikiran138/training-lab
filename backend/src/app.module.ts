@@ -10,6 +10,7 @@ import { StudentsModule } from './modules/students/students.module';
 import { AssessmentsModule } from './modules/assessments/assessments.module';
 import { AttendanceModule } from './modules/attendance/attendance.module';
 import { AuditModule } from './modules/audit/audit.module';
+import { AnalyticsModule } from './modules/analytics/analytics.module';
 
 @Module({
   imports: [
@@ -28,6 +29,7 @@ import { AuditModule } from './modules/audit/audit.module';
     AssessmentsModule,
     AttendanceModule,
     AuditModule,
+    AnalyticsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

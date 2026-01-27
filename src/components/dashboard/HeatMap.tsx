@@ -2,77 +2,69 @@
 
 import React from 'react';
 import { cn } from '@/lib/utils';
-
-// Simple heatmap implementation
-// In a real scenario, this might use a library or more complex logic
-// This version expects pre-calculated color grades or simple values
+import { Layers } from 'lucide-react';
 
 interface HeatMapItem {
   id: string;
   label: string;
   value: number;
-  secondaryValue?: number; // e.g., Pass % alongside Attendance
-  status?: 'success' | 'warning' | 'danger' | 'neutral';
+  secondaryValue?: number;
 }
 
 interface HeatMapProps {
-  title?: string;
+  title: string;
   data: HeatMapItem[];
-  className?: string;
-  onItemClick?: (item: HeatMapItem) => void;
 }
 
-export function HeatMap({
-  title,
-  data,
-  className,
-  onItemClick
-}: HeatMapProps) {
-
-  // Helper to determine color intensity based on value (0-100)
-  const getBackgroundColor = (value: number) => {
-    // Green gradient
-    if (value >= 90) return 'bg-emerald-500 text-white';
-    if (value >= 80) return 'bg-emerald-400 text-white';
-    if (value >= 70) return 'bg-emerald-300 text-slate-800';
-    if (value >= 60) return 'bg-emerald-200 text-slate-800';
-    // Warning/Danger
-    if (value >= 50) return 'bg-amber-200 text-slate-800';
-    if (value >= 40) return 'bg-amber-300 text-slate-800';
-    return 'bg-red-300 text-slate-800';
+export function HeatMap({ title, data }: HeatMapProps) {
+  const getBlueScale = (value: number) => {
+    if (value >= 90) return 'bg-[#1E3A8A] text-white';
+    if (value >= 80) return 'bg-[#3B82F6] text-white';
+    if (value >= 70) return 'bg-[#60A5FA] text-white';
+    if (value >= 50) return 'bg-[#93C5FD] text-[#1E3A8A]';
+    return 'bg-[#DBEAFE] text-[#1E3A8A]';
   };
 
   return (
-    <div className={cn("dashboard-card p-6", className)}>
+    <div className="bg-white border border-slate-200 p-8 rounded shadow-sm h-full flex flex-col">
       {title && (
-        <h3 className="text-lg font-semibold text-slate-800 dark:text-slate-100 mb-4">
-          {title} <span className="text-sm font-normal text-slate-400 ml-2">(Click to filter)</span>
-        </h3>
+         <h3 className="text-[14px] font-extrabold text-[#1E3A8A] uppercase tracking-wider mb-10 border-l-4 border-[#1E3A8A] pl-4">
+            {title}
+         </h3>
       )}
       
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+      <div className="flex-grow grid grid-cols-2 lg:grid-cols-4 gap-4">
         {data.map((item) => (
-          <button
+          <div 
             key={item.id}
-            onClick={() => onItemClick?.(item)}
             className={cn(
-              "flex flex-col items-center justify-center p-3 rounded-lg transition-all duration-200 hover:scale-105 active:scale-95 group",
-              getBackgroundColor(item.value)
+                "p-4 rounded border border-slate-100 flex flex-col justify-between transition-all hover:scale-[1.02] cursor-default",
+                getBlueScale(item.value)
             )}
           >
-            <span className="text-sm font-bold truncate w-full text-center">
-              {item.label}
-            </span>
-            <span className="text-xl font-bold">
-              {item.value}%
-            </span>
+            <div>
+              <p className="text-[10px] font-extrabold uppercase tracking-widest opacity-80 mb-1">{item.id}</p>
+              <h4 className="text-xl font-black">{item.value}%</h4>
+            </div>
             {item.secondaryValue !== undefined && (
-              <span className="text-xs opacity-75 mt-1">
-                Pass: {item.secondaryValue}%
-              </span>
+              <p className="text-[10px] font-bold mt-4 opacity-60">STR: {item.secondaryValue}</p>
             )}
-          </button>
+          </div>
         ))}
+      </div>
+
+      <div className="mt-8 pt-6 border-t border-slate-50 flex justify-between items-center">
+            <div className="flex items-center gap-6">
+                <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 bg-[#1E3A8A] rounded-sm"></div>
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">90%+</span>
+                </div>
+                <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 bg-[#DBEAFE] rounded-sm"></div>
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">&lt;50%</span>
+                </div>
+            </div>
+            <Layers className="w-4 h-4 text-slate-200" />
       </div>
     </div>
   );

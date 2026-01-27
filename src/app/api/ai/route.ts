@@ -1,6 +1,8 @@
 import { streamText } from 'ai';
 import { createOpenAI } from '@ai-sdk/openai';
 import { AnalyticsService } from '@/services/analytics/AnalyticsService';
+import { analyzeStudentExtended } from '@/services/ai/StudentAnalysisService';
+import { analyzeFacultyExtended } from '@/services/ai/FacultyAnalysisService';
 
 // Configure the provider. 
 // Note: The user provided key starts with 'vck_', which implies Vercel. 
@@ -20,11 +22,43 @@ const openai = createOpenAI({
   // actually 'vck_' usually implies Vercel's hosted model access.
 });
 
-export const maxDuration = 30;
+export const maxDuration = 60; // Increased for complex analysis
 
 export async function POST(req: Request) {
-  const { messages } = await req.json();
+  const body = await req.json();
+  const { messages, action, studentId, facultyId } = body; // Added facultyId
 
+  // 1. Handle Student Analysis
+  if (action === 'analyze_student' && studentId) {
+    try {
+      const result = await analyzeStudentExtended(studentId);
+      return new Response(JSON.stringify(result), {
+        headers: { 'Content-Type': 'application/json' },
+      });
+    } catch (error: any) {
+      return new Response(JSON.stringify({ error: error.message }), {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+  }
+
+  // 2. Handle Faculty Analysis
+  if (action === 'analyze_faculty' && facultyId) {
+    try {
+      const result = await analyzeFacultyExtended(facultyId);
+      return new Response(JSON.stringify(result), {
+        headers: { 'Content-Type': 'application/json' },
+      });
+    } catch (error: any) {
+      return new Response(JSON.stringify({ error: error.message }), {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+  }
+
+  // 3. Default Streaming Feedback (Existing behavior) // Updated comment number
   // 1. Fetch Context
   const dashboardMetrics = await AnalyticsService.getDashboardMetrics();
   
@@ -36,7 +70,6 @@ export async function POST(req: Request) {
     Current Data:
     - Overall Attendance: ${dashboardMetrics.kpis.avgAttendance.toFixed(1)}%
     - Overall Pass %: ${dashboardMetrics.kpis.avgPassPercent.toFixed(1)}%
-    - Critical Branches: ${dashboardMetrics.rankings.filter((r: any) => r.computed?.risk_level === 'Critical').map((r: any) => r.branch_code).join(', ')}
     
     Structure your response as:
     1. Executive Summary

@@ -12,6 +12,12 @@ export interface ICRTWeeklyReport extends Document {
   attendance: {
     avg_attendance_percent: number;
     low_attendance_count?: number; // Count of students with < X% attendance
+    daily?: Array<{
+      day_no: number;
+      attendance_count: number | "No CRT";
+      attendance_percent?: number;
+      is_no_crt: boolean;
+    }>;
   };
 
   tests: {
@@ -68,6 +74,7 @@ export interface ICRTWeeklyReport extends Document {
 
 const CRTWeeklyReportSchema: Schema = new Schema({
   branch_code: { type: String, required: true, index: true },
+  branch_id: { type: Schema.Types.ObjectId, ref: 'Branch', index: true }, // V2 Link
   week_no: { type: Number, required: true, index: true },
   week_start_date: { type: Date },
   week_end_date: { type: Date },
@@ -76,7 +83,13 @@ const CRTWeeklyReportSchema: Schema = new Schema({
   section: { type: String, required: true, default: 'A', index: true },
   attendance: {
     avg_attendance_percent: { type: Number, required: true, default: 0 },
-    low_attendance_count: { type: Number, default: 0 }
+    low_attendance_count: { type: Number, default: 0 },
+    daily: [{
+      day_no: Number,
+      attendance_count: Schema.Types.Mixed, // number or "No CRT"
+      attendance_percent: Number,
+      is_no_crt: Boolean
+    }]
   },
 
   tests: {

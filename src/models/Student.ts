@@ -1,41 +1,36 @@
-import mongoose from 'mongoose';
+import mongoose, { Schema } from 'mongoose';
 
 const StudentSchema = new mongoose.Schema({
-  student_id: { type: String, required: true, unique: true },
+  student_id: { type: String, required: true, unique: true }, // Mapping to roll_no/admission_no for legacy support
+  admission_no: { type: String, unique: true, sparse: true },
+  roll_no: { type: String, unique: true, sparse: true },
   name: { type: String, required: true },
-  email: { type: String },
-  branch_code: { type: String, required: true }, // Links to Branch
+  gender: { type: String, enum: ['Male', 'Female', 'Other'] },
+  date_of_birth: { type: Date },
+  
+  // Contact
+  email: { type: String, unique: true, sparse: true },
+  mobile_no: { type: String },
+
+  // Academic Context (Referential Integrity)
+  branch_id: { type: Schema.Types.ObjectId, ref: 'Branch', required: true, index: true },
+  branch_code: { type: String }, // Denormalized for display (e.g., "CSE-A")
+  
   section: { type: String },
-  year: { type: Number, required: true },
+  current_year: { type: Number },
   current_semester: { type: Number },
+  current_batch: { type: String }, // "3-2"
   
-  // Discipline & Academic
-  attendance_discipline_score: { type: Number, default: 0 }, // 0-100
+  // Performance & AI Insights
+  attendance_discipline_score: { type: Number, default: 0 },
   academic_gpa: { type: Number, default: 0 },
-  
-  // Skills & Proficiency
-  skills: [{
-    skill_name: String,
-    proficiency_level: { type: String, enum: ['Beginner', 'Intermediate', 'Advanced', 'Expert'] },
-    last_assessed: Date
-  }],
-  certifications: [{
-    title: String,
-    provider: String,
-    date_obtained: Date,
-    url: String
-  }],
-  
-  // Placement Readiness
   resume_score: { type: Number, default: 0 },
-  placement_readiness_index: { type: Number, default: 0 }, // AI Generated PRI
-  tags: [String], // DSA, MERN, Cloud, etc.
   
-  risk_level: { 
-    type: String, 
-    enum: ['Low', 'Medium', 'High'], 
-    default: 'Low' 
-  },
+  // V2: Derived Analytics
+  latest_placement_readiness: { type: Number, default: 0 },
+  attendance_risk_flag: { type: String, enum: ['RED', 'AMBER', 'GREEN'], default: 'GREEN' },
+  
+  tags: [String], // DSA, MERN, etc.
   
   last_ai_update: { type: Date, default: Date.now }
 }, {
