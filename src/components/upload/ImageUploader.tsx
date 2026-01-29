@@ -1,9 +1,7 @@
 'use client';
 
 import { useState, useCallback } from 'react';
-import { useDropzone } from 'react-dropzone'; // Check if I can use this or just manual events. 
-// I don't see react-dropzone in package.json. I will implement manual drag-drop to avoid installing new deps if possible, or just standard file input first.
-// Actually, standard file input is safer. I'll implement a custom UI that triggers the hidden input.
+// Manual drag-drop implementation used to avoid extra dependencies.
 import { Upload, File as FileIcon, Loader2, AlertCircle } from 'lucide-react';
 import { uploadImage } from '@/app/actions/upload';
 import { useRouter } from 'next/navigation';
@@ -158,8 +156,8 @@ export default function ImageUploader() {
                     type="submit"
                     disabled={!file || isUploading}
                     className={`w-full flex justify-center items-center py-3 px-4 rounded-md text-white font-medium transition-all ${!file || isUploading
-                            ? 'bg-slate-400 cursor-not-allowed'
-                            : 'bg-blue-600 hover:bg-blue-700 shadow-sm'
+                        ? 'bg-slate-400 cursor-not-allowed'
+                        : 'bg-blue-600 hover:bg-blue-700 shadow-sm'
                         }`}
                 >
                     {isUploading ? (

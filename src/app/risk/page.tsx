@@ -16,7 +16,7 @@ import { cn } from '@/lib/utils';
 import { MitigationModal } from '@/components/dashboard/MitigationModal';
 import { ActiveMitigations } from '@/components/dashboard/ActiveMitigations';
 import { RiskPieChart } from '@/components/dashboard/OverviewCharts';
-import { AIInsights } from '@/components/dashboard/AIInsights';
+import { AIInsightPanel } from '@/components/dashboard/AIInsightPanel';
 import { StatisticalAudit } from '@/components/dashboard/StatisticalAudit';
 
 export default function RiskAnalysisPage() {
@@ -82,8 +82,11 @@ export default function RiskAnalysisPage() {
         <div className="md:col-span-1">
           <RiskPieChart data={distribution} />
         </div>
-        <div className="md:col-span-2">
-          <AIInsights />
+        <div className="md:col-span-2 bg-white rounded-3xl border border-slate-100 p-8 flex flex-col justify-center items-center text-center space-y-4">
+          <div className="w-12 h-12 bg-indigo-50 rounded-full flex items-center justify-center text-indigo-500">
+            <ShieldAlert className="w-6 h-6" />
+          </div>
+          <p className="text-sm text-slate-500 max-w-xs">AI Deep Search currently analyzing risk vectors...</p>
         </div>
       </div>
 

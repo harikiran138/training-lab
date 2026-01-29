@@ -14,4 +14,9 @@ export class AnalyticsController {
     async getTrends() {
         return this.analyticsService.getWeeklyTrends();
     }
+
+    @Get('students')
+    async getStudentAnalytics() {
+        return this.analyticsService.getStudentAnalytics();
+    }
 }

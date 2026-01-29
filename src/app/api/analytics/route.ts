@@ -20,14 +20,7 @@ export async function GET() {
         const dashboardData = await dashboardRes.json();
         const trendData = await trendsRes.json();
 
-        // 0. Fetch auxiliary data from MongoDB (Laptops, Syllabus progress)
-        // In a real scenario, we would aggregate these. For now, using mock or small counts.
-        // const totalLaptops = await StudentAsset.countDocuments({ type: 'LAPTOP' });
-        // const syllabusAvg = await SyllabusLog.aggregate([...]);
-        const auxiliaryStats = {
-            totalLaptops: 842, // Mock or from DB
-            syllabusProgress: 68
-        };
+        const kpis = dashboardData.kpis || {};
 
         // Map Backend Response to Frontend UI Contract
 
@@ -43,19 +36,18 @@ export async function GET() {
         const branchComparisonData = Array.isArray(dashboardData.rankings) ? dashboardData.rankings.map((r: any) => ({
             branch_code: r.dept_code || r.section_name,
             avg_attendance: Math.round(r.attendance_pct || 0),
-            avg_test_pass: Math.round(Math.random() * 20 + 70), // Fallback random for display
-            syllabus_completion_percent: Math.round(Math.random() * 30 + 50)
+            avg_test_pass: Math.round(r.test_pass_pct || 0),
+            syllabus_completion_percent: Math.round(r.syllabus_pct || 0)
         })) : [];
 
         // 3. Overall Stats
-        const kpis = dashboardData.kpis || {};
-        const totalStudents = 1250; // Should be fetched from backend or DB
+        const totalStudents = kpis.total_students || 1250;
         const stats = {
             totalStudents,
-            laptopPercent: Math.round((auxiliaryStats.totalLaptops / totalStudents) * 100),
+            laptopPercent: Math.round(kpis.laptop_coverage || 0),
             avgAttendance: Math.round(kpis.avg_attendance || 0),
             avgPass: Math.round(kpis.avg_pass_rate || 0),
-            avgSyllabus: auxiliaryStats.syllabusProgress,
+            avgSyllabus: Math.round(kpis.syllabus_completion || 0),
             totalDepartments: parseInt(kpis.total_departments || '0')
         };
 
@@ -69,7 +61,7 @@ export async function GET() {
 
     } catch (error) {
         console.error('Analytics Proxy Error:', error);
-        // Return fallback data to avoid crashing UI
+        // Return fallback error status
         return NextResponse.json({ error: 'Failed to fetch analytics data' }, { status: 500 });
     }
 }

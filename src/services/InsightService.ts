@@ -93,8 +93,19 @@ export function generateRuleBasedInsights(data: DashboardData): Insight[] {
         });
     }
 
-    // Limit to top 4 insights
-    return insights.slice(0, 4);
+    // 5. Laptop Availability Check
+    if (stats.laptopPercent < 70) {
+        insights.push({
+            id: 'laptop-shortage',
+            type: 'attention',
+            title: 'Critical Infrastructure Gap',
+            description: `Only ${stats.laptopPercent}% of students have laptops, which may be significantly hindering the effectiveness of digital-first CRT sessions.`,
+            sentiment: 'negative'
+        });
+    }
+
+    // Limit to top 5 insights
+    return insights.slice(0, 5);
 }
 
 /**
@@ -146,18 +157,29 @@ export function generateSectionInsights(
         }
     }
 
-    // 3. Consistency Anomaly
-    if (latest.attendance > 95 && latest.passRate < 40) {
+    // 3. Consistency Anomaly: High Attendance but Low Scores
+    if (latest.attendance > 90 && latest.passRate < 50) {
         insights.push({
             id: 'sec-mismatch',
             type: 'anomaly',
-            title: 'Engagement Mismatch',
-            description: 'Near-perfect attendance recorded despite very low pass rates. Verify test alignment or student focus.',
+            title: 'Performance Paradox',
+            description: 'This section maintains high physical engagement (attendance > 90%) but demonstrates suboptimal academic output (pass rate < 50%). Investigate teaching methodology vs. assessment difficulty.',
             sentiment: 'negative'
         });
     }
 
-    return insights.slice(0, 3);
+    // 4. Critical Surge Check
+    if (prev && latest.passRate - prev.passRate > 20) {
+        insights.push({
+            id: 'sec-surge',
+            type: 'trend',
+            title: 'Remarkable Velocity',
+            description: `Academic pass rates surged by ${(latest.passRate - prev.passRate).toFixed(1)}% this week. Verify if this is due to specific interventions or outlier assessments.`,
+            sentiment: 'positive'
+        });
+    }
+
+    return insights.slice(0, 4);
 }
 
 // Simulating Async AI Call

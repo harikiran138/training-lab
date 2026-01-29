@@ -3,45 +3,63 @@
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import { ArrowUpRight } from 'lucide-react';
 
-const data = [
-    { name: 'Mon', attendance: 85 },
-    { name: 'Tue', attendance: 92 },
-    { name: 'Wed', attendance: 88 },
-    { name: 'Thu', attendance: 78 },
-    { name: 'Fri', attendance: 50 }, // Low attendance example
-    { name: 'Sat', attendance: 0 },
-    { name: 'Sun', attendance: 0 },
+const mockData = [
+    { week_no: 'Mon', attendance: 85 },
+    { week_no: 'Tue', attendance: 92 },
+    { week_no: 'Wed', attendance: 88 },
+    { week_no: 'Thu', attendance: 78 },
+    { week_no: 'Fri', attendance: 50 }, // Low attendance example
+    { week_no: 'Sat', attendance: 0 },
+    { week_no: 'Sun', attendance: 0 },
 ];
 
-export function PerformanceChart() {
+interface PerformanceChartProps {
+    data?: any[];
+}
+
+export function PerformanceChart({ data }: PerformanceChartProps) {
+    const chartData = data && data.length > 0
+        ? data.map(d => ({
+            ...d,
+            week_no: d.period ? new Date(d.period).toLocaleDateString('en-US', { weekday: 'short' }) : d.week_no
+        }))
+        : mockData;
+
     return (
-        <div className="p-6 rounded-3xl bg-[#0F1115] text-white h-full">
+        <div className="p-6 rounded-3xl bg-[#0F1115] text-white h-full border border-white/5">
             <div className="flex justify-between items-start mb-8">
                 <div>
-                    <h3 className="text-lg font-semibold">Weekly Attendance</h3>
-                    <p className="text-xs text-gray-500">This week vs last week</p>
+                    <h3 className="text-lg font-semibold text-gray-100">Weekly Attendance</h3>
+                    <p className="text-xs text-gray-500 font-medium">Trends from backend tracking</p>
                 </div>
-                <button className="p-2 bg-white/10 rounded-full text-white hover:bg-white/20 transition-colors">
-                    <ArrowUpRight className="w-4 h-4" />
+                <button className="p-2 bg-white/5 hover:bg-white/10 rounded-full transition-colors group">
+                    <ArrowUpRight className="w-4 h-4 text-gray-400 group-hover:text-white" />
                 </button>
             </div>
 
             <div className="h-[200px] w-full">
                 <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={data}>
+                    <BarChart data={chartData}>
                         <XAxis
-                            dataKey="name"
+                            dataKey="week_no"
                             axisLine={false}
                             tickLine={false}
-                            tick={{ fill: '#6b7280', fontSize: 10 }}
+                            tick={{ fill: '#4b5563', fontSize: 10, fontWeight: 500 }}
                             dy={10}
                         />
                         <Tooltip
-                            cursor={{ fill: 'rgba(255,255,255,0.05)' }}
-                            contentStyle={{ backgroundColor: '#1f2937', borderColor: '#374151', borderRadius: '8px', color: 'white' }}
+                            cursor={{ fill: 'rgba(59, 130, 246, 0.05)' }}
+                            contentStyle={{
+                                backgroundColor: '#111827',
+                                border: '1px solid #374151',
+                                borderRadius: '12px',
+                                color: 'white',
+                                fontSize: '12px'
+                            }}
+                            itemStyle={{ color: '#3b82f6' }}
                         />
-                        <Bar dataKey="attendance" radius={[4, 4, 4, 4]} barSize={32}>
-                            {data.map((entry, index) => (
+                        <Bar dataKey="attendance" radius={[6, 6, 6, 6]} barSize={24}>
+                            {chartData.map((entry, index) => (
                                 <Cell key={`cell-${index}`} fill={entry.attendance > 0 ? "#3b82f6" : "transparent"} />
                             ))}
                         </Bar>

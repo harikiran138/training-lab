@@ -25,6 +25,9 @@ export class Student {
     @Column({ name: 'is_active', default: true })
     isActive: boolean;
 
+    @Column({ name: 'has_laptop', default: false })
+    hasLaptop: boolean;
+
     @CreateDateColumn({ name: 'created_at' })
     createdAt: Date;
 }

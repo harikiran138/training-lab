@@ -1,44 +1,44 @@
 import { NextRequest, NextResponse } from 'next/server';
-import dbConnect from '@/lib/mongodb';
-import CRTWeeklyReport from '@/models/CRTWeeklyReport';
 import { model } from '@/lib/ai/client';
 import { getSession } from '@/lib/auth';
 import { generatePredictions } from '@/services/InsightService';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(req: NextRequest) {
     try {
-        await dbConnect();
         const session = await getSession();
         if (!session) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        // Fetch finalized reports for analysis
-        const reports = await CRTWeeklyReport.find({ status: 'finalized' })
-            .sort({ week_no: 1 })
-            .lean();
+        const backendUrl = process.env.BACKEND_URL || 'http://localhost:3000';
 
-        if (reports.length === 0) {
+        // Fetch Trend Data from NestJS Backend
+        const trendsRes = await fetch(`${backendUrl}/analytics/trends`, { cache: 'no-store' });
+
+        if (!trendsRes.ok) {
             return NextResponse.json({
                 success: true,
-                insights: ["Insufficient data to generate AI insights. Please finalize more weekly reports."]
+                insights: ["System is synchronizing data. AI insights will be available shortly."]
+            });
+        }
+
+        const trendData = await trendsRes.json();
+
+        if (!Array.isArray(trendData) || trendData.length < 2) {
+            return NextResponse.json({
+                success: true,
+                insights: ["Insufficient trend data to generate AI insights. Please wait for more weekly reports."]
             });
         }
 
         // Prepare data for Gemini context
-        const institutionSummary = reports.reduce((acc: any, report: any) => {
-            const week = `W${report.week_no}`;
-            if (!acc[week]) acc[week] = { attendance: 0, pass: 0, count: 0 };
-            acc[week].attendance += report.attendance.avg_attendance_percent;
-            acc[week].pass += report.tests.avg_test_pass_percent;
-            acc[week].count += 1;
-            return acc;
-        }, {});
-
-        const simplifiedContext = Object.entries(institutionSummary).map(([week, stats]: [string, any]) => ({
-            week,
-            attendance: parseFloat((stats.attendance / stats.count).toFixed(1)),
-            pass: parseFloat((stats.pass / stats.count).toFixed(1))
+        // Backend returns: { period: date, attendance: number, average_score: number }
+        const simplifiedContext = trendData.map((d: any) => ({
+            week: d.period ? `W${new Date(d.period).toISOString().slice(0, 10)}` : 'W?',
+            attendance: Math.round(d.attendance || 0),
+            pass: Math.round(d.average_score || 0)
         }));
 
         // Generate Predictions

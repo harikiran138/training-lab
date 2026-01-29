@@ -1,37 +1,43 @@
 "use client";
 
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
-import { cn } from '@/lib/utils';
 import { ArrowUpRight } from 'lucide-react';
 
-const data = [
-    { name: 'Computer Science', value: 400, color: '#3b82f6' }, // Blue
-    { name: 'Engineering', value: 300, color: '#f97316' },      // Orange
-    { name: 'Business', value: 300, color: '#eab308' },         // Yellow
-    { name: 'Arts', value: 200, color: '#22c55e' },            // Green
+const mockData = [
+    { branch_code: 'CS', avg_attendance: 78, color: '#3b82f6' },
+    { branch_code: 'ENG', avg_attendance: 82, color: '#f97316' },
+    { branch_code: 'BUS', avg_attendance: 85, color: '#eab308' },
+    { branch_code: 'ARTS', avg_attendance: 70, color: '#22c55e' },
 ];
 
-// Custom label for the center of the donut
-const CustomLabel = ({ viewBox }: any) => {
-    const { cx, cy } = viewBox;
-    return (
-        <text x={cx} y={cy} fill="white" textAnchor="middle" dominantBaseline="central">
-            <tspan x={cx} y={cy} dy="-10" fontSize="24" fontWeight="bold">1,200</tspan>
-            <tspan x={cx} y={cy} dy="20" fontSize="12" fill="#9ca3af">Total Students</tspan>
-        </text>
-    );
-};
+const COLORS = ['#3b82f6', '#f97316', '#eab308', '#22c55e', '#a855f7', '#ec4899'];
 
-export function DemographicsChart() {
+interface DemographicsChartProps {
+    data?: any[];
+}
+
+export function DemographicsChart({ data }: DemographicsChartProps) {
+    const chartData = data && data.length > 0
+        ? data.map((item, index) => ({
+            branch_code: item.branch, // Map API 'branch' to 'branch_code'
+            value: parseInt(item.count),
+            color: COLORS[index % COLORS.length]
+        }))
+        : mockData.map(d => ({ ...d, value: d.avg_attendance })); // Fallback map
+
+    const totalStudents = chartData.length > 0
+        ? chartData.reduce((sum, item) => sum + (item.value || 0), 0)
+        : 0;
+
     return (
-        <div className="p-6 rounded-3xl bg-[#0F1115] text-white h-full relative overflow-hidden">
+        <div className="p-6 rounded-3xl bg-[#0F1115] text-white h-full relative overflow-hidden border border-white/5">
             <div className="flex justify-between items-start mb-6">
                 <div>
-                    <h3 className="text-lg font-semibold">Student Demographics</h3>
-                    <p className="text-xs text-gray-500">By Major/Department</p>
+                    <h3 className="text-lg font-semibold text-gray-100">Enrollment Distribution</h3>
+                    <p className="text-xs text-gray-500 font-medium">Students per Department</p>
                 </div>
-                <button className="p-2 bg-white/5 hover:bg-white/10 rounded-full transition-colors">
-                    <ArrowUpRight className="w-4 h-4 text-white" />
+                <button className="p-2 bg-white/5 hover:bg-white/10 rounded-full transition-colors group">
+                    <ArrowUpRight className="w-4 h-4 text-gray-400 group-hover:text-white" />
                 </button>
             </div>
 
@@ -39,41 +45,47 @@ export function DemographicsChart() {
                 <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
                         <Pie
-                            data={data}
+                            data={chartData}
                             cx="50%"
                             cy="50%"
-                            innerRadius={60}
-                            outerRadius={80}
-                            paddingAngle={5}
+                            innerRadius={65}
+                            outerRadius={85}
+                            paddingAngle={8}
                             dataKey="value"
                             stroke="none"
+                            nameKey="branch_code"
                         >
-                            {data.map((entry, index) => (
+                            {chartData.map((entry, index) => (
                                 <Cell key={`cell-${index}`} fill={entry.color} />
                             ))}
-                            {/* <Label content={<CustomLabel />} position="center" /> */}
                         </Pie>
                         <Tooltip
-                            contentStyle={{ backgroundColor: '#1f2937', borderColor: '#374151', borderRadius: '8px', color: 'white' }}
+                            contentStyle={{
+                                backgroundColor: '#111827',
+                                border: '1px solid #374151',
+                                borderRadius: '12px',
+                                color: 'white',
+                                fontSize: '12px'
+                            }}
                             itemStyle={{ color: 'white' }}
+                            formatter={(value: any) => [`${value} Students`, 'Enrollment']}
                         />
                     </PieChart>
                 </ResponsiveContainer>
-                {/* Absolute center text overlay as Recharts Label can be tricky with types */}
                 <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                    <span className="text-2xl font-bold">1.2k</span>
-                    <span className="text-[10px] text-gray-500">Students</span>
+                    <span className="text-3xl font-bold text-gray-100">{totalStudents}</span>
+                    <span className="text-[10px] text-gray-500 font-bold uppercase tracking-wider">Total</span>
                 </div>
             </div>
 
-            <div className="flex flex-col gap-3 mt-4">
-                {data.map((item) => (
-                    <div key={item.name} className="flex items-center justify-between text-xs">
+            <div className="grid grid-cols-2 gap-x-4 gap-y-2 mt-6">
+                {chartData.slice(0, 4).map((item) => (
+                    <div key={item.branch_code} className="flex items-center justify-between p-2 rounded-xl bg-white/5 border border-white/5">
                         <div className="flex items-center gap-2">
                             <div className="w-2 h-2 rounded-full" style={{ backgroundColor: item.color }} />
-                            <span className="text-gray-300">{item.name}</span>
+                            <span className="text-[11px] font-bold text-gray-400">{item.branch_code}</span>
                         </div>
-                        <span className="font-medium text-white">{Math.round((item.value / 1200) * 100)}%</span>
+                        <span className="text-[11px] font-bold text-white">{item.value}</span>
                     </div>
                 ))}
             </div>
