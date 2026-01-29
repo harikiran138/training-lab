@@ -23,6 +23,7 @@ export default function TrendsPage() {
   const [compareBranch, setCompareBranch] = useState<string>('None');
   const [loading, setLoading] = useState(true);
   const [insights, setInsights] = useState<string[]>([]);
+  const [predictions, setPredictions] = useState<any[]>([]);
   const [loadingInsights, setLoadingInsights] = useState(true);
 
   useEffect(() => {
@@ -36,8 +37,10 @@ export default function TrendsPage() {
         const reportsData = await reportsRes.json();
         const insightsData = await insightsRes.json();
 
+
         setReports(reportsData);
         setInsights(insightsData.insights || []);
+        setPredictions(insightsData.predictions || []);
 
         // Extract unique branches
         const uniqueBranches = Array.from(new Set(reportsData.map((r: any) => r.branch_code))) as string[];
@@ -85,10 +88,25 @@ export default function TrendsPage() {
         score: primary.score,
         comp_attendance: comparison?.attendance,
         comp_pass: comparison?.pass,
-        comp_score: comparison?.score
+        comp_score: comparison?.score,
+        isProjected: false
       };
     });
   }, [reports, selectedBranch, compareBranch]);
+
+  const mergedChartData = useMemo(() => {
+    if (selectedBranch !== 'All' || compareBranch !== 'None') return chartData;
+
+    const formattedPredictions = predictions.map(p => ({
+      week: p.week,
+      pass: p.passRate,
+      attendance: p.attendance,
+      isProjected: true
+    }));
+
+    return [...chartData, ...formattedPredictions];
+  }, [chartData, predictions, selectedBranch, compareBranch]);
+
 
   if (loading) return (
     <div className="flex items-center justify-center min-h-[60vh]">
@@ -152,12 +170,25 @@ export default function TrendsPage() {
               {loadingInsights ? (
                 [1, 2, 3].map(i => <div key={i} className="h-12 bg-white/5 rounded-xl animate-pulse" />)
               ) : (
-                insights.map((insight, i) => (
-                  <div key={i} className="flex items-start gap-3 p-3 bg-white/5 backdrop-blur-sm rounded-xl border border-white/10 hover:bg-white/10 transition-all cursor-default group">
-                    <ArrowRight className="w-4 h-4 mt-0.5 text-indigo-300 group-hover:translate-x-1 transition-transform" />
-                    <p className="text-sm font-medium text-indigo-50 leading-snug">{insight}</p>
-                  </div>
-                ))
+                insights.map((insight, i) => {
+                  const isFuture = insight.toLowerCase().includes('future') || insight.toLowerCase().includes('outlook') || insight.toLowerCase().includes('predicted');
+                  return (
+                    <div key={i} className={cn(
+                      "flex items-start gap-3 p-3 backdrop-blur-sm rounded-xl border transition-all cursor-default group relative overflow-hidden",
+                      isFuture
+                        ? "bg-white/15 border-white/30 shadow-lg shadow-indigo-500/20 ring-1 ring-white/20"
+                        : "bg-white/5 border-white/10 hover:bg-white/10"
+                    )}>
+                      {isFuture && (
+                        <div className="absolute top-0 right-0 px-2 py-0.5 bg-amber-400 text-[#1E3A8A] text-[8px] font-bold uppercase tracking-tighter rounded-bl-lg">
+                          Forecast
+                        </div>
+                      )}
+                      <ArrowRight className={cn("w-4 h-4 mt-0.5 group-hover:translate-x-1 transition-transform", isFuture ? "text-amber-300" : "text-indigo-300")} />
+                      <p className={cn("text-sm font-medium leading-snug", isFuture ? "text-white" : "text-indigo-50")}>{insight}</p>
+                    </div>
+                  );
+                })
               )}
             </div>
           </div>
@@ -188,11 +219,15 @@ export default function TrendsPage() {
 
           <div className="h-[450px]">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={chartData}>
+              <AreaChart data={mergedChartData}>
                 <defs>
                   <linearGradient id="colorMain" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor="#6366f1" stopOpacity={0.15} />
                     <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
+                  </linearGradient>
+                  <linearGradient id="colorProj" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#94a3b8" stopOpacity={0.1} />
+                    <stop offset="95%" stopColor="#94a3b8" stopOpacity={0} />
                   </linearGradient>
                   {compareBranch !== 'None' && (
                     <linearGradient id="colorComp" x1="0" y1="0" x2="0" y2="1">
@@ -232,7 +267,11 @@ export default function TrendsPage() {
                   fillOpacity={1}
                   fill="url(#colorMain)"
                   name={`${selectedBranch} Pass %`}
-                  dot={{ r: 4, fill: '#6366f1', strokeWidth: 2, stroke: '#fff' }}
+                  dot={(props: any) => {
+                    const { cx, cy, payload } = props;
+                    if (payload.isProjected) return <circle cx={cx} cy={cy} r={4} fill="#94a3b8" stroke="#fff" strokeWidth={2} />;
+                    return <circle cx={cx} cy={cy} r={4} fill="#6366f1" stroke="#fff" strokeWidth={2} />;
+                  }}
                   activeDot={{ r: 8, fill: '#6366f1', stroke: '#fff', strokeWidth: 4 }}
                 />
                 {compareBranch !== 'None' && (
@@ -247,6 +286,7 @@ export default function TrendsPage() {
                     dot={{ r: 4, fill: '#f43f5e', strokeWidth: 2, stroke: '#fff' }}
                   />
                 )}
+                <ReferenceLine x={`Week ${reports[reports.length - 1]?.week_no}`} stroke="#94a3b8" strokeDasharray="3 3" label={{ position: 'top', value: 'Today', fill: '#94a3b8', fontSize: 10, fontWeight: 700 }} />
                 <ReferenceLine y={80} stroke="#10b981" strokeDasharray="3 3" label={{ position: 'right', value: 'Goal', fill: '#10b981', fontSize: 10, fontWeight: 700 }} />
               </AreaChart>
             </ResponsiveContainer>

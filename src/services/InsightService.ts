@@ -20,6 +20,13 @@ export interface Insight {
     sentiment?: 'positive' | 'negative' | 'neutral';
 }
 
+export interface Prediction {
+    week: string;
+    attendance: number;
+    passRate: number;
+    isProjected: boolean;
+}
+
 /**
  * Generates rule-based insights to guarantee accuracy and numeric referencing.
  * acts as a deterministic fallback or primary "AI" engine for now.
@@ -160,4 +167,56 @@ export async function fetchAIInsights(data: DashboardData): Promise<Insight[]> {
             resolve(generateRuleBasedInsights(data));
         }, 1500);
     });
+}
+
+/**
+ * Linear Regression for simple time-series forecasting
+ */
+function calculateRegression(values: number[]): { slope: number, intercept: number } {
+    const n = values.length;
+    if (n < 2) return { slope: 0, intercept: values[0] || 0 };
+
+    let sumX = 0, sumY = 0, sumXY = 0, sumXX = 0;
+    for (let i = 0; i < n; i++) {
+        sumX += i;
+        sumY += values[i];
+        sumXY += i * values[i];
+        sumXX += i * i;
+    }
+
+    const slope = (n * sumXY - sumX * sumY) / (n * sumXX - sumX * sumX);
+    const intercept = (sumY - slope * sumX) / n;
+
+    return { slope, intercept };
+}
+
+/**
+ * Generates predictions for the next N weeks
+ */
+export function generatePredictions(weeklyData: any[], horizon = 3): Prediction[] {
+    if (!weeklyData || weeklyData.length < 2) return [];
+
+    const attendanceValues = weeklyData.map(d => d.attendance);
+    const passValues = weeklyData.map(d => d.test_pass || d.pass || 0);
+
+    const attReg = calculateRegression(attendanceValues);
+    const passReg = calculateRegression(passValues);
+
+    const lastWeekNo = parseInt(weeklyData[weeklyData.length - 1].week_no.replace('W', '')) || weeklyData.length;
+    const predictions: Prediction[] = [];
+
+    for (let i = 1; i <= horizon; i++) {
+        const x = weeklyData.length + i - 1;
+        const predictedAtt = Math.min(100, Math.max(0, attReg.slope * x + attReg.intercept));
+        const predictedPass = Math.min(100, Math.max(0, passReg.slope * x + passReg.intercept));
+
+        predictions.push({
+            week: `W${lastWeekNo + i} (P)`,
+            attendance: parseFloat(predictedAtt.toFixed(1)),
+            passRate: parseFloat(predictedPass.toFixed(1)),
+            isProjected: true
+        });
+    }
+
+    return predictions;
 }

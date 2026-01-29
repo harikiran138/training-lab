@@ -11,9 +11,11 @@ interface KpiCardProps {
   description?: string;
   status?: 'success' | 'warning' | 'danger' | 'neutral';
   label?: string;
+  trend?: string;
+  trendDirection?: 'up' | 'down';
 }
 
-export function KpiCard({ title, value, icon: Icon, description, status = 'neutral', label }: KpiCardProps) {
+export function KpiCard({ title, value, icon: Icon, description, status = 'neutral', label, trend, trendDirection }: KpiCardProps) {
   const getStatusColor = () => {
     switch (status) {
       case 'success': return 'text-emerald-600';
@@ -41,14 +43,24 @@ export function KpiCard({ title, value, icon: Icon, description, status = 'neutr
         <div className="flex justify-between items-start mb-4">
           <p className="text-[11px] font-extrabold text-slate-400 uppercase tracking-widest">{title}</p>
           <div className="p-2 bg-slate-50 rounded">
-             <Icon className="w-4 h-4 text-[#1E3A8A] opacity-60" />
+            <Icon className="w-4 h-4 text-[#1E3A8A] opacity-60" />
           </div>
         </div>
 
         <div className="space-y-1">
-          <h4 className={cn("text-3xl font-extrabold tracking-tighter leading-none", getStatusColor())}>
-            {value}
-          </h4>
+          <div className="flex items-end gap-2">
+            <h4 className={cn("text-3xl font-extrabold tracking-tighter leading-none", getStatusColor())}>
+              {value}
+            </h4>
+            {trend && (
+              <div className={cn(
+                "flex items-center text-[10px] font-black mb-1 px-1.5 py-0.5 rounded",
+                trendDirection === 'up' ? "bg-emerald-50 text-emerald-600" : "bg-rose-50 text-rose-600"
+              )}>
+                {trend}
+              </div>
+            )}
+          </div>
           {label && (
             <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{label}</p>
           )}

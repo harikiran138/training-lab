@@ -216,9 +216,7 @@ export default function DataEntryPage() {
             <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 rounded-full blur-2xl"></div>
           </div>
         </div>
-
       </div>
     </div>
   );
 }
-

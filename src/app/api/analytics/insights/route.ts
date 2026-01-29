@@ -3,6 +3,7 @@ import dbConnect from '@/lib/mongodb';
 import CRTWeeklyReport from '@/models/CRTWeeklyReport';
 import { model } from '@/lib/ai/client';
 import { getSession } from '@/lib/auth';
+import { generatePredictions } from '@/services/InsightService';
 
 export async function GET(req: NextRequest) {
     try {
@@ -36,19 +37,28 @@ export async function GET(req: NextRequest) {
 
         const simplifiedContext = Object.entries(institutionSummary).map(([week, stats]: [string, any]) => ({
             week,
-            avg_attendance: (stats.attendance / stats.count).toFixed(1),
-            avg_pass_rate: (stats.pass / stats.count).toFixed(1)
+            attendance: parseFloat((stats.attendance / stats.count).toFixed(1)),
+            pass: parseFloat((stats.pass / stats.count).toFixed(1))
         }));
+
+        // Generate Predictions
+        const predictions = generatePredictions(simplifiedContext);
 
         // Call Gemini
         const prompt = `
-            Analyze the following institution-wide CRT performance data across multiple weeks:
+            Analyze the following institution-wide CRT performance data:
+            
+            HISTORICAL DATA (Last ${simplifiedContext.length} weeks):
             ${JSON.stringify(simplifiedContext)}
 
-            Provide 3-4 concise, actionable insights for the management. 
-            Focus on trends, correlation between attendance and pass rates, and specific areas for improvement.
-            Return the response as a JSON object with a key "insights" which is an array of strings.
-            Keep each insight under 20 words.
+            FUTURE PROJECTIONS (Next ${predictions.length} weeks):
+            ${JSON.stringify(predictions)}
+
+            Provide 4-5 concise, actionable insights for management.
+            Include a dedicated "Future Outlook" insight based on the projections.
+            Focus on trends, risks, and specific actions.
+            Return as a JSON object: { "insights": ["...", "..."] }
+            Keep each insight strictly under 20 words.
         `;
 
         const result = await model.generateContent(prompt);
@@ -61,12 +71,18 @@ export async function GET(req: NextRequest) {
             insights = parsed.insights || [];
         } catch (e) {
             console.error("Failed to parse Gemini response:", responseText);
-            insights = ["Performance is stable across most weeks.", "Observe correlation between lab sessions and test scores.", "Maintain attendance levels for upcoming peak weeks."];
+            insights = [
+                "Overall performance shows a steady trend.",
+                "Verify labs-theory alignment in upcoming weeks.",
+                "Maintain focus on attendance to improve pass rates.",
+                "Future outlook: Predicted stability with slight growth."
+            ];
         }
 
         return NextResponse.json({
             success: true,
-            insights
+            insights,
+            predictions
         });
 
     } catch (error: any) {

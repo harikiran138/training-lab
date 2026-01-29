@@ -18,13 +18,18 @@ import {
     PolarRadiusAxis,
     Radar
 } from 'recharts';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"; // Assuming these exist or use div if not
 import { Loader2 } from 'lucide-react';
 
 interface AnalyticsData {
-    trends: any[];
-    comparisons: any[];
-    summary: any;
+    weeklyTrendData: any[];
+    branchComparisonData: any[];
+    departmentSummaryData: any[];
+    stats: {
+        avgAttendance: number;
+        avgPass: number;
+        avgSyllabus: number;
+        [key: string]: any;
+    };
     lastUpdated: string;
 }
 
@@ -68,14 +73,14 @@ export function AnalyticsDashboard() {
                     <h4 className="text-sm font-semibold text-slate-700 mb-4">Weekly Performance Trends</h4>
                     <div className="h-[300px]">
                         <ResponsiveContainer width="100%" height="100%">
-                            <LineChart data={data.trends}>
+                            <LineChart data={data.weeklyTrendData}>
                                 <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                                <XAxis dataKey="week" tickFormatter={(value) => `W${value}`} />
+                                <XAxis dataKey="week_no" />
                                 <YAxis />
                                 <Tooltip />
                                 <Legend />
                                 <Line type="monotone" dataKey="attendance" name="Avg Attendance %" stroke="#3b82f6" strokeWidth={2} />
-                                <Line type="monotone" dataKey="testPass" name="Test Pass %" stroke="#10b981" strokeWidth={2} />
+                                <Line type="monotone" dataKey="test_pass" name="Test Pass %" stroke="#10b981" strokeWidth={2} />
                             </LineChart>
                         </ResponsiveContainer>
                     </div>
@@ -86,14 +91,14 @@ export function AnalyticsDashboard() {
                     <h4 className="text-sm font-semibold text-slate-700 mb-4">Branch Comparison</h4>
                     <div className="h-[300px]">
                         <ResponsiveContainer width="100%" height="100%">
-                            <BarChart data={data.comparisons}>
+                            <BarChart data={data.branchComparisonData}>
                                 <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                                <XAxis dataKey="name" />
+                                <XAxis dataKey="branch_code" />
                                 <YAxis />
                                 <Tooltip />
                                 <Legend />
-                                <Bar dataKey="attendance" name="Attendance" fill="#3b82f6" radius={[4, 4, 0, 0]} />
-                                <Bar dataKey="testPass" name="Test Pass" fill="#10b981" radius={[4, 4, 0, 0]} />
+                                <Bar dataKey="avg_attendance" name="Attendance" fill="#3b82f6" radius={[4, 4, 0, 0]} />
+                                <Bar dataKey="avg_test_pass" name="Test Pass" fill="#10b981" radius={[4, 4, 0, 0]} />
                             </BarChart>
                         </ResponsiveContainer>
                     </div>
@@ -104,12 +109,12 @@ export function AnalyticsDashboard() {
                     <h4 className="text-sm font-semibold text-slate-700 mb-4">Syllabus Completion</h4>
                     <div className="h-[300px]">
                         <ResponsiveContainer width="100%" height="100%">
-                            <BarChart data={data.comparisons} layout="vertical">
+                            <BarChart data={data.branchComparisonData} layout="vertical">
                                 <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} />
                                 <XAxis type="number" domain={[0, 100]} />
-                                <YAxis dataKey="name" type="category" width={50} />
+                                <YAxis dataKey="branch_code" type="category" width={50} />
                                 <Tooltip />
-                                <Bar dataKey="syllabus" name="Completed %" fill="#8b5cf6" radius={[0, 4, 4, 0]} />
+                                <Bar dataKey="syllabus_completion_percent" name="Completed %" fill="#8b5cf6" radius={[0, 4, 4, 0]} />
                             </BarChart>
                         </ResponsiveContainer>
                     </div>
@@ -121,10 +126,9 @@ export function AnalyticsDashboard() {
                     <div className="h-[300px]">
                         <ResponsiveContainer width="100%" height="100%">
                             <RadarChart cx="50%" cy="50%" outerRadius="80%" data={[
-                                { subject: 'Attendance', A: data.summary.avgAttendance, fullMark: 100 },
-                                { subject: 'Test Pass', A: data.summary.avgTestPass, fullMark: 100 },
-                                { subject: 'Syllabus', A: data.summary.avgSyllabus, fullMark: 100 },
-                                // Add dummy points for better shape if needed or normalize
+                                { subject: 'Attendance', A: data.stats.avgAttendance, fullMark: 100 },
+                                { subject: 'Test Pass', A: data.stats.avgPass, fullMark: 100 },
+                                { subject: 'Syllabus', A: data.stats.avgSyllabus, fullMark: 100 },
                             ]}>
                                 <PolarGrid />
                                 <PolarAngleAxis dataKey="subject" />

@@ -1,6 +1,7 @@
 "use client";
 
 import { MoreHorizontal, Search, Filter, Download } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 const students = [
     { id: "S001", name: "Alice Johnson", major: "Computer Science", gpa: "3.8", status: "Active", date: "2024-01-15" },
@@ -70,7 +71,7 @@ export function StudentTable() {
                                 <td className="px-4 py-4 font-bold text-white">{student.gpa}</td>
                                 <td className="px-4 py-4 text-gray-400">{student.date}</td>
                                 <td className="px-4 py-4">
-                                    <span className={cn("px-2.5 py-1 rounded-md text-xs font-medium", statusStyles[student.status as keyof typeof statusStyles] || statusStyles.Active)}>
+                                    <span className={cn("px-2.5 py-1 rounded-md text-xs font-medium", (statusStyles as Record<string, string>)[student.status] || statusStyles.Active)}>
                                         {student.status}
                                     </span>
                                 </td>

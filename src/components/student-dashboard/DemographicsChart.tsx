@@ -49,7 +49,7 @@ export function DemographicsChart() {
                             stroke="none"
                         >
                             {data.map((entry, index) => (
-                                <Cell key={`cell-${index}`} fill={entry.color} cornerRadius={4} />
+                                <Cell key={`cell-${index}`} fill={entry.color} />
                             ))}
                             {/* <Label content={<CustomLabel />} position="center" /> */}
                         </Pie>
