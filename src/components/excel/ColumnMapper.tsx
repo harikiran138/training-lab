@@ -16,7 +16,7 @@ export function ColumnMapper({ sourceHeaders, targetSchema, onMappingChange }: C
     // Load saved template on mount
     useEffect(() => {
         const stored = localStorage.getItem(STORAGE_KEY);
-        let initialMapping: Record<string, string> = {};
+        const initialMapping: Record<string, string> = {};
 
         if (stored) {
             try {

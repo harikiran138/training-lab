@@ -14,7 +14,7 @@ export async function GET(req: NextRequest) {
 
         // Fetch pending/in-progress tasks for user's branches or explicitly assigned.
         // For Faculty, show tasks for their assigned branches.
-        let query: any = { status: { $in: ['PENDING', 'IN_PROGRESS'] } };
+        const query: any = { status: { $in: ['PENDING', 'IN_PROGRESS'] } };
 
         if (session.role === 'faculty' && session.branches && session.branches.length > 0) {
             query.branch_code = { $in: session.branches };

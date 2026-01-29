@@ -3,50 +3,55 @@
 import { model } from '@/lib/ai/client';
 import StagingData from '@/models/StagingData';
 import dbConnect from '@/lib/mongodb';
-import { z } from 'zod';
+import { writeFile, mkdir } from 'fs/promises';
+import path from 'path';
+import { z } from 'zod'; // Keeping zod import for future validation refinement if needed
 
-// Schema for the AI output we expect
-const AIResponseSchema = z.object({
-    records: z.array(z.object({
-        data: z.record(z.string(), z.any()),
-        confidence: z.record(z.string(), z.number())
-    }))
-});
-
-export async function processImageUpload(formData: FormData) {
+export async function uploadImage(formData: FormData) {
     try {
+        await dbConnect();
+
         const file = formData.get('file') as File;
         const type = formData.get('type') as string;
-        const branch_code = formData.get('branch_code') as string;
-        const section = formData.get('section') as string;
-        const week_no = formData.get('week_no') ? parseInt(formData.get('week_no') as string) : undefined;
-        const semester = formData.get('semester') as string;
+        const branch_code = formData.get('branch_code') as string | undefined;
+        const section = formData.get('section') as string | undefined;
+        const week_no = formData.get('week_no') ? Number(formData.get('week_no')) : undefined;
+        const semester = formData.get('semester') as string | undefined;
 
         if (!file) {
-            throw new Error('No file uploaded');
+            return { success: false, error: 'No file uploaded' };
         }
 
-        // Convert file to base64 for Gemini
-        const arrayBuffer = await file.arrayBuffer();
-        const buffer = Buffer.from(arrayBuffer);
+        // 1. Save File Locally (for preview)
+        const bytes = await file.arrayBuffer();
+        const buffer = Buffer.from(bytes);
+
+        // Ensure uploads directory exists
+        const uploadsDir = path.join(process.cwd(), 'public', 'uploads');
+        try {
+            await mkdir(uploadsDir, { recursive: true });
+        } catch (e) {
+            // Ignore error if directory exists
+        }
+
+        const filename = `${Date.now()}-${file.name.replace(/\s/g, '_')}`;
+        const filepath = path.join(uploadsDir, filename);
+        await writeFile(filepath, buffer);
+
+        const imageUrl = `/uploads/${filename}`;
+
+        // 2. Process with AI
         const base64Image = buffer.toString('base64');
 
-        // Prompt for Gemini
-        const prompt = `
-      Extract tabular data from this image. Return a JSON object with a "records" array.
-      Each record should have:
-      - "data": key-value pairs of the row data. Use specific keys like "studentId", "name", "score", "status".
-      - "confidence": key-value pairs with a confidence score (0.0 to 1.0) for each field in "data".
-      
-      Example:
-      {
-        "records": [
-          {
-            "data": { "studentId": "123", "score": 95 },
-            "confidence": { "studentId": 0.99, "score": 0.85 }
-          }
-        ]
-      }
+        const prompt = `Extract tabular data from this ${type} image.
+    Return a strictly valid JSON object containing a single key "records".
+    "records" must be an array of objects.
+    Each object in the array must have two keys:
+    1. "data": an object containing the extracted key-value pairs for that row (e.g., {"roll_no": "123", "name": "John", "status": "P"}). Keys should be normalized to snake_case.
+    2. "confidence": an object containing a confidence score (number between 0.0 and 1.0) for EACH key in "data".
+    
+    Ensure all text is extracted accurately. If a field is illegible, report it with low confidence.
+    Do not wrap the JSON in markdown code blocks. Just return the raw JSON string.
     `;
 
         const result = await model.generateContent([
@@ -59,49 +64,39 @@ export async function processImageUpload(formData: FormData) {
             }
         ]);
 
-        const response = await result.response;
-        // Check if there is a response text to avoid empty response issues
-        const text = response.text() || "{}";
+        const responseText = result.response.text().replace(/```json/g, '').replace(/```/g, '').trim();
 
-        // Parse JSON (Gemini might wrap in Markdown code blocks)
-        const jsonString = text.replace(/```json|```/g, '').trim();
-        const parsedWait = JSON.parse(jsonString);
+        let aiData;
+        try {
+            aiData = JSON.parse(responseText);
+        } catch (e) {
+            console.error("AI Response Parsing Error:", responseText);
+            return { success: false, error: 'Failed to parse AI response' };
+        }
 
-        // Validate with Zod
-        const validatedData = AIResponseSchema.parse(parsedWait);
+        const records = Array.isArray(aiData.records) ? aiData.records : [];
 
-        // Re-mapping to Schema format
-        const structuredData = validatedData.records.map(record => ({
-            data: new Map(Object.entries(record.data)),
-            confidence: new Map(Object.entries(record.confidence)),
-            userVerified: false
-        }));
-
-        // Start DB Connection
-        await dbConnect();
-
-        // Create map for StagingData
+        // 3. Save to Staging DB
         const stagingDoc = await StagingData.create({
             type: type || 'ATTENDANCE', // Default or from form
             status: 'DRAFT',
-            imageUrl: base64Image, // Storing base64 for now
+            imageUrl,
+            rawAiOutput: aiData,
+            structuredData: records.map((r: any) => ({
+                data: r.data || {},
+                confidence: r.confidence || {},
+                userVerified: false
+            })),
             branch_code,
             section,
             week_no,
-            semester,
-            rawAiOutput: validatedData,
-            structuredData: structuredData
+            semester
         });
 
-        return {
-            success: true,
-            stagingId: stagingDoc._id.toString(),
-            imageUrl: base64Image,
-            data: validatedData
-        };
+        return { success: true, redirectUrl: `/staging/${stagingDoc._id}` };
 
     } catch (error) {
-        console.error('Error processing image:', error);
-        return { success: false, error: 'Failed to process image' };
+        console.error("Upload Action Error:", error);
+        return { success: false, error: 'Internal Server Error' };
     }
 }

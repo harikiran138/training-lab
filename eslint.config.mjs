@@ -11,6 +11,7 @@ const eslintConfig = defineConfig([
     ".next/**",
     "out/**",
     "build/**",
+  ]),
   {
     rules: {
       "@typescript-eslint/no-explicit-any": "off",

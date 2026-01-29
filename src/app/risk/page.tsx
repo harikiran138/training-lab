@@ -1,14 +1,9 @@
-<<<<<<< HEAD
 "use client"
 
 import React, { useState, useEffect } from 'react';
 import {
   AlertTriangle,
   Target,
-=======
-import { 
-  AlertTriangle, 
->>>>>>> cc220ba30bbfaba848e3beb1472701385f162974
   ArrowRight,
   ShieldAlert,
   Ghost,
@@ -32,7 +27,6 @@ export default function RiskAnalysisPage() {
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [selectedBranch, setSelectedBranch] = useState<string | null>(null);
 
-<<<<<<< HEAD
   const fetchData = async () => {
     try {
       const res = await fetch('/api/risk');
@@ -47,30 +41,8 @@ export default function RiskAnalysisPage() {
     } finally {
       setLoading(false);
     }
-=======
-async function getRiskData() {
-  await dbConnect();
-  const summaries = await AggregateSummary.find({}).lean();
-  
-  const highRisk = summaries.filter((s: any) => s.avg_test_pass < 50 || s.avg_attendance < 65);
-  const criticalSyllabus = summaries.filter((s: any) => s.syllabus_completion_percent < 30);
-  
-  // Create distribution for chart
-  const distribution = [
-    { name: 'Healthy', count: summaries.filter((s: any) => s.performance_grade?.startsWith('A') || s.performance_grade?.startsWith('B')).length },
-    { name: 'Needs Attention', count: summaries.filter((s: any) => s.performance_grade === 'C').length },
-    { name: 'Critical', count: summaries.filter((s: any) => s.avg_test_pass < 50).length }
-  ];
-
-  return {
-    highRisk: JSON.parse(JSON.stringify(highRisk)),
-    criticalSyllabus: JSON.parse(JSON.stringify(criticalSyllabus)),
-    distribution,
-    summaries: JSON.parse(JSON.stringify(summaries))
->>>>>>> cc220ba30bbfaba848e3beb1472701385f162974
   };
 
-<<<<<<< HEAD
   useEffect(() => {
     fetchData();
   }, [refreshTrigger]);
@@ -115,31 +87,6 @@ async function getRiskData() {
         </div>
       </div>
 
-=======
-export default async function RiskAnalysisPage() {
-  const { highRisk, criticalSyllabus, distribution } = await getRiskData();
-
-  return (
-    <div className="space-y-12 pb-12">
-      <div className="flex flex-col gap-2">
-        <h2 className="text-3xl font-bold text-slate-900 tracking-tight">Risk & Statistical Analysis</h2>
-        <p className="text-slate-500">Real-time NumPy-driven institutional analytical audit</p>
-      </div>
-
-      {/* NEW: Pure Mathematical Audit Section */}
-      <StatisticalAudit />
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-1">
-           <RiskPieChart data={distribution} />
-        </div>
-        
-        <div className="lg:col-span-2">
-           <AIInsights />
-        </div>
-      </div>
-      
->>>>>>> cc220ba30bbfaba848e3beb1472701385f162974
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Performance Risk */}
         <div className="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden flex flex-col">
@@ -241,7 +188,6 @@ export default async function RiskAnalysisPage() {
           </div>
         </div>
       </div>
-<<<<<<< HEAD
 
       <div className="bg-slate-900 rounded-[2.5rem] p-12 text-white overflow-hidden relative">
         <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500 rounded-full mix-blend-screen filter blur-3xl opacity-10 translate-x-1/2 -translate-y-1/2" />
@@ -273,8 +219,6 @@ export default async function RiskAnalysisPage() {
         onClose={() => setSelectedBranch(null)}
         onSuccess={handleMitigationSuccess}
       />
-=======
->>>>>>> cc220ba30bbfaba848e3beb1472701385f162974
     </div>
   );
 }

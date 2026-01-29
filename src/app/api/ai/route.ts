@@ -1,6 +1,6 @@
 import { streamText } from 'ai';
 import { createOpenAI } from '@ai-sdk/openai';
-import { AnalyticsService } from '@/services/analytics/AnalyticsService';
+
 import { analyzeStudentExtended } from '@/services/ai/StudentAnalysisService';
 import { analyzeFacultyExtended } from '@/services/ai/FacultyAnalysisService';
 
@@ -60,16 +60,31 @@ export async function POST(req: Request) {
 
   // 3. Default Streaming Feedback (Existing behavior) // Updated comment number
   // 1. Fetch Context
-  const dashboardMetrics = await AnalyticsService.getDashboardMetrics();
-  
+  // const dashboardMetrics = await AnalyticsService.getDashboardMetrics();
+
+  // Replaced with fetch to backend
+  const backendUrl = process.env.BACKEND_URL || 'http://localhost:3000';
+  let dashboardMetrics = { kpis: { avg_attendance: 0, avg_pass_rate: 0 } };
+
+  try {
+    const res = await fetch(`${backendUrl}/analytics/dashboard`, { cache: 'no-store' });
+    if (res.ok) {
+      const data = await res.json();
+      dashboardMetrics = data;
+    }
+  } catch (e) {
+    console.error("Failed to fetch backend metrics for AI context", e);
+  }
+
+
   // 2. System Prompt
   const context = `
     You are an expert Performance Intelligence Analyst for a CRT (Campus Recruitment Training) program.
     Your job is to analyze the following real-time data and provide actionable executive summaries.
     
     Current Data:
-    - Overall Attendance: ${dashboardMetrics.kpis.avgAttendance.toFixed(1)}%
-    - Overall Pass %: ${dashboardMetrics.kpis.avgPassPercent.toFixed(1)}%
+    - Overall Attendance: ${(Number(dashboardMetrics.kpis?.avg_attendance) || 0).toFixed(1)}%
+    - Overall Pass %: ${(Number(dashboardMetrics.kpis?.avg_pass_rate) || 0).toFixed(1)}%
     
     Structure your response as:
     1. Executive Summary

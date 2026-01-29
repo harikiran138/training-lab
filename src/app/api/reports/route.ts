@@ -16,7 +16,7 @@ export async function GET(request: NextRequest) {
     const branch_code = searchParams.get('branch_code');
     const week_no = searchParams.get('week_no');
 
-    let query: any = {};
+    const query: any = {};
     if (branch_code) query.branch_code = branch_code;
     if (week_no) query.week_no = parseInt(week_no);
 

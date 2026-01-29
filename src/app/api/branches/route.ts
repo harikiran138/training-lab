@@ -8,7 +8,7 @@ export async function GET() {
     const session = await getSession();
     await dbConnect();
 
-    let query: any = {};
+    const query: any = {};
 
     // Filter by branch for Faculty if restricted
     if (session && session.role === 'faculty' && session.branches && session.branches.length > 0) {

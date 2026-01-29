@@ -11,7 +11,7 @@ export async function GET(req: NextRequest) {
         const branch_code = searchParams.get('branch_code');
         const status = searchParams.get('status');
 
-        let query: any = {};
+        const query: any = {};
         if (branch_code) query.branch_code = branch_code;
         if (status) query.status = status;
 

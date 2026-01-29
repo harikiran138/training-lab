@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { getUploadHistory } from '../../actions/history';
+import { getUploadHistory } from '@/app/actions/history';
 import { Clock, CheckCircle2, XCircle, AlertCircle, Eye, ChevronLeft, ArrowLeft, X } from 'lucide-react';
 import Link from 'next/link';
 

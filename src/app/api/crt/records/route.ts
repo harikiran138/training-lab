@@ -12,7 +12,7 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const week_number = searchParams.get('week_number');
 
-    let query: any = {};
+    const query: any = {};
     if (week_number) query.week_number = parseInt(week_number);
 
     // V2: Populate branch_id to get branch_code and name
