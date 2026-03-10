@@ -1,4 +1,4 @@
-import { Controller, Post, Get, Body, Param, ParseIntPipe, UseInterceptors } from '@nestjs/common';
+import { Controller, Post, Get, Put, Body, Param, Query, ParseIntPipe, UseInterceptors } from '@nestjs/common';
 import { AssessmentsService } from './assessments.service';
 import { BulkAssessmentEntriesDto } from './dto/bulk-assessment-entries.dto';
 import { AuditInterceptor } from '../audit/audit.interceptor';
@@ -24,5 +24,31 @@ export class AssessmentsController {
         @Body() dto: BulkAssessmentEntriesDto,
     ) {
         return this.assessmentsService.bulkUpsertEntries(id, dto);
+    }
+
+    @Get('weekly/data')
+    getWeeklyAssessments(
+        @Query('branch') branchCode: string,
+        @Query('section') sectionName: string,
+        @Query('semester') semester: string,
+    ) {
+        return this.assessmentsService.getWeeklyAssessments(branchCode, sectionName, semester);
+    }
+
+    @Post('weekly/data')
+    createWeeklyAssessment(
+        @Body('branch') branchCode: string,
+        @Body('section') sectionName: string,
+        @Body('semester') semester: string,
+    ) {
+        return this.assessmentsService.createWeeklyAssessment(branchCode, sectionName, semester);
+    }
+
+    @Put('weekly/data/:id')
+    updateWeeklyAssessment(
+        @Param('id', ParseIntPipe) id: number,
+        @Body('updates') updates: any,
+    ) {
+        return this.assessmentsService.updateWeeklyAssessment(id, updates);
     }
 }

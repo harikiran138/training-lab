@@ -26,6 +26,30 @@ export class Assessment {
     @Column({ type: 'uuid', nullable: true, name: 'created_by_user_id' })
     createdByUserId: string;
 
+    @Column({ name: 'week_no', default: 1 })
+    weekNo: number;
+
+    @Column({ default: 0 })
+    sessions: number;
+
+    @Column({ default: 'draft' })
+    status: string;
+
+    @Column({ nullable: true })
+    semester: string;
+
+    @Column({ name: 'branch_code', nullable: true })
+    branchCode: string;
+
+    @Column({ name: 'avg_attendance_percent', type: 'decimal', precision: 5, scale: 2, default: 0 })
+    avgAttendancePercent: number;
+
+    @Column({ name: 'avg_test_attendance_percent', type: 'decimal', precision: 5, scale: 2, default: 0 })
+    avgTestAttendancePercent: number;
+
+    @Column({ name: 'avg_test_pass_percent', type: 'decimal', precision: 5, scale: 2, default: 0 })
+    avgTestPassPercent: number;
+
     @CreateDateColumn({ name: 'created_at' })
     createdAt: Date;
 

@@ -1,11 +1,11 @@
 "use client"
 
 import React, { useState } from 'react';
-import { 
-  Save, 
-  X, 
-  Trophy, 
-  Building2, 
+import {
+  Save,
+  X,
+  Trophy,
+  Building2,
   Target,
   ShieldCheck,
   Plus,
@@ -93,17 +93,17 @@ export default function CompactPlacementEntryForm({ initialData, onSave, onClose
               {data.map((row, idx) => (
                 <tr key={idx} className="hover:bg-slate-50/50 transition-colors">
                   <td className="px-4 py-2">
-                    <input 
-                      type="text" 
-                      value={row.branch} 
+                    <input
+                      type="text"
+                      value={row.branch}
                       onChange={(e) => handleUpdate(idx, 'branch', e.target.value)}
                       className="w-20 bg-transparent text-[12px] font-black text-[#1E3A8A] uppercase outline-none"
                     />
                   </td>
                   <td className="px-4 py-2">
-                    <input 
-                      type="number" 
-                      value={row.students} 
+                    <input
+                      type="number"
+                      value={row.students}
                       onChange={(e) => handleUpdate(idx, 'students', parseInt(e.target.value) || 0)}
                       className="w-16 text-center bg-transparent text-[12px] font-bold text-slate-600 outline-none"
                     />
@@ -115,7 +115,17 @@ export default function CompactPlacementEntryForm({ initialData, onSave, onClose
                     <input type="number" value={row.offers} onChange={(e) => handleUpdate(idx, 'offers', parseInt(e.target.value) || 0)} className="w-12 text-center border-b border-slate-100 py-1 text-[11px] font-bold outline-none" />
                   </td>
                   <td className="px-4 py-2 text-center">
-                    <input type="number" value={row.placed} onChange={(e) => handleUpdate(idx, 'placed', parseInt(e.target.value) || 0)} className="w-12 text-center border-b border-slate-100 py-1 text-[11px] font-bold outline-none font-black text-[#1E3A8A]" />
+                    <input
+                      type="number"
+                      min="0"
+                      max={row.enrolled}
+                      value={row.placed}
+                      onChange={(e) => handleUpdate(idx, 'placed', parseInt(e.target.value) || 0)}
+                      className={cn(
+                        "w-12 text-center border-b py-1 text-[11px] font-bold outline-none font-black transition-colors focus:border-[#1E3A8A]",
+                        row.placed > row.enrolled ? "border-rose-500 text-rose-600 bg-rose-50 rounded" : "border-slate-100 text-[#1E3A8A]"
+                      )}
+                    />
                   </td>
                   <td className="px-4 py-2 text-center">
                     <input type="number" value={row.drives} onChange={(e) => handleUpdate(idx, 'drives', parseInt(e.target.value) || 0)} className="w-12 text-center border-b border-slate-100 py-1 text-[11px] font-bold outline-none" />
@@ -141,26 +151,26 @@ export default function CompactPlacementEntryForm({ initialData, onSave, onClose
 
         {/* ACTIONS */}
         <div className="flex justify-between items-center pt-4 border-t border-slate-50">
-           <button onClick={addNewRow} className="flex items-center gap-2 text-[10px] font-black text-[#1E3A8A] uppercase tracking-widest hover:bg-blue-50 px-4 py-2 rounded transition-all">
-             <Plus className="w-3.5 h-3.5" /> ADD DEPARTMENT
-           </button>
-           
-            <div className="flex gap-4">
-              <button onClick={onClose} className="px-4 py-2 text-[10px] font-black text-slate-400 uppercase tracking-widest">CANCEL</button>
-              <button 
-                onClick={() => {
-                  const invalid = data.find(r => r.placed > r.enrolled);
-                  if (invalid) {
-                    alert(`Validation Error: ${invalid.branch} has more placed students (${invalid.placed}) than enrolled (${invalid.enrolled}).`);
-                    return;
-                  }
-                  onSave(data);
-                }} 
-                className="flex items-center gap-2 bg-[#1E3A8A] text-white px-8 py-2.5 rounded text-[10px] font-black uppercase tracking-widest shadow-lg shadow-blue-100 hover:bg-blue-900 transition-all"
-              >
-                <Database className="w-3.5 h-3.5" /> COMMIT YEARLY DATA
-              </button>
-           </div>
+          <button onClick={addNewRow} className="flex items-center gap-2 text-[10px] font-black text-[#1E3A8A] uppercase tracking-widest hover:bg-blue-50 px-4 py-2 rounded transition-all">
+            <Plus className="w-3.5 h-3.5" /> ADD DEPARTMENT
+          </button>
+
+          <div className="flex gap-4">
+            <button onClick={onClose} className="px-4 py-2 text-[10px] font-black text-slate-400 uppercase tracking-widest">CANCEL</button>
+            <button
+              onClick={() => {
+                const invalid = data.find(r => r.placed > r.enrolled);
+                if (invalid) {
+                  alert(`Validation Error: ${invalid.branch} has more placed students (${invalid.placed}) than enrolled (${invalid.enrolled}).`);
+                  return;
+                }
+                onSave(data);
+              }}
+              className="flex items-center gap-2 bg-[#1E3A8A] text-white px-8 py-2.5 rounded text-[10px] font-black uppercase tracking-widest shadow-lg shadow-blue-100 hover:bg-blue-900 transition-all"
+            >
+              <Database className="w-3.5 h-3.5" /> COMMIT YEARLY DATA
+            </button>
+          </div>
         </div>
       </div>
     </div>

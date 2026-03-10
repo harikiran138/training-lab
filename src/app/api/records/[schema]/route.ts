@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import dbConnect from '@/lib/mongodb';
 import GenericRecord from '@/models/GenericRecord';
 import { INSTITUTIONAL_SCHEMAS } from '@/config/SchemaManager';
+import { getSession } from '@/lib/auth';
 
 /**
  * Generic Records API Handler (BUG-02 Fix & Missing Infrastructure)
@@ -14,7 +15,7 @@ export async function GET(
   try {
     await dbConnect();
     const { schema } = await params;
-    
+
     // Validate schema
     if (!INSTITUTIONAL_SCHEMAS[schema]) {
       return NextResponse.json({ error: 'Schema calibration not found.' }, { status: 404 });
@@ -40,10 +41,15 @@ export async function POST(
   { params }: { params: Promise<{ schema: string }> }
 ) {
   try {
+    const session = await getSession();
+    if (!session) {
+      return NextResponse.json({ error: 'Unauthorized Access' }, { status: 401 });
+    }
+
     await dbConnect();
     const { schema } = await params;
     const body = await request.json();
-    
+
     // Validate schema
     if (!INSTITUTIONAL_SCHEMAS[schema]) {
       return NextResponse.json({ error: 'Schema calibration not found.' }, { status: 404 });
@@ -53,15 +59,15 @@ export async function POST(
 
     const updatedRecord = await GenericRecord.findOneAndUpdate(
       { schema_id: schema, epoch },
-      { 
-        data: records, 
+      {
+        data: records,
         status,
         updated_at: new Date()
       },
       { upsert: true, new: true }
     );
 
-    return NextResponse.json({ 
+    return NextResponse.json({
       message: `Repository Synchronized :: ${schema} epoch ${epoch} committed.`,
       result: updatedRecord
     });

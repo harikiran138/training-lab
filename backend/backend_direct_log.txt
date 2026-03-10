@@ -1,0 +1,45 @@
+
+> backend@0.0.1 start
+> nest start
+
+[32m[Nest] 27372  - [39m03/10/2026, 9:16:53 PM [32m    LOG[39m [38;5;3m[NestFactory] [39m[32mStarting Nest application...[39m
+[32m[Nest] 27372  - [39m03/10/2026, 9:16:53 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mTypeOrmModule dependencies initialized[39m[38;5;3m +62ms[39m
+[32m[Nest] 27372  - [39m03/10/2026, 9:16:53 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mSectionsModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 27372  - [39m03/10/2026, 9:16:53 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mStudentsModule dependencies initialized[39m[38;5;3m +0ms[39m
+[Nest] 27372  - 03/10/2026, 9:16:53 PM   ERROR [ExceptionHandler] UnknownDependenciesException [Error]: Nest can't resolve dependencies of the AnalyticsService (DataSource, ?). Please make sure that the argument SyllabusService at index [1] is available in the AnalyticsModule context.
+
+Potential solutions:
+- Is AnalyticsModule a valid NestJS module?
+- If SyllabusService is a provider, is it part of the current AnalyticsModule?
+- If SyllabusService is exported from a separate @Module, is that module imported within AnalyticsModule?
+  @Module({
+    imports: [ /* the Module containing SyllabusService */ ]
+  })
+
+For more common dependency resolution issues, see: https://docs.nestjs.com/faq/common-errors
+    at Injector.lookupComponentInParentModules (C:\Users\saisr\Documents\GitHub\training-lab\backend\node_modules\@nestjs\core\injector\injector.js:290:19)
+    at async resolveParam (C:\Users\saisr\Documents\GitHub\training-lab\backend\node_modules\@nestjs\core\injector\injector.js:140:38)
+    at async Promise.all (index 1)
+    at async Injector.resolveConstructorParams (C:\Users\saisr\Documents\GitHub\training-lab\backend\node_modules\@nestjs\core\injector\injector.js:169:27)
+    at async Injector.loadInstance (C:\Users\saisr\Documents\GitHub\training-lab\backend\node_modules\@nestjs\core\injector\injector.js:75:13)
+    at async Injector.loadProvider (C:\Users\saisr\Documents\GitHub\training-lab\backend\node_modules\@nestjs\core\injector\injector.js:103:9)
+    at async C:\Users\saisr\Documents\GitHub\training-lab\backend\node_modules\@nestjs\core\injector\instance-loader.js:56:13
+    at async Promise.all (index 3)
+    at async InstanceLoader.createInstancesOfProviders (C:\Users\saisr\Documents\GitHub\training-lab\backend\node_modules\@nestjs\core\injector\instance-loader.js:55:9)
+    at async C:\Users\saisr\Documents\GitHub\training-lab\backend\node_modules\@nestjs\core\injector\instance-loader.js:40:13 {
+  type: 'AnalyticsService',
+  context: {
+    index: 1,
+    dependencies: [
+      [class DataSource],
+      [class SyllabusService]
+    ],
+    name: [class SyllabusService]
+  },
+  metadata: {
+    id: '5b88b220cd539f611687e'
+  },
+  moduleRef: {
+    id: '25464883b805d72fc3f2c'
+  }
+}

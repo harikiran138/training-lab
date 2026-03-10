@@ -2,8 +2,9 @@ import dotenv from 'dotenv';
 import path from 'path';
 import mongoose from 'mongoose';
 
-// Load .env.local
+// Load .env.local or .env
 dotenv.config({ path: path.resolve(__dirname, '../.env.local') });
+dotenv.config({ path: path.resolve(__dirname, '../.env') });
 
 import dbConnect from '../src/lib/mongodb';
 
