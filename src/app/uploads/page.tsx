@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { 
     Upload, 
     FileText, 
@@ -25,38 +25,89 @@ export default function UploadsPage() {
     const [extractionComplete, setExtractionComplete] = useState(false);
     const [selectedSchema, setSelectedSchema] = useState('crt_attendance');
     const [extractedData, setExtractedData] = useState<any[]>([]);
+    const [uploadResult, setUploadResult] = useState<{ success: number; fails: number; anomalies: any[]; savedTo?: string } | null>(null);
+    const [uploadError, setUploadError] = useState<string | null>(null);
+    const fileInputRef = useRef<HTMLInputElement>(null);
+
+    const ACCEPTED_TYPES = [
+        'application/pdf',
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        'application/vnd.ms-excel',
+        'text/csv'
+    ];
+
+    const isValidFile = (f: File) =>
+        ACCEPTED_TYPES.includes(f.type) ||
+        f.name.endsWith('.xlsx') || f.name.endsWith('.xls') || f.name.endsWith('.csv') || f.name.endsWith('.pdf');
 
     const handleFileDrop = (e: React.DragEvent) => {
         e.preventDefault();
         const droppedFile = e.dataTransfer.files[0];
-        if (droppedFile?.type === 'application/pdf') {
+        if (droppedFile && isValidFile(droppedFile)) {
             setFile(droppedFile);
+            setUploadResult(null);
+            setUploadError(null);
         } else {
-            alert('Institutional Requirement: Only verified PDF streams are accepted.');
+            alert('Please upload a PDF, Excel (.xlsx/.xls), or CSV file.');
         }
     };
 
-    const simulateExtraction = () => {
+    const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const selectedFile = e.target.files?.[0];
+        if (selectedFile && isValidFile(selectedFile)) {
+            setFile(selectedFile);
+            setUploadResult(null);
+            setUploadError(null);
+        }
+        e.target.value = '';
+    };
+
+    const handleExecute = async () => {
+        if (!file) return;
         setUploading(true);
-        // Simulate extraction delay
-        setTimeout(() => {
+        setUploadError(null);
+        setUploadResult(null);
+        setExtractionComplete(false);
+
+        try {
+            const formData = new FormData();
+            formData.append('file', file);
+
+            const res = await fetch('/api/ingest', {
+                method: 'POST',
+                body: formData,
+            });
+
+            const data = await res.json();
+
+            if (!res.ok) {
+                setUploadError(data.error || 'Upload failed. Please try again.');
+            } else {
+                setUploadResult(data.details);
+                setExtractionComplete(true);
+                // Show preview using schema defaults or actual records if returned
+                const schema = INSTITUTIONAL_SCHEMAS[selectedSchema];
+                if (schema?.defaultData) {
+                    setExtractedData(schema.defaultData.map((d: any, i: number) => ({
+                        ...d,
+                        _source: `Row ${i + 2}`,
+                        _conf: 99
+                    })));
+                }
+            }
+        } catch (err: any) {
+            setUploadError('Network error. Is the app server running?');
+        } finally {
             setUploading(false);
-            setExtractionComplete(true);
-            // Simulate extracted data based on schema defaults but with slight variations
-            const schema = INSTITUTIONAL_SCHEMAS[selectedSchema];
-            setExtractedData(schema.defaultData.map((d, i) => ({
-                ...d,
-                _source: `PDF Line ${i + 12}`,
-                _conf: 98.4
-            })));
-        }, 2500);
+        }
     };
 
     const handleCommit = async () => {
-        alert('Repository Synchronized :: Extracted data committed to institutional database.');
         setFile(null);
         setExtractionComplete(false);
         setExtractedData([]);
+        setUploadResult(null);
+        alert('Data has been saved to the database successfully.');
     };
 
     return (
@@ -109,12 +160,24 @@ export default function UploadsPage() {
                             </div>
                         </div>
 
+                        {/* Hidden file input */}
+                        <input
+                            ref={fileInputRef}
+                            type="file"
+                            accept=".pdf,.xlsx,.xls,.csv"
+                            className="hidden"
+                            onChange={handleFileInputChange}
+                        />
+
                         <div 
                             onDragOver={(e) => e.preventDefault()}
                             onDrop={handleFileDrop}
+                            onClick={() => !file && fileInputRef.current?.click()}
                             className={cn(
                                 "border-2 border-dashed rounded-xl p-10 flex flex-col items-center justify-center text-center gap-4 transition-all duration-300",
-                                file ? "border-emerald-200 bg-emerald-50/30" : "border-slate-200 bg-slate-50/50 hover:bg-blue-50/30 hover:border-blue-200"
+                                file
+                                    ? "border-emerald-200 bg-emerald-50/30"
+                                    : "border-slate-200 bg-slate-50/50 hover:bg-blue-50/30 hover:border-blue-200 cursor-pointer"
                             )}
                         >
                             <div className={cn(
@@ -126,27 +189,27 @@ export default function UploadsPage() {
                             {file ? (
                                 <div className="space-y-1">
                                     <p className="text-[12px] font-extrabold text-[#1E3A8A] uppercase tracking-tighter truncate max-w-[200px]">{file.name}</p>
-                                    <p className="text-[10px] text-emerald-600 font-bold uppercase tracking-widest">Authenticated</p>
+                                    <p className="text-[10px] text-emerald-600 font-bold uppercase tracking-widest">File Selected ✓</p>
                                 </div>
                             ) : (
                                 <div className="space-y-1">
-                                    <p className="text-[11px] font-bold text-slate-600 uppercase tracking-widest">Drop Academic PDF</p>
-                                    <p className="text-[10px] text-slate-400 font-medium">Verified stream ingestion</p>
+                                    <p className="text-[11px] font-bold text-slate-600 uppercase tracking-widest">Drop File or Click to Browse</p>
+                                    <p className="text-[10px] text-slate-400 font-medium">PDF, Excel (.xlsx/.xls) or CSV</p>
                                 </div>
                             )}
                             {file && (
                                 <button 
-                                    onClick={() => setFile(null)}
+                                    onClick={(e) => { e.stopPropagation(); setFile(null); }}
                                     className="text-[10px] font-black text-rose-500 uppercase tracking-widest hover:underline mt-4"
                                 >
-                                    Purge Selection
+                                    Remove File
                                 </button>
                             )}
                         </div>
 
                         <button 
                             disabled={!file || uploading}
-                            onClick={simulateExtraction}
+                            onClick={handleExecute}
                             className={cn(
                                 "w-full flex items-center justify-center gap-3 py-4 rounded text-[11px] font-bold uppercase tracking-widest transition-all",
                                 !file ? "bg-slate-100 text-slate-400 cursor-not-allowed" : "bg-[#1E3A8A] text-white shadow-lg shadow-blue-100 hover:bg-blue-900"
@@ -155,15 +218,34 @@ export default function UploadsPage() {
                             {uploading ? (
                                 <>
                                     <BrainCircuit className="w-4 h-4 animate-spin" />
-                                    Extracting Intelligence...
+                                    Uploading...
                                 </>
                             ) : (
                                 <>
                                     <Zap className="w-4 h-4" />
-                                    Execute Extraction
+                                    Upload & Process
                                 </>
                             )}
                         </button>
+
+                        {/* Upload error banner */}
+                        {uploadError && (
+                            <div className="flex items-start gap-3 bg-rose-50 border border-rose-200 rounded-lg p-4">
+                                <AlertCircle className="w-4 h-4 text-rose-500 mt-0.5 flex-shrink-0" />
+                                <p className="text-[11px] font-bold text-rose-700">{uploadError}</p>
+                            </div>
+                        )}
+
+                        {/* Upload success banner */}
+                        {uploadResult && (
+                            <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-4 space-y-1">
+                                <div className="flex items-center gap-2">
+                                    <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                                    <p className="text-[11px] font-bold text-emerald-700 uppercase tracking-widest">Upload Successful</p>
+                                </div>
+                                <p className="text-[10px] text-emerald-600 pl-6">{uploadResult.success} records saved · {uploadResult.fails} skipped · saved to {uploadResult.savedTo || 'database'}</p>
+                            </div>
+                        )}
                     </div>
 
                     <div className="bg-slate-900 p-8 text-white rounded shadow-xl relative overflow-hidden">

@@ -9,6 +9,8 @@ export interface IPlacementDrive extends Document {
   academic_year: string;
   job_location?: string;
   status: 'Upcoming' | 'Ongoing' | 'Completed';
+  appeared_count?: number;
+  selected_count?: number;
   created_at: Date;
   updated_at: Date;
 }
@@ -21,6 +23,8 @@ const PlacementDriveSchema = new Schema({
   eligibility_criteria: { type: String }, // "CSE, >60%"
   job_location: { type: String },
   academic_year: { type: String, required: true }, // "2025-26"
+  appeared_count: { type: Number, default: 0 },
+  selected_count: { type: Number, default: 0 },
   
   status: { 
     type: String, 

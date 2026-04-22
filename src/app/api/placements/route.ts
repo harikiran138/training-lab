@@ -34,3 +34,40 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
+
+export async function POST(request: NextRequest) {
+  try {
+    await dbConnect();
+    const body = await request.json();
+    
+    // Validation: Selected cannot exceed appeared
+    if (body.selected_count > body.appeared_count) {
+      return NextResponse.json({ error: 'Selected count cannot exceed appeared count' }, { status: 400 });
+    }
+
+    const drive = await PlacementDrive.create(body);
+    return NextResponse.json(drive);
+  } catch (error: any) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+}
+
+export async function PUT(request: NextRequest) {
+  try {
+    await dbConnect();
+    const body = await request.json();
+    const { id, ...updates } = body;
+
+    if (!id) return NextResponse.json({ error: 'ID is required' }, { status: 400 });
+
+    // Validation: Selected cannot exceed appeared
+    if (updates.selected_count > updates.appeared_count) {
+      return NextResponse.json({ error: 'Selected count cannot exceed appeared count' }, { status: 400 });
+    }
+
+    const drive = await PlacementDrive.findByIdAndUpdate(id, updates, { new: true });
+    return NextResponse.json(drive);
+  } catch (error: any) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+}
