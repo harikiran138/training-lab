@@ -57,8 +57,16 @@ export const INSTITUTIONAL_SCHEMAS: Record<string, TableSchema> = {
     name: 'Career Path Log',
     category: 'Strategic',
     description: 'Student career goal evolution',
-    fields: [],
-    defaultData: []
+    fields: [
+      { key: 'branch', label: 'Branch', type: 'text' },
+      { key: 'higher_studies', label: 'Higher Studies', type: 'number' },
+      { key: 'entrepreneurship', label: 'Startup/Business', type: 'number' },
+      { key: 'government_jobs', label: 'Govt Jobs', type: 'number' },
+      { key: 'private_jobs', label: 'Private Sector', type: 'number' }
+    ],
+    defaultData: [
+      { branch: 'CSE', higher_studies: 12, entrepreneurship: 5, government_jobs: 8, private_jobs: 155 }
+    ]
   },
 
   // 4. ASSETS (LAPTOPS)
@@ -82,8 +90,22 @@ export const INSTITUTIONAL_SCHEMAS: Record<string, TableSchema> = {
     name: 'Syllabus Time-Series',
     category: 'CRT',
     description: 'Module completion tracking',
-    fields: [],
-    defaultData: []
+    fields: [
+      { key: 'branch', label: 'Branch Code', type: 'text' },
+      { key: 'module_name', label: 'Module/Topic', type: 'text' },
+      { key: 'total_hours', label: 'Total Hours', type: 'number' },
+      { key: 'completed_hours', label: 'Completed', type: 'number' },
+      { 
+        key: 'percent', 
+        label: 'Completion %', 
+        type: 'readOnly',
+        calculate: (row) => row.total_hours > 0 ? Math.round((row.completed_hours / row.total_hours) * 100) : 0
+      }
+    ],
+    defaultData: [
+      { branch: 'CSE', module_name: 'Java Fundamentals', total_hours: 40, completed_hours: 25 },
+      { branch: 'ECE', module_name: 'Python Basics', total_hours: 30, completed_hours: 12 }
+    ]
   },
 
   // 6. FEEDBACK
@@ -92,8 +114,16 @@ export const INSTITUTIONAL_SCHEMAS: Record<string, TableSchema> = {
     name: 'Feedback Loops',
     category: 'Strategic',
     description: 'Weekly satisfaction indices',
-    fields: [],
-    defaultData: []
+    fields: [
+      { key: 'branch', label: 'Branch', type: 'text' },
+      { key: 'week', label: 'Week', type: 'number' },
+      { key: 'satisfaction_score', label: 'Satisfaction (1-5)', type: 'number' },
+      { key: 'top_complaint', label: 'Key Concern', type: 'textarea' },
+      { key: 'top_positive', label: 'Key Positive', type: 'textarea' }
+    ],
+    defaultData: [
+      { branch: 'CSE', week: 4, satisfaction_score: 4.2, top_complaint: 'Lab timing', top_positive: 'Great mentor' }
+    ]
   },
 
   // 7. CONCLUSION
@@ -102,8 +132,15 @@ export const INSTITUTIONAL_SCHEMAS: Record<string, TableSchema> = {
     name: 'Exec. Conclusion',
     category: 'Strategic', // The "Overall Conclusion"
     description: 'High-level executive summary',
-    fields: [],
-    defaultData: []
+    fields: [
+      { key: 'period', label: 'Reporting Period', type: 'text' },
+      { key: 'summary', label: 'Executive Summary', type: 'textarea' },
+      { key: 'recommendations', label: 'Action Items', type: 'textarea' },
+      { key: 'risk_level', label: 'Institutional Risk', type: 'select' } // Need to handle select in UI
+    ],
+    defaultData: [
+      { period: 'Jan 2026', summary: 'Steady progress in technical modules.', recommendations: 'Focus on ECE branch attendance.', risk_level: 'Low' }
+    ]
   },
 
   // PLACEMENT (CORE)

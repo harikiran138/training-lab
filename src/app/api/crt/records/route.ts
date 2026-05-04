@@ -9,6 +9,10 @@ import { getSession } from '@/lib/auth';
 
 export async function GET(request: NextRequest) {
   try {
+    const session = await getSession();
+    if (!session) {
+      return NextResponse.json({ error: 'Unauthorized Access' }, { status: 401 });
+    }
     await dbConnect();
     const { searchParams } = new URL(request.url);
     const week_number = searchParams.get('week_number');
@@ -104,6 +108,7 @@ export async function POST(request: NextRequest) {
 
   } catch (error: any) {
     console.error("API Error", error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    const status = error.message.includes("Data Corruption") || error.message.includes("Negative Telemetry") ? 400 : 500;
+    return NextResponse.json({ error: error.message }, { status });
   }
 }

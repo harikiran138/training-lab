@@ -9,6 +9,7 @@ import {
   Trash2,
   FileText
 } from 'lucide-react';
+import { cn } from '@/lib/utils';
 import { TableSchema } from '@/config/SchemaManager';
 
 interface Props {
@@ -92,17 +93,40 @@ export default function GenericTableEntryForm({ schema, initialData, onSave, onC
                     <td key={f.key} className="px-4 py-2">
                       {f.type === 'readOnly' ? (
                         <span className="text-[12px] font-black text-[#1E3A8A]">
-                          {f.calculate ? f.calculate(row) : row[f.key]}
+                          {f.calculate ? f.calculate(row) : (row[f.key] ?? '')}
                         </span>
+                      ) : f.type === 'textarea' ? (
+                        <textarea
+                          value={row[f.key] || ''}
+                          onChange={(e) => handleUpdate(idx, f.key, e.target.value)}
+                          rows={2}
+                          className="w-full bg-slate-50 p-2 rounded text-[11px] font-medium text-slate-600 outline-none border border-transparent focus:border-blue-200 resize-none"
+                          placeholder={`Enter ${f.label}...`}
+                        />
+                      ) : f.type === 'select' ? (
+                        <select
+                          value={row[f.key] || ''}
+                          onChange={(e) => handleUpdate(idx, f.key, e.target.value)}
+                          className="w-full bg-transparent text-[12px] font-bold text-[#1E3A8A] outline-none border-b border-transparent focus:border-blue-200 py-1 cursor-pointer"
+                        >
+                          <option value="">Select...</option>
+                          <option value="Low">Low</option>
+                          <option value="Medium">Medium</option>
+                          <option value="High">High</option>
+                          <option value="Critical">Critical</option>
+                        </select>
                       ) : (
                         <input 
                           type={f.type === 'number' || f.type === 'percent' ? 'number' : 'text'}
-                          value={row[f.key] || ''}
+                          value={row[f.key] ?? ''}
                           onChange={(e) => {
                             const val = f.type === 'number' || f.type === 'percent' ? parseFloat(e.target.value) : e.target.value;
                             handleUpdate(idx, f.key, val);
                           }}
-                          className="w-full bg-transparent text-[12px] font-bold text-slate-600 outline-none border-b border-transparent focus:border-blue-200 py-1"
+                          className={cn(
+                            "w-full bg-transparent text-[12px] font-bold outline-none border-b border-transparent focus:border-blue-200 py-1",
+                            f.type === 'percent' ? "text-emerald-600" : "text-slate-600"
+                          )}
                         />
                       )}
                     </td>

@@ -1,9 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import dbConnect from '@/lib/mongodb';
 import StudentAsset from '@/models/StudentAsset';
+import { getSession } from '@/lib/auth';
 
 export async function GET(request: NextRequest) {
     try {
+        const session = await getSession();
+        if (!session) {
+            return NextResponse.json({ error: 'Unauthorized Access' }, { status: 401 });
+        }
         await dbConnect();
         const { searchParams } = new URL(request.url);
         const year = searchParams.get('academic_year') || '2025-26';
@@ -20,6 +25,10 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
     try {
+        const session = await getSession();
+        if (!session || session.role !== 'admin') {
+            return NextResponse.json({ error: 'Unauthorized Access' }, { status: 401 });
+        }
         await dbConnect();
         const body = await request.json();
         const asset = await StudentAsset.create(body);
@@ -31,6 +40,10 @@ export async function POST(request: NextRequest) {
 
 export async function PUT(request: NextRequest) {
     try {
+        const session = await getSession();
+        if (!session || session.role !== 'admin') {
+            return NextResponse.json({ error: 'Unauthorized Access' }, { status: 401 });
+        }
         await dbConnect();
         const body = await request.json();
         const { id, ...updates } = body;

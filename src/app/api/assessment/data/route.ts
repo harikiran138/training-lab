@@ -1,9 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { getSession } from '@/lib/auth';
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
 export async function GET(request: NextRequest) {
     try {
+        const session = await getSession();
+        if (!session) {
+            return NextResponse.json({ error: 'Unauthorized Access' }, { status: 401 });
+        }
         const { searchParams } = new URL(request.url);
         const branch = searchParams.get('branch');
         const section = searchParams.get('section');
@@ -44,6 +49,10 @@ export async function GET(request: NextRequest) {
 
 export async function PUT(request: NextRequest) {
     try {
+        const session = await getSession();
+        if (!session || !['admin', 'faculty'].includes(session.role)) {
+            return NextResponse.json({ error: 'Unauthorized Access' }, { status: 401 });
+        }
         const body = await request.json();
         const { reportId, updates } = body;
 
@@ -72,6 +81,10 @@ export async function PUT(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
     try {
+        const session = await getSession();
+        if (!session || !['admin', 'faculty'].includes(session.role)) {
+            return NextResponse.json({ error: 'Unauthorized Access' }, { status: 401 });
+        }
         const body = await request.json();
         const { branch, section, semester } = body;
 

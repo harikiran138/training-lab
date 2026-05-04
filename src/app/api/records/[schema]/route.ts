@@ -3,6 +3,7 @@ import dbConnect from '@/lib/mongodb';
 import GenericRecord from '@/models/GenericRecord';
 import { INSTITUTIONAL_SCHEMAS } from '@/config/SchemaManager';
 import { getSession } from '@/lib/auth';
+import { logAction } from '@/services/audit';
 
 /**
  * Generic Records API Handler (BUG-02 Fix & Missing Infrastructure)
@@ -13,6 +14,10 @@ export async function GET(
   { params }: { params: Promise<{ schema: string }> }
 ) {
   try {
+    const session = await getSession();
+    if (!session) {
+      return NextResponse.json({ error: 'Unauthorized Access' }, { status: 401 });
+    }
     await dbConnect();
     const { schema } = await params;
 
@@ -65,6 +70,14 @@ export async function POST(
         updated_at: new Date()
       },
       { upsert: true, new: true }
+    );
+
+    await logAction(
+      session.id,
+      'UPDATE_GENERIC_RECORD',
+      'GenericRecord',
+      updatedRecord._id.toString(),
+      { schema, epoch, status }
     );
 
     return NextResponse.json({

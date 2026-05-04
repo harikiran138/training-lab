@@ -1,9 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import dbConnect from '@/lib/mongodb';
 import PlacementDrive from '@/models/PlacementDrive';
+import { getSession } from '@/lib/auth';
 
 export async function GET(request: NextRequest) {
   try {
+    const session = await getSession();
+    if (!session) {
+      return NextResponse.json({ error: 'Unauthorized Access' }, { status: 401 });
+    }
     await dbConnect();
     const drives = await PlacementDrive.find({ academic_year: '2025-26' }).sort({ drive_date: -1 }).lean();
     
@@ -37,6 +42,10 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    const session = await getSession();
+    if (!session || !['admin', 'placement_officer'].includes(session.role)) {
+      return NextResponse.json({ error: 'Unauthorized Access' }, { status: 401 });
+    }
     await dbConnect();
     const body = await request.json();
     
@@ -54,6 +63,10 @@ export async function POST(request: NextRequest) {
 
 export async function PUT(request: NextRequest) {
   try {
+    const session = await getSession();
+    if (!session || !['admin', 'placement_officer'].includes(session.role)) {
+      return NextResponse.json({ error: 'Unauthorized Access' }, { status: 401 });
+    }
     await dbConnect();
     const body = await request.json();
     const { id, ...updates } = body;

@@ -11,6 +11,11 @@ import { logAction } from '@/services/audit';
 
 export async function GET(request: NextRequest) {
   try {
+    const session = await getSession();
+    if (!session) {
+      return NextResponse.json({ error: 'Unauthorized Access' }, { status: 401 });
+    }
+
     await dbConnect();
     const { searchParams } = new URL(request.url);
     const branch_code = searchParams.get('branch_code');
@@ -21,8 +26,7 @@ export async function GET(request: NextRequest) {
     if (week_no) query.week_no = parseInt(week_no);
 
     // Filter by branch for Faculty if restricted
-    const session = await getSession();
-    if (session && session.role === 'faculty' && session.branches && session.branches.length > 0) {
+    if (session.role === 'faculty' && session.branches && session.branches.length > 0) {
       if (branch_code && !session.branches.includes(branch_code)) {
         return NextResponse.json({ error: 'Unauthorized for this branch' }, { status: 403 });
       }

@@ -1,8 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { IngestionService } from '@/services/ingestion/IngestionService';
 
+import { getSession } from '@/lib/auth';
+
 export async function POST(req: NextRequest) {
   try {
+    const session = await getSession();
+    if (!session || session.role !== 'admin') {
+      return NextResponse.json({ error: 'Unauthorized Access' }, { status: 401 });
+    }
     const formData = await req.formData();
     const file = formData.get('file') as File;
 

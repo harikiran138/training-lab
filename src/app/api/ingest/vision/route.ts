@@ -1,8 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { getSession } from '@/lib/auth';
 import { VisionIntelligenceService } from '@/services/ai/VisionIntelligenceService';
 
 export async function POST(request: NextRequest) {
   try {
+    const session = await getSession();
+    if (!session || session.role !== 'admin') {
+      return NextResponse.json({ error: 'Unauthorized Access' }, { status: 401 });
+    }
     const formData = await request.formData();
     const file = formData.get('file') as File;
 

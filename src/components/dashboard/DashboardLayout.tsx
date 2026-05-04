@@ -23,6 +23,8 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { PresentationMode } from '@/components/presentation/PresentationMode';
+import { useRouter } from 'next/navigation';
+import { useEffect } from 'react';
 
 const sidebarLinks = [
   { name: 'Dashboard', href: '/', icon: LayoutDashboard },
@@ -36,8 +38,59 @@ const sidebarLinks = [
 
 export function DashboardLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const router = useRouter();
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [isPresenting, setIsPresenting] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState<any>(null);
+
+  useEffect(() => {
+    // Skip auth check on login page
+    if (pathname === '/login') {
+      setLoading(false);
+      return;
+    }
+
+    async function checkAuth() {
+      try {
+        const res = await fetch('/api/auth/me');
+        if (res.ok) {
+          const data = await res.json();
+          setUser(data.user);
+        } else {
+          router.push('/login');
+        }
+      } catch (err) {
+        router.push('/login');
+      } finally {
+        setLoading(false);
+      }
+    }
+    checkAuth();
+  }, [pathname, router]);
+
+  if (loading && pathname !== '/login') {
+    return (
+      <div className="min-h-screen bg-white flex flex-col items-center justify-center space-y-4">
+        <div className="w-10 h-10 border-4 border-[#1E3A8A] border-t-transparent rounded-full animate-spin"></div>
+        <p className="text-[11px] font-black uppercase tracking-[0.4em] text-[#1E3A8A] opacity-40">Authenticating Institutional Access...</p>
+      </div>
+    );
+  }
+
+  // Handle case where we are on login page but layout is still wrapping it
+  if (pathname === '/login') return <>{children}</>;
+
+  const handleLogout = async () => {
+    try {
+      const res = await fetch('/api/auth/logout', { method: 'POST' });
+      if (res.ok) {
+        router.push('/login');
+      }
+    } catch (err) {
+      console.error('Logout failed', err);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-[#EFF6FF] text-[#374151] selection:bg-blue-100">
@@ -95,8 +148,8 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
             </button>
             <div className="flex items-center gap-3 cursor-pointer group">
               <div className="text-right hidden xl:block">
-                <p className="text-[12px] font-bold text-slate-900 leading-none">Admin Hub</p>
-                <p className="text-[10px] text-slate-400 mt-1 font-medium">T&P Department</p>
+                <p className="text-[12px] font-bold text-slate-900 leading-none">{user?.name || 'Institutional Admin'}</p>
+                <p className="text-[10px] text-slate-400 mt-1 font-medium italic uppercase tracking-wider">{user?.role || 'Master Auditor'}</p>
               </div>
               <div className="w-9 h-9 bg-[#1E3A8A] rounded-full flex items-center justify-center text-white ring-2 ring-blue-50 group-hover:ring-blue-100 transition-all">
                 <UserCircle className="w-5 h-5" />
@@ -137,7 +190,9 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
           </nav>
 
           <div className="p-3 border-t border-blue-50">
-            <button className={cn(
+            <button 
+              onClick={handleLogout}
+              className={cn(
               "flex items-center gap-3 w-full px-3 py-3 rounded-lg text-[13px] font-semibold text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-all group",
               !sidebarOpen && "justify-center"
             )}>

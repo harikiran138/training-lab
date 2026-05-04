@@ -27,7 +27,28 @@ export default function UploadsPage() {
     const [extractedData, setExtractedData] = useState<any[]>([]);
     const [uploadResult, setUploadResult] = useState<{ success: number; fails: number; anomalies: any[]; savedTo?: string } | null>(null);
     const [uploadError, setUploadError] = useState<string | null>(null);
+    const [recentLogs, setRecentLogs] = useState<any[]>([]);
+    const [loadingLogs, setLoadingLogs] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
+
+    React.useEffect(() => {
+        fetchRecentLogs();
+    }, []);
+
+    const fetchRecentLogs = async () => {
+        setLoadingLogs(true);
+        try {
+            const res = await fetch('/api/ingest/logs');
+            if (res.ok) {
+                const data = await res.json();
+                setRecentLogs(data);
+            }
+        } catch (err) {
+            console.error('Failed to fetch logs', err);
+        } finally {
+            setLoadingLogs(false);
+        }
+    };
 
     const ACCEPTED_TYPES = [
         'application/pdf',
@@ -107,6 +128,7 @@ export default function UploadsPage() {
         setExtractionComplete(false);
         setExtractedData([]);
         setUploadResult(null);
+        fetchRecentLogs();
         alert('Data has been saved to the database successfully.');
     };
 
@@ -345,6 +367,83 @@ export default function UploadsPage() {
                             </div>
                         </div>
                     )}
+                </div>
+            </div>
+
+            {/* RECENT INGESTION LOGS */}
+            <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+                <div className="px-8 py-6 border-b border-slate-100 flex justify-between items-center">
+                    <div>
+                        <h3 className="text-[13px] font-extrabold text-[#1E3A8A] uppercase tracking-wider">Recent Ingestion Cycles</h3>
+                        <p className="text-[10px] text-slate-400 font-bold uppercase mt-1 tracking-widest">Audit Trail of Institutional Data Streams</p>
+                    </div>
+                    <button onClick={fetchRecentLogs} className="p-2 hover:bg-slate-50 rounded-lg text-slate-400">
+                        <Zap className={cn("w-4 h-4", loadingLogs && "animate-pulse")} />
+                    </button>
+                </div>
+                
+                <div className="overflow-x-auto">
+                    <table className="w-full text-left">
+                        <thead>
+                            <tr className="bg-[#F8FAFC] border-b border-slate-100">
+                                <th className="px-8 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Filename</th>
+                                <th className="px-8 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Timestamp</th>
+                                <th className="px-8 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-center">Status</th>
+                                <th className="px-8 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-center">Stats</th>
+                                <th className="px-8 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Anomalies</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100">
+                            {recentLogs.length === 0 ? (
+                                <tr>
+                                    <td colSpan={5} className="px-8 py-20 text-center text-slate-300 text-[11px] font-bold uppercase tracking-widest">No ingestion cycles recorded</td>
+                                </tr>
+                            ) : (
+                                recentLogs.map((log) => (
+                                    <tr key={log._id} className="hover:bg-slate-50/50 transition-colors">
+                                        <td className="px-8 py-6">
+                                            <div className="flex items-center gap-3">
+                                                <FileText className="w-4 h-4 text-slate-400" />
+                                                <span className="text-[12px] font-bold text-slate-700">{log.filename}</span>
+                                            </div>
+                                        </td>
+                                        <td className="px-8 py-6 text-[11px] font-medium text-slate-500 uppercase">
+                                            {new Date(log.upload_date).toLocaleString()}
+                                        </td>
+                                        <td className="px-8 py-6 text-center">
+                                            <span className={cn(
+                                                "px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border",
+                                                log.status === 'COMPLETED' ? "bg-emerald-50 text-emerald-600 border-emerald-100" : "bg-amber-50 text-amber-600 border-amber-100"
+                                            )}>
+                                                {log.status}
+                                            </span>
+                                        </td>
+                                        <td className="px-8 py-6 text-center">
+                                            <div className="flex flex-col gap-1">
+                                                <span className="text-[11px] font-bold text-[#1E3A8A]">{log.success_count} SUCCESS</span>
+                                                <span className="text-[9px] font-bold text-rose-500">{log.error_count} ANOMALIES</span>
+                                            </div>
+                                        </td>
+                                        <td className="px-8 py-6">
+                                            {log.anomalies && log.anomalies.length > 0 ? (
+                                                <div className="flex flex-col gap-1 max-w-xs">
+                                                    {log.anomalies.slice(0, 2).map((a: any, i: number) => (
+                                                        <div key={i} className="flex items-center gap-2 text-[10px] text-rose-600 font-bold">
+                                                            <AlertCircle className="w-3 h-3" />
+                                                            <span className="truncate">{a.issue}</span>
+                                                        </div>
+                                                    ))}
+                                                    {log.anomalies.length > 2 && <span className="text-[9px] text-slate-400 font-bold">+ {log.anomalies.length - 2} more issues</span>}
+                                                </div>
+                                            ) : (
+                                                <span className="text-[10px] text-emerald-600 font-bold uppercase tracking-widest">Zero-G Validation Passed</span>
+                                            )}
+                                        </td>
+                                    </tr>
+                                ))
+                            )}
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
